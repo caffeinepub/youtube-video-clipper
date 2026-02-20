@@ -1,2 +1,3 @@
-# youtube-video-clipper
-Exported from Caffeine project: YouTube Video Clipper
+## YouTube Video Clipper
+
+To run app build and run docker image: `docker build -t app . docker run -it --network host app`

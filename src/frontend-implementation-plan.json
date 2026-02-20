@@ -1,0 +1,175 @@
+{
+  "kind": "implementation_plan",
+  "version": "1.0",
+  "title": "YouTube Video Clipping Application - Frontend Implementation",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "summary": "Create a form where users can input a YouTube video URL",
+      "acceptanceCriteria": [
+        "Form accepts YouTube video URLs",
+        "Form validates URL format before submission",
+        "User receives feedback on invalid URLs"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/VideoUrlForm.tsx",
+          "operation": "create",
+          "description": "Create a form component that accepts YouTube video URLs with validation. Use shadcn/ui Input and Button components for consistent styling. Validate YouTube URL format (youtube.com/watch or youtu.be links) before allowing submission. Display error messages for invalid URLs using shadcn/ui Alert component. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useYouTubeValidation.ts",
+          "operation": "create",
+          "description": "Create a custom hook that validates YouTube URL formats and extracts video IDs. Support both youtube.com/watch?v= and youtu.be/ formats. Return validation status and extracted video ID for use in the form component."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Integrate VideoUrlForm component into the main application within the Layout component. Wire form submission to update application state with the submitted video URL."
+        }
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "summary": "Display the YouTube video in an embedded player after URL submission",
+      "acceptanceCriteria": [
+        "Video player loads and displays the submitted YouTube video",
+        "Player shows video controls for playback"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/YouTubePlayer.tsx",
+          "operation": "create",
+          "description": "Create a YouTube player component using YouTube iframe embed API. Accept video ID as prop and render an embedded player with controls enabled. Include responsive sizing to fit the layout. Handle loading and error states appropriately."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Add YouTubePlayer component to the application. Pass the video ID extracted from the submitted URL to the player component. Show the player only when a valid video URL has been submitted."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Implement clip selection controls allowing users to set start and end timestamps for a video segment",
+      "acceptanceCriteria": [
+        "Users can specify start time in minutes and seconds",
+        "Users can specify end time in minutes and seconds",
+        "System validates that end time is after start time",
+        "Preview shows the selected time range"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ClipTimestampControls.tsx",
+          "operation": "create",
+          "description": "Create timestamp controls component with inputs for start and end times in minutes and seconds format. Use shadcn/ui Input components for time entry. Validate that end time is greater than start time. Display time range preview and validation errors using shadcn/ui Alert. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useClipTimestamps.ts",
+          "operation": "create",
+          "description": "Create a hook to manage clip timestamp state, validation, and conversion between minutes:seconds format and total seconds. Return timestamp values, validation status, and helper functions for time formatting."
+        },
+        {
+          "path": "frontend/src/hooks/useClipCreation.ts",
+          "operation": "create",
+          "description": "Create a hook to manage the clip creation flow. Integrate YouTube URL validation, timestamp selection, and backend saveClip method call. Accept video title, URL, thumbnail URL, start time, and end time, convert timestamps to bigint format, and call the backend. Return creation status, loading state, and error handling."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Add ClipTimestampControls component below the video player. Wire the controls to useClipCreation hook. Include a save button that triggers clip creation with the current video URL, timestamps, and metadata."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Display a list of all saved clips with thumbnail, title, and time range",
+      "acceptanceCriteria": [
+        "Backend returns all stored clips",
+        "Frontend displays clips in a list or grid format",
+        "Each clip shows the video title and time range",
+        "Clicking a clip loads it in the player"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ClipList.tsx",
+          "operation": "create",
+          "description": "Create a component that fetches and displays all saved clips from the backend using the getAllClips method. Display clips in a grid layout showing thumbnail, title, and time range (formatted from startTime and endTime). Use shadcn/ui Card component for each clip. Make clips clickable to load them in the player. Handle loading and empty states appropriately. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/components/ClipCard.tsx",
+          "operation": "create",
+          "description": "Create a reusable clip card component that displays clip thumbnail, title, and formatted time range. Accept clip data and onClick handler as props. Use shadcn/ui Card, CardHeader, CardTitle, CardContent components for consistent styling. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useClips.ts",
+          "operation": "create",
+          "description": "Create a hook to fetch all clips from the backend using the getAllClips method and manage clip list state. Include loading and error states. Provide refresh functionality to reload clips after mutations."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Add ClipList component to display all saved clips. Position it in a sidebar or below the main video area. Wire clip selection so that clicking a clip loads its video in the YouTubePlayer and populates the timestamp controls with the clip's start and end times."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Allow users to delete saved clips",
+      "acceptanceCriteria": [
+        "Each clip has a delete button",
+        "Backend removes clip when delete is requested",
+        "UI updates to reflect deletion"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ClipCard.tsx",
+          "operation": "modify",
+          "description": "Add a delete button to the clip card using shadcn/ui Button component with destructive variant. Accept onDelete callback prop and wire it to the button click handler. Show confirmation dialog using shadcn/ui AlertDialog before deletion. Verify the component's usage instructions before implementing."
+        },
+        {
+          "path": "frontend/src/hooks/useClips.ts",
+          "operation": "modify",
+          "description": "Add deleteClip function that calls the backend deleteClip method with the clip ID. Update local state after successful deletion to remove the clip from the list. Handle errors appropriately."
+        },
+        {
+          "path": "frontend/src/components/ClipList.tsx",
+          "operation": "modify",
+          "description": "Pass the deleteClip function from useClips hook to each ClipCard component via the onDelete prop. Ensure the clip list refreshes after successful deletion."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Design a creative, coherent visual theme with distinct style for the video clipping application interface",
+      "acceptanceCriteria": [
+        "Application has a cohesive visual identity",
+        "Color scheme is applied consistently",
+        "Typography choices support readability and hierarchy",
+        "Layout patterns are consistent across all views"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Define a cohesive color scheme using CSS custom properties for primary, secondary, accent colors, and neutral tones suitable for a video clipping application. Set up typography scale with consistent font families, sizes, and weights. Ensure good contrast for readability. Apply theme to shadcn/ui components through Tailwind configuration."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Extend Tailwind theme with custom colors, spacing, and typography that align with the video clipping application's visual identity. Configure shadcn/ui theme variables to use the custom color palette. Ensure consistent spacing and layout patterns."
+        },
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "create",
+          "description": "Create a layout component that provides consistent page structure with header, main content area, and optional sidebar. Apply the visual theme through consistent padding, margins, and background colors. Use the layout component as a wrapper for all main views."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wrap the entire application content with the Layout component to ensure consistent visual theme and structure across all views."
+        }
+      ]
+    }
+  ]
+}
