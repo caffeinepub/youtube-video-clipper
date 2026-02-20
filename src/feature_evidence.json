@@ -2,10 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-application-header-branding-in-the-layout-component-to-display-beast-clipping-instead-of-cliptube",
-      "featureTitle": "Update the application header branding in the Layout component to display 'Beast Clipping' instead of 'ClipTube'",
+      "featureId": "feature-implement-the-useautogenerateclips-hook-in-frontend-src-hooks-useautogenerateclips-ts-to-call-the-backend-generateclipsautomatically-method-and-return-the-generated-clips-using-react-query",
+      "featureTitle": "Implement the useAutoGenerateClips hook in frontend/src/hooks/useAutoGenerateClips.ts to call the backend generateClipsAutomatically method and return the generated clips using React Query",
       "files": [
-        "frontend/src/components/Layout.tsx"
+        "frontend/src/hooks/useAutoGenerateClips.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -15,15 +15,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-12"
+        "REQ-29"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-html-page-title-in-index-html-to-beast-clipping-instead-of-any-reference-to-cliptube",
-      "featureTitle": "Update the HTML page title in index.html to 'Beast Clipping' instead of any reference to 'ClipTube'",
+      "featureId": "feature-add-a-generate-ai-clips-button-to-the-videourlform-component-that-triggers-automatic-clip-generation-when-a-valid-youtube-url-is-entered",
+      "featureTitle": "Add a 'Generate AI Clips' button to the VideoUrlForm component that triggers automatic clip generation when a valid YouTube URL is entered",
       "files": [
-        "frontend/index.html"
+        "frontend/src/components/VideoUrlForm.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -33,7 +33,25 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-13"
+        "REQ-30"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-update-the-app-tsx-component-to-integrate-automatic-clip-generation-into-the-video-workflow-storing-generated-suggestions-and-passing-them-to-the-clipsuggestions-component",
+      "featureTitle": "Update the App.tsx component to integrate automatic clip generation into the video workflow, storing generated suggestions and passing them to the ClipSuggestions component",
+      "files": [
+        "frontend/src/App.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0"
+      ],
+      "testIds": [
+        "REQ-31"
       ],
       "confidence": "high"
     }

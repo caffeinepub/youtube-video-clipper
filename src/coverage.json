@@ -1,46 +1,71 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-20T22:34:41.183Z",
+  "generatedAt": "2026-02-20T23:01:49.731Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
-    "implemented": 2,
+    "total": 4,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-12",
-        "summary": "Update the application header branding in the Layout component to display 'Beast Clipping' instead of 'ClipTube'",
+        "id": "REQ-28",
+        "summary": "Create a backend function generateClipsAutomatically that accepts a YouTube video ID and returns an array of auto-generated clip suggestions, each containing start timestamp, end timestamp, title, and viral score",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-29",
+        "summary": "Implement the useAutoGenerateClips hook in frontend/src/hooks/useAutoGenerateClips.ts to call the backend generateClipsAutomatically method and return the generated clips using React Query",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/Layout.tsx"
+          "frontend/src/hooks/useAutoGenerateClips.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/Layout.tsx"
+          "frontend/src/hooks/useAutoGenerateClips.ts"
         ]
       },
       {
-        "id": "REQ-13",
-        "summary": "Update the HTML page title in index.html to 'Beast Clipping' instead of any reference to 'ClipTube'",
+        "id": "REQ-30",
+        "summary": "Add a 'Generate AI Clips' button to the VideoUrlForm component that triggers automatic clip generation when a valid YouTube URL is entered",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/index.html"
+          "frontend/src/components/VideoUrlForm.tsx"
         ],
         "matchedFiles": [
-          "frontend/index.html"
+          "frontend/src/components/VideoUrlForm.tsx"
+        ]
+      },
+      {
+        "id": "REQ-31",
+        "summary": "Update the App.tsx component to integrate automatic clip generation into the video workflow, storing generated suggestions and passing them to the ClipSuggestions component",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/index.html",
-    "frontend/src/components/Layout.tsx",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/ClipSuggestions.tsx",
+    "frontend/src/components/VideoUrlForm.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useAutoGenerateClips.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,10 +1,12 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 7,
+  "projectStateVersion": 15,
   "summary": "YouTube video clipping application",
   "architectural_notes": [],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "AI clip generation feature is not implemented despite being listed as completed in existing features"
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-create-a-form-where-users-can-input-a-youtube-video-url",
@@ -85,6 +87,110 @@
         "REQ-13"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-create-a-react-hook-useisowner-that-calls-the-backend-isowner-method-and-returns-the-result-using-react-query",
+      "title": "Create a React hook useIsOwner that calls the backend isOwner method and returns the result using React Query",
+      "reqIds": [
+        "REQ-15"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-adminpanel-component-that-displays-system-statistics-including-total-clips-count-total-users-count-and-trending-clips-analytics",
+      "title": "Create an AdminPanel component that displays system statistics including total clips count, total users count, and trending clips analytics",
+      "reqIds": [
+        "REQ-16"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-an-admin-navigation-link-in-the-layout-header-that-only-renders-when-the-user-is-the-owner",
+      "title": "Add an Admin navigation link in the Layout header that only renders when the user is the owner",
+      "reqIds": [
+        "REQ-18"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-an-admin-route-in-app-tsx-that-displays-the-adminpanel-component-only-if-the-user-is-the-owner-otherwise-shows-an-access-denied-message",
+      "title": "Create an /admin route in App.tsx that displays the AdminPanel component only if the user is the owner, otherwise shows an access denied message",
+      "reqIds": [
+        "REQ-19"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-fix-the-javascript-error-in-the-admin-panel-that-causes-the-entire-application-to-crash-with-a-blank-screen-and-a-problem-repeatedly-occurred-error",
+      "title": "Fix the JavaScript error in the admin panel that causes the entire application to crash with a blank screen and 'A problem repeatedly occurred' error",
+      "reqIds": [
+        "REQ-20"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-proper-error-boundary-handling-in-the-admin-route-to-prevent-admin-specific-errors-from-crashing-the-entire-application",
+      "title": "Add proper error boundary handling in the admin route to prevent admin-specific errors from crashing the entire application",
+      "reqIds": [
+        "REQ-21"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-useisowner-hook-handles-loading-and-error-states-correctly-without-causing-render-crashes",
+      "title": "Ensure useIsOwner hook handles loading and error states correctly without causing render crashes",
+      "reqIds": [
+        "REQ-22"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-fallback-ui-in-adminpanel-component-for-cases-where-statistics-fail-to-load",
+      "title": "Add fallback UI in AdminPanel component for cases where statistics fail to load",
+      "reqIds": [
+        "REQ-23"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-react-hook-useautogenerateclips-that-calls-the-backend-automatic-clip-generation-method-and-handles-the-response-using-react-query",
+      "title": "Create a React hook useAutoGenerateClips that calls the backend automatic clip generation method and handles the response using React Query",
+      "reqIds": [
+        "REQ-26"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-cliplist-component-to-indicate-which-clips-were-auto-generated-versus-manually-created",
+      "title": "Update the ClipList component to indicate which clips were auto-generated versus manually created",
+      "reqIds": [
+        "REQ-27"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-useautogenerateclips-hook-in-frontend-src-hooks-useautogenerateclips-ts-to-call-the-backend-generateclipsautomatically-method-and-return-the-generated-clips-using-react-query",
+      "title": "Implement the useAutoGenerateClips hook in frontend/src/hooks/useAutoGenerateClips.ts to call the backend generateClipsAutomatically method and return the generated clips using React Query",
+      "reqIds": [
+        "REQ-29"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-generate-ai-clips-button-to-the-videourlform-component-that-triggers-automatic-clip-generation-when-a-valid-youtube-url-is-entered",
+      "title": "Add a 'Generate AI Clips' button to the VideoUrlForm component that triggers automatic clip generation when a valid YouTube URL is entered",
+      "reqIds": [
+        "REQ-30"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-app-tsx-component-to-integrate-automatic-clip-generation-into-the-video-workflow-storing-generated-suggestions-and-passing-them-to-the-clipsuggestions-component",
+      "title": "Update the App.tsx component to integrate automatic clip generation into the video workflow, storing generated suggestions and passing them to the ClipSuggestions component",
+      "reqIds": [
+        "REQ-31"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -127,6 +233,58 @@
       "summary": "Automatically detect and suggest optimal clip segments from a YouTube video that have high viral potential",
       "reqIds": [
         "REQ-9"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-10",
+      "summary": "Add an admin panel accessible only to the owner",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-11",
+      "summary": "Create a backend canister method to check if a caller's principal matches a hardcoded owner principal, returning a boolean",
+      "reqIds": [
+        "REQ-14"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-14",
+      "summary": "Add backend query methods to retrieve admin statistics including getTotalClipsCount and getTrendingClipsAnalytics",
+      "reqIds": [
+        "REQ-17"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-15",
+      "summary": "Implement AI-powered automatic clip generation that creates clips without manual user input",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Create a backend function that automatically analyzes a YouTube video and generates multiple clip suggestions with start/end timestamps, titles, and viral scores without requiring manual timestamp selection",
+      "reqIds": [
+        "REQ-24"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-17",
+      "summary": "Add a 'Generate Clips' button in the VideoUrlForm component that triggers automatic clip generation for the entered YouTube video",
+      "reqIds": [
+        "REQ-25"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Create a backend function generateClipsAutomatically that accepts a YouTube video ID and returns an array of auto-generated clip suggestions, each containing start timestamp, end timestamp, title, and viral score",
+      "reqIds": [
+        "REQ-28"
       ],
       "status": "pending"
     }

@@ -1,47 +1,101 @@
 {
   "kind": "build_request",
-  "title": "Rebrand application from ClipTube to Beast Clipping",
-  "priority": "normal",
+  "title": "Implement AI-powered automatic clip generation functionality",
+  "projectName": "Beast Clipping",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-12",
-      "text": "Update the application header branding in the Layout component to display 'Beast Clipping' instead of 'ClipTube'",
-      "target": "frontend",
+      "id": "REQ-28",
+      "text": "Create a backend function generateClipsAutomatically that accepts a YouTube video ID and returns an array of auto-generated clip suggestions, each containing start timestamp, end timestamp, title, and viral score",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-final"
+          "msg-current"
         ],
         "quotes": [
-          "Can you make it say beast clipping instead of clip tube?"
+          "It still dont have the ai"
         ]
       },
       "acceptanceCriteria": [
-        "The header text in the Layout component displays 'Beast Clipping'",
-        "The branding is visible on all pages of the application"
+        "Backend function accepts videoId as Text parameter",
+        "Function returns an array of clip objects with startTime, endTime, title, and viralScore fields",
+        "Function generates 3-5 clip suggestions per video based on video analysis logic",
+        "Each generated clip has a unique title describing its content",
+        "Viral scores range from 0-100 based on clip characteristics"
       ]
     },
     {
-      "id": "REQ-13",
-      "text": "Update the HTML page title in index.html to 'Beast Clipping' instead of any reference to 'ClipTube'",
+      "id": "REQ-29",
+      "text": "Implement the useAutoGenerateClips hook in frontend/src/hooks/useAutoGenerateClips.ts to call the backend generateClipsAutomatically method and return the generated clips using React Query",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-final"
+          "msg-current"
         ],
         "quotes": [
-          "Can you make it say beast clipping instead of clip tube?"
+          "It still dont have the ai"
         ]
       },
       "acceptanceCriteria": [
-        "The browser tab displays 'Beast Clipping' as the page title"
+        "Hook accepts videoId as a parameter",
+        "Hook uses React Query's useMutation to call the backend actor's generateClipsAutomatically method",
+        "Hook returns mutation object with mutate function, data, isLoading, and error states",
+        "Hook properly handles loading and error states",
+        "Generated clips are returned in a format compatible with the ClipSuggestions component"
+      ]
+    },
+    {
+      "id": "REQ-30",
+      "text": "Add a 'Generate AI Clips' button to the VideoUrlForm component that triggers automatic clip generation when a valid YouTube URL is entered",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-current"
+        ],
+        "quotes": [
+          "It still dont have the ai"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Button is displayed after a valid YouTube URL is submitted",
+        "Button triggers the useAutoGenerateClips hook with the current video ID",
+        "Button shows loading state while clips are being generated",
+        "Generated clips are passed to the parent component or stored in state for display in ClipSuggestions",
+        "Button is disabled during generation to prevent duplicate requests"
+      ]
+    },
+    {
+      "id": "REQ-31",
+      "text": "Update the App.tsx component to integrate automatic clip generation into the video workflow, storing generated suggestions and passing them to the ClipSuggestions component",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-current"
+        ],
+        "quotes": [
+          "It still dont have the ai"
+        ]
+      },
+      "acceptanceCriteria": [
+        "App component manages state for AI-generated clip suggestions",
+        "Generated clips are passed to ClipSuggestions component for display",
+        "User can trigger AI generation after loading a video",
+        "Generated suggestions persist until a new video is loaded",
+        "Component handles errors from the generation process gracefully"
       ]
     }
   ],
-  "constraints": [],
+  "constraints": [
+    "Use the single-actor architecture pattern in backend/main.mo",
+    "Do not modify immutable frontend paths including useInternetIdentity.ts, useActor.ts, main.tsx, and components/ui",
+    "Use React Query for all backend API calls",
+    "Maintain consistency with existing viral score calculation patterns"
+  ],
   "nonGoals": [
-    "Changing functionality or features",
-    "Modifying the backend",
-    "Altering the visual design or color scheme"
+    "Integration with external AI services or APIs",
+    "Real-time video analysis using actual video content processing",
+    "Automatic posting to YouTube channels",
+    "User authentication beyond Internet Identity"
   ],
   "imageRequirements": {
     "required": [],
