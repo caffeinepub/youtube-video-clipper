@@ -96,14 +96,17 @@ export interface Clip {
     thumbnailUrl: string;
     endTime: bigint;
     createdAt: Time;
+    score: number;
     videoUrl: string;
 }
 export type Time = bigint;
 export interface backendInterface {
     deleteClip(clipId: string): Promise<void>;
+    findRelatedClips(clipId: string): Promise<Array<string>>;
     getAllClips(): Promise<Array<Clip>>;
     getClipById(clipId: string): Promise<Clip>;
-    saveClip(title: string, videoUrl: string, thumbnailUrl: string, startTime: bigint, endTime: bigint): Promise<string>;
+    getTrendingClips(): Promise<Array<Clip>>;
+    saveClip(title: string, videoUrl: string, thumbnailUrl: string, startTime: bigint, endTime: bigint, score: number): Promise<string>;
 }
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
@@ -118,6 +121,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.deleteClip(arg0);
+            return result;
+        }
+    }
+    async findRelatedClips(arg0: string): Promise<Array<string>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.findRelatedClips(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.findRelatedClips(arg0);
             return result;
         }
     }
@@ -149,17 +166,31 @@ export class Backend implements backendInterface {
             return result;
         }
     }
-    async saveClip(arg0: string, arg1: string, arg2: string, arg3: bigint, arg4: bigint): Promise<string> {
+    async getTrendingClips(): Promise<Array<Clip>> {
         if (this.processError) {
             try {
-                const result = await this.actor.saveClip(arg0, arg1, arg2, arg3, arg4);
+                const result = await this.actor.getTrendingClips();
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.saveClip(arg0, arg1, arg2, arg3, arg4);
+            const result = await this.actor.getTrendingClips();
+            return result;
+        }
+    }
+    async saveClip(arg0: string, arg1: string, arg2: string, arg3: bigint, arg4: bigint, arg5: number): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.saveClip(arg0, arg1, arg2, arg3, arg4, arg5);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.saveClip(arg0, arg1, arg2, arg3, arg4, arg5);
             return result;
         }
     }

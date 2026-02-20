@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 3,
+  "projectStateVersion": 7,
   "summary": "YouTube video clipping application",
   "architectural_notes": [],
   "known_issues": [],
@@ -53,6 +53,38 @@
         "REQ-7"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-display-ai-generated-clip-suggestions-in-the-frontend-with-viral-potential-indicators",
+      "title": "Display AI-generated clip suggestions in the frontend with viral potential indicators",
+      "reqIds": [
+        "REQ-10"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-visual-indicators-or-badges-to-saved-clips-showing-their-viral-potential-rating",
+      "title": "Add visual indicators or badges to saved clips showing their viral potential rating",
+      "reqIds": [
+        "REQ-11"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-application-header-branding-in-the-layout-component-to-display-beast-clipping-instead-of-cliptube",
+      "title": "Update the application header branding in the Layout component to display 'Beast Clipping' instead of 'ClipTube'",
+      "reqIds": [
+        "REQ-12"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-html-page-title-in-index-html-to-beast-clipping-instead-of-any-reference-to-cliptube",
+      "title": "Update the HTML page title in index.html to 'Beast Clipping' instead of any reference to 'ClipTube'",
+      "reqIds": [
+        "REQ-13"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -67,6 +99,34 @@
       "summary": "Store clip metadata including video URL, start timestamp, end timestamp, and creation date in the backend",
       "reqIds": [
         "REQ-4"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "AI-powered clip selection that identifies viral-worthy segments",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "YouTube login integration with automatic posting to user's channel",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Implement backend algorithm to analyze video clips and score their viral potential based on factors such as engagement patterns, content type, pacing, and trending topics",
+      "reqIds": [
+        "REQ-8"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Automatically detect and suggest optimal clip segments from a YouTube video that have high viral potential",
+      "reqIds": [
+        "REQ-9"
       ],
       "status": "pending"
     }

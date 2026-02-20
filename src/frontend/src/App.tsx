@@ -6,28 +6,43 @@ import VideoUrlForm from './components/VideoUrlForm';
 import YouTubePlayer from './components/YouTubePlayer';
 import ClipTimestampControls from './components/ClipTimestampControls';
 import ClipList from './components/ClipList';
+import ClipSuggestions from './components/ClipSuggestions';
 import { Toaster } from '@/components/ui/sonner';
 import type { Clip } from './backend';
+
+const queryClient = new QueryClient();
 
 function AppContent() {
   const [videoId, setVideoId] = useState<string>('');
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [selectedClip, setSelectedClip] = useState<Clip | null>(null);
+  const [suggestedClip, setSuggestedClip] = useState<{
+    startTime: number;
+    endTime: number;
+    title: string;
+  } | null>(null);
 
   const handleVideoSubmit = (url: string, id: string) => {
     setVideoUrl(url);
     setVideoId(id);
     setSelectedClip(null);
+    setSuggestedClip(null);
   };
 
   const handleClipSelect = (clip: Clip) => {
     setSelectedClip(clip);
+    setSuggestedClip(null);
     // Extract video ID from the clip's video URL
     const urlMatch = clip.videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
     if (urlMatch) {
       setVideoId(urlMatch[1]);
       setVideoUrl(clip.videoUrl);
     }
+  };
+
+  const handleSuggestionSelect = (startTime: number, endTime: number, title: string) => {
+    setSuggestedClip({ startTime, endTime, title });
+    setSelectedClip(null);
   };
 
   return (
@@ -45,13 +60,17 @@ function AppContent() {
                   videoUrl={videoUrl}
                   videoId={videoId}
                   selectedClip={selectedClip}
+                  suggestedStartTime={suggestedClip?.startTime}
+                  suggestedEndTime={suggestedClip?.endTime}
+                  suggestedTitle={suggestedClip?.title}
                 />
               </>
             )}
           </div>
 
-          {/* Sidebar - Clip List */}
-          <div className="lg:col-span-1">
+          {/* Sidebar */}
+          <div className="lg:col-span-1 space-y-6">
+            <ClipSuggestions onSelectSuggestion={handleSuggestionSelect} />
             <ClipList onClipSelect={handleClipSelect} selectedClipId={selectedClip?.id} />
           </div>
         </div>
@@ -62,9 +81,11 @@ function AppContent() {
 
 export default function App() {
   return (
-    <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-      <AppContent />
-      <Toaster />
-    </ThemeProvider>
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
+        <AppContent />
+        <Toaster />
+      </ThemeProvider>
+    </QueryClientProvider>
   );
 }

@@ -13,6 +13,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { Trash2, Clock, Loader2 } from 'lucide-react';
+import ViralScoreBadge from './ViralScoreBadge';
 import type { Clip } from '../backend';
 
 interface ClipCardProps {
@@ -57,6 +58,9 @@ export default function ClipCard({ clip, onClick, onDelete, isDeleting, isSelect
           />
           <div className="absolute bottom-2 right-2 bg-black/80 text-white text-xs px-2 py-1 rounded">
             {formatTime(duration)}
+          </div>
+          <div className="absolute top-2 left-2">
+            <ViralScoreBadge score={Math.round(clip.score)} showLabel={false} size="sm" />
           </div>
         </div>
         <CardHeader className="pb-3">

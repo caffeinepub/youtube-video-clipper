@@ -14,12 +14,15 @@ export interface Clip {
     thumbnailUrl: string;
     endTime: bigint;
     createdAt: Time;
+    score: number;
     videoUrl: string;
 }
 export type Time = bigint;
 export interface backendInterface {
     deleteClip(clipId: string): Promise<void>;
+    findRelatedClips(clipId: string): Promise<Array<string>>;
     getAllClips(): Promise<Array<Clip>>;
     getClipById(clipId: string): Promise<Clip>;
-    saveClip(title: string, videoUrl: string, thumbnailUrl: string, startTime: bigint, endTime: bigint): Promise<string>;
+    getTrendingClips(): Promise<Array<Clip>>;
+    saveClip(title: string, videoUrl: string, thumbnailUrl: string, startTime: bigint, endTime: bigint, score: number): Promise<string>;
 }

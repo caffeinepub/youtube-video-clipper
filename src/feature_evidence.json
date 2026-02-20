@@ -2,12 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-create-a-form-where-users-can-input-a-youtube-video-url",
-      "featureTitle": "Create a form where users can input a YouTube video URL",
+      "featureId": "feature-update-the-application-header-branding-in-the-layout-component-to-display-beast-clipping-instead-of-cliptube",
+      "featureTitle": "Update the application header branding in the Layout component to display 'Beast Clipping' instead of 'ClipTube'",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/VideoUrlForm.tsx",
-        "frontend/src/hooks/useYouTubeValidation.ts"
+        "frontend/src/components/Layout.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -17,16 +15,15 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-12"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-display-the-youtube-video-in-an-embedded-player-after-url-submission",
-      "featureTitle": "Display the YouTube video in an embedded player after URL submission",
+      "featureId": "feature-update-the-html-page-title-in-index-html-to-beast-clipping-instead-of-any-reference-to-cliptube",
+      "featureTitle": "Update the HTML page title in index.html to 'Beast Clipping' instead of any reference to 'ClipTube'",
       "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/YouTubePlayer.tsx"
+        "frontend/index.html"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -36,90 +33,7 @@
         "github-export-icp-cli@1.0.0"
       ],
       "testIds": [
-        "REQ-2"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-implement-clip-selection-controls-allowing-users-to-set-start-and-end-timestamps-for-a-video-segment",
-      "featureTitle": "Implement clip selection controls allowing users to set start and end timestamps for a video segment",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/ClipTimestampControls.tsx",
-        "frontend/src/hooks/useClipCreation.ts",
-        "frontend/src/hooks/useClipTimestamps.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-display-a-list-of-all-saved-clips-with-thumbnail-title-and-time-range",
-      "featureTitle": "Display a list of all saved clips with thumbnail, title, and time range",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/ClipCard.tsx",
-        "frontend/src/components/ClipList.tsx",
-        "frontend/src/hooks/useClips.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-5"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-allow-users-to-delete-saved-clips",
-      "featureTitle": "Allow users to delete saved clips",
-      "files": [
-        "frontend/src/components/ClipCard.tsx",
-        "frontend/src/components/ClipList.tsx",
-        "frontend/src/hooks/useClips.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-6"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-design-a-creative-coherent-visual-theme-with-distinct-style-for-the-video-clipping-application-interface-ensuring-consistent-application-of-colors-typography-and-layout-patterns-throughout-all-screens",
-      "featureTitle": "Design a creative, coherent visual theme with distinct style for the video clipping application interface, ensuring consistent application of colors, typography, and layout patterns throughout all screens",
-      "files": [
-        "frontend/src/App.tsx",
-        "frontend/src/components/Layout.tsx",
-        "frontend/src/index.css",
-        "frontend/tailwind.config.js"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0"
-      ],
-      "testIds": [
-        "REQ-7"
+        "REQ-13"
       ],
       "confidence": "high"
     }

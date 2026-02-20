@@ -17,7 +17,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Scissors className="w-6 h-6" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">ClipTube</h1>
+              <h1 className="text-2xl font-bold tracking-tight">Beast Clipping</h1>
               <p className="text-sm text-muted-foreground">Create and save YouTube video clips</p>
             </div>
           </div>
@@ -32,7 +32,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         <div className="container mx-auto px-4 py-6">
           <div className="text-center text-sm text-muted-foreground">
             <p>
-              © {currentYear} ClipTube. Built with ❤️ using{' '}
+              © {currentYear} Beast Clipping. Built with ❤️ using{' '}
               <a
                 href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${appIdentifier}`}
                 target="_blank"

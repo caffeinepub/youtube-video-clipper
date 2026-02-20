@@ -1,15 +1,19 @@
 {
-  "frontend/src/App.tsx": "Main application component that manages video state, clip selection, and coordinates between the video player, clip controls, and clip list components with theme provider and toast notifications.",
-  "frontend/src/components/Layout.tsx": "Layout wrapper component providing consistent header with branding, main content area, and footer with attribution link.",
+  "frontend/src/App.tsx": "Main application component that manages video state, clip selection, suggested clips from AI, and coordinates between the video player, clip controls, viral suggestions panel, and clip list components with theme provider and toast notifications.",
+  "frontend/src/components/Layout.tsx": "Layout wrapper component providing consistent header with \"Beast Clipping\" branding, main content area, and footer with attribution link.",
   "frontend/src/components/VideoUrlForm.tsx": "Form component for entering and validating YouTube URLs with error handling and submission to load videos.",
   "frontend/src/components/YouTubePlayer.tsx": "Embedded YouTube player component that displays videos in a responsive iframe container.",
-  "frontend/src/components/ClipTimestampControls.tsx": "Clip creation interface with timestamp inputs, validation, and save functionality that integrates with the backend.",
+  "frontend/src/components/ClipTimestampControls.tsx": "Clip creation interface with timestamp inputs, validation, and save functionality that integrates with the backend, now supporting suggested clips from the viral detection system.",
   "frontend/src/components/ClipList.tsx": "Displays all saved clips in a scrollable list with loading states and empty state messaging.",
-  "frontend/src/components/ClipCard.tsx": "Individual clip card component showing thumbnail, title, duration, and delete functionality with confirmation dialog.",
+  "frontend/src/components/ClipCard.tsx": "Individual clip card component showing thumbnail with viral score badge overlay, title, duration, and delete functionality with confirmation dialog.",
   "frontend/src/hooks/useYouTubeValidation.ts": "Custom hook for validating YouTube URLs and extracting video IDs from various URL formats.",
   "frontend/src/hooks/useClipTimestamps.ts": "Custom hook managing timestamp state, validation, formatting, and conversion between minutes:seconds and total seconds.",
-  "frontend/src/hooks/useClipCreation.ts": "React Query mutation hook for creating and saving clips to the backend with automatic cache invalidation.",
+  "frontend/src/hooks/useClipCreation.ts": "React Query mutation hook for creating and saving clips to the backend with automatic viral score calculation based on duration and title characteristics, includes cache invalidation for both clips and trending clips.",
   "frontend/src/hooks/useClips.ts": "React Query hook for fetching all clips and handling clip deletion with optimistic UI updates.",
   "frontend/src/index.css": "Global styles with custom OKLCH color system featuring vibrant magenta/purple primary colors and proper light/dark mode support.",
-  "frontend/tailwind.config.js": "Tailwind configuration extending the theme with custom colors, Inter font family, and design tokens for consistent styling."
+  "frontend/tailwind.config.js": "Tailwind configuration extending the theme with custom colors, Inter font family, and design tokens for consistent styling.",
+  "frontend/src/components/ClipSuggestions.tsx": "Displays AI-powered viral clip suggestions in a scrollable list, showing each clip's time range and viral potential score with the ability to select a suggestion to auto-populate the clip creation form.",
+  "frontend/src/components/ViralScoreBadge.tsx": "Reusable badge component that displays viral potential scores with color-coded styling (green for high, yellow for medium, gray for low) and appropriate icons.",
+  "frontend/src/hooks/useTrendingClips.ts": "React Query hook for fetching trending clips sorted by viral potential from the backend, used to power the viral suggestions feature.",
+  "frontend/index.html": "HTML entry point with page title set to \"Beast Clipping\"."
 }

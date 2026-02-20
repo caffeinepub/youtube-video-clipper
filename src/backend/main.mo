@@ -3,6 +3,15 @@ import Map "mo:core/Map";
 import Time "mo:core/Time";
 import Array "mo:core/Array";
 import Runtime "mo:core/Runtime";
+import Float "mo:core/Float";
+import Nat "mo:core/Nat";
+import List "mo:core/List";
+import VarArray "mo:core/VarArray";
+import Iter "mo:core/Iter";
+import Order "mo:core/Order";
+import Int "mo:core/Int";
+
+
 
 actor {
   type Clip = {
@@ -13,11 +22,12 @@ actor {
     startTime : Nat;
     endTime : Nat;
     createdAt : Time.Time;
+    score : Float;
   };
 
   let clips = Map.empty<Text, Clip>();
 
-  public shared ({ caller }) func saveClip(title : Text, videoUrl : Text, thumbnailUrl : Text, startTime : Nat, endTime : Nat) : async Text {
+  public shared ({ caller }) func saveClip(title : Text, videoUrl : Text, thumbnailUrl : Text, startTime : Nat, endTime : Nat, score : Float) : async Text {
     let id = title.concat(Time.now().toText());
     let newClip : Clip = {
       id;
@@ -27,6 +37,7 @@ actor {
       startTime;
       endTime;
       createdAt = Time.now();
+      score;
     };
 
     clips.add(id, newClip);
@@ -41,13 +52,106 @@ actor {
     if (not clips.containsKey(clipId)) {
       Runtime.trap("Clip with ID " # clipId # " not found ");
     };
-    let _ = clips.remove(clipId);
+    clips.remove(clipId);
   };
 
   public query ({ caller }) func getClipById(clipId : Text) : async Clip {
     switch (clips.get(clipId)) {
       case (?clip) { clip };
       case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
+    };
+  };
+
+  func getClipSimilarityScore(clipA : Clip, clipB : Clip) : Float {
+    var engagementScore : Float = 0;
+    if (clipA.score > 0 and clipB.score > 0) {
+      let min = if (clipA.score < clipB.score) { clipA.score } else { clipB.score };
+      let max = if (clipA.score > clipB.score) { clipA.score } else { clipB.score };
+      engagementScore := (min / max) * 1000;
+    };
+
+    let durationA = (if (clipA.endTime > clipA.startTime) { Int.abs(clipA.endTime - clipA.startTime).toFloat() } else { 0.0 });
+    let durationB = (if (clipB.endTime > clipB.startTime) { Int.abs(clipB.endTime - clipB.startTime).toFloat() } else { 0.0 });
+
+    var lengthScore : Float = if (durationB > 0) {
+      1000 - Float.abs(durationA - durationB);
+    } else { 0 };
+
+    if (lengthScore < 0) { lengthScore := 0 };
+
+    if (clipA.title == clipB.title) {
+      lengthScore := lengthScore * 1.5;
+    };
+
+    engagementScore + lengthScore + 300.0;
+  };
+
+  func compareScoresAscending(a : { clipId : Text; similarityScore : Float }, b : { clipId : Text; similarityScore : Float }) : Order.Order {
+    Float.compare(a.similarityScore, b.similarityScore);
+  };
+
+  public query ({ caller }) func findRelatedClips(clipId : Text) : async [Text] {
+    let targetClip = switch (clips.get(clipId)) {
+      case (?clip) { clip };
+      case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
+    };
+
+    let nonTargetClipIds = clips.keys().toArray().filter(func(id) { id != clipId });
+    let relatedClipScores = List.empty<{ clipId : Text; similarityScore : Float }>();
+
+    for (otherClipId in nonTargetClipIds.values()) {
+      let similarityScore = switch (clips.get(otherClipId)) {
+        case (?clip) { getClipSimilarityScore(targetClip, clip) };
+        case (null) { 0.0 };
+      };
+
+      if (similarityScore > 0) {
+        relatedClipScores.add({
+          clipId = otherClipId;
+          similarityScore;
+        });
+      };
+    };
+
+    let sortedScores = relatedClipScores.toArray().sort(
+      compareScoresAscending
+    );
+
+    if (sortedScores.size() == 0) {
+      return [];
+    };
+
+    sortedScores.map(func(score) { score.clipId });
+  };
+
+  func calculateClipEngagementScore(clip : Clip) : Float {
+    let baseScore : Float = clip.score;
+    let length = (if (clip.endTime > clip.startTime) { Int.abs(clip.endTime - clip.startTime).toFloat() } else { 0.0 });
+    let lengthPenalty : Float = if (length > 0) { 1000.0 / length } else { 0.0 };
+
+    baseScore + lengthPenalty;
+  };
+
+  public query ({ caller }) func getTrendingClips() : async [Clip] {
+    let allClipsArray = clips.values().toArray();
+
+    func compareByEngagement(a : Clip, b : Clip) : Order.Order {
+      Float.compare(
+        calculateClipEngagementScore(a),
+        calculateClipEngagementScore(b),
+      );
+    };
+
+    let sortedClips = allClipsArray.sort(
+      compareByEngagement
+    );
+
+    let resultArray = sortedClips.toVarArray<Clip>();
+    let size = resultArray.size();
+    if (size > 10) {
+      resultArray.sliceToArray(0, 10);
+    } else {
+      resultArray.toArray();
     };
   };
 };

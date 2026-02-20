@@ -1,141 +1,47 @@
 {
   "kind": "build_request",
-  "title": "Build YouTube video clipping application",
-  "projectName": "Clipper",
+  "title": "Rebrand application from ClipTube to Beast Clipping",
   "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-1",
-      "text": "Create a form where users can input a YouTube video URL",
+      "id": "REQ-12",
+      "text": "Update the application header branding in the Layout component to display 'Beast Clipping' instead of 'ClipTube'",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-final"
         ],
         "quotes": [
-          "Make a app where I can clip YouTube videos"
+          "Can you make it say beast clipping instead of clip tube?"
         ]
       },
       "acceptanceCriteria": [
-        "Form accepts YouTube video URLs",
-        "Form validates URL format before submission",
-        "User receives feedback on invalid URLs"
+        "The header text in the Layout component displays 'Beast Clipping'",
+        "The branding is visible on all pages of the application"
       ]
     },
     {
-      "id": "REQ-2",
-      "text": "Display the YouTube video in an embedded player after URL submission",
+      "id": "REQ-13",
+      "text": "Update the HTML page title in index.html to 'Beast Clipping' instead of any reference to 'ClipTube'",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-2"
+          "msg-final"
         ],
         "quotes": [
-          "Make a app where I can clip YouTube videos"
+          "Can you make it say beast clipping instead of clip tube?"
         ]
       },
       "acceptanceCriteria": [
-        "Video player loads and displays the submitted YouTube video",
-        "Player shows video controls for playback"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Implement clip selection controls allowing users to set start and end timestamps for a video segment",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "Make a app where I can clip YouTube videos"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Users can specify start time in minutes and seconds",
-        "Users can specify end time in minutes and seconds",
-        "System validates that end time is after start time",
-        "Preview shows the selected time range"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Store clip metadata including video URL, start timestamp, end timestamp, and creation date in the backend",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "Make a app where I can clip YouTube videos"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend accepts and stores clip data",
-        "Each clip has a unique identifier",
-        "Clips persist across sessions"
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Display a list of all saved clips with thumbnail, title, and time range",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "Make a app where I can clip YouTube videos"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend returns all stored clips",
-        "Frontend displays clips in a list or grid format",
-        "Each clip shows the video title and time range",
-        "Clicking a clip loads it in the player"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Allow users to delete saved clips",
-      "target": "both",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ],
-        "quotes": [
-          "Make a app where I can clip YouTube videos"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Each clip has a delete button",
-        "Backend removes clip when delete is requested",
-        "UI updates to reflect deletion"
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Design a creative, coherent visual theme with distinct style for the video clipping application interface, ensuring consistent application of colors, typography, and layout patterns throughout all screens",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-2"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Application has a cohesive visual identity",
-        "Color scheme is applied consistently",
-        "Typography choices support readability and hierarchy",
-        "Layout patterns are consistent across all views"
+        "The browser tab displays 'Beast Clipping' as the page title"
       ]
     }
   ],
   "constraints": [],
   "nonGoals": [
-    "Actual video downloading or processing",
-    "Video editing capabilities beyond timestamp selection",
-    "Social sharing features",
-    "User authentication or multi-user support"
+    "Changing functionality or features",
+    "Modifying the backend",
+    "Altering the visual design or color scheme"
   ],
   "imageRequirements": {
     "required": [],

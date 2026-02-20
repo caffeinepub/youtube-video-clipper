@@ -16,15 +16,18 @@ export const Clip = IDL.Record({
   'thumbnailUrl' : IDL.Text,
   'endTime' : IDL.Nat,
   'createdAt' : Time,
+  'score' : IDL.Float64,
   'videoUrl' : IDL.Text,
 });
 
 export const idlService = IDL.Service({
   'deleteClip' : IDL.Func([IDL.Text], [], []),
+  'findRelatedClips' : IDL.Func([IDL.Text], [IDL.Vec(IDL.Text)], ['query']),
   'getAllClips' : IDL.Func([], [IDL.Vec(Clip)], ['query']),
   'getClipById' : IDL.Func([IDL.Text], [Clip], ['query']),
+  'getTrendingClips' : IDL.Func([], [IDL.Vec(Clip)], ['query']),
   'saveClip' : IDL.Func(
-      [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat],
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Float64],
       [IDL.Text],
       [],
     ),
@@ -41,15 +44,18 @@ export const idlFactory = ({ IDL }) => {
     'thumbnailUrl' : IDL.Text,
     'endTime' : IDL.Nat,
     'createdAt' : Time,
+    'score' : IDL.Float64,
     'videoUrl' : IDL.Text,
   });
   
   return IDL.Service({
     'deleteClip' : IDL.Func([IDL.Text], [], []),
+    'findRelatedClips' : IDL.Func([IDL.Text], [IDL.Vec(IDL.Text)], ['query']),
     'getAllClips' : IDL.Func([], [IDL.Vec(Clip)], ['query']),
     'getClipById' : IDL.Func([IDL.Text], [Clip], ['query']),
+    'getTrendingClips' : IDL.Func([], [IDL.Vec(Clip)], ['query']),
     'saveClip' : IDL.Func(
-        [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat],
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Float64],
         [IDL.Text],
         [],
       ),

@@ -17,14 +17,20 @@ export interface Clip {
   'thumbnailUrl' : string,
   'endTime' : bigint,
   'createdAt' : Time,
+  'score' : number,
   'videoUrl' : string,
 }
 export type Time = bigint;
 export interface _SERVICE {
   'deleteClip' : ActorMethod<[string], undefined>,
+  'findRelatedClips' : ActorMethod<[string], Array<string>>,
   'getAllClips' : ActorMethod<[], Array<Clip>>,
   'getClipById' : ActorMethod<[string], Clip>,
-  'saveClip' : ActorMethod<[string, string, string, bigint, bigint], string>,
+  'getTrendingClips' : ActorMethod<[], Array<Clip>>,
+  'saveClip' : ActorMethod<
+    [string, string, string, bigint, bigint, number],
+    string
+  >,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

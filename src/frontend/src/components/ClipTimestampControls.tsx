@@ -14,9 +14,19 @@ interface ClipTimestampControlsProps {
   videoUrl: string;
   videoId: string;
   selectedClip?: Clip | null;
+  suggestedStartTime?: number;
+  suggestedEndTime?: number;
+  suggestedTitle?: string;
 }
 
-export default function ClipTimestampControls({ videoUrl, videoId, selectedClip }: ClipTimestampControlsProps) {
+export default function ClipTimestampControls({ 
+  videoUrl, 
+  videoId, 
+  selectedClip,
+  suggestedStartTime,
+  suggestedEndTime,
+  suggestedTitle
+}: ClipTimestampControlsProps) {
   const [title, setTitle] = useState('');
   const {
     startMinutes,
@@ -43,6 +53,16 @@ export default function ClipTimestampControls({ videoUrl, videoId, selectedClip 
       setFromSeconds(Number(selectedClip.startTime), Number(selectedClip.endTime));
     }
   }, [selectedClip, setFromSeconds]);
+
+  // Load suggested clip data
+  useEffect(() => {
+    if (suggestedStartTime !== undefined && suggestedEndTime !== undefined) {
+      setFromSeconds(suggestedStartTime, suggestedEndTime);
+      if (suggestedTitle) {
+        setTitle(suggestedTitle);
+      }
+    }
+  }, [suggestedStartTime, suggestedEndTime, suggestedTitle, setFromSeconds]);
 
   const handleSaveClip = async () => {
     if (!title.trim()) {
