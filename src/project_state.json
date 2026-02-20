@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 15,
+  "projectStateVersion": 17,
   "summary": "YouTube video clipping application",
   "architectural_notes": [],
   "known_issues": [

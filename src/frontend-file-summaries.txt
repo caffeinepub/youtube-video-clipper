@@ -16,7 +16,7 @@
   "frontend/src/components/ViralScoreBadge.tsx": "Reusable badge component that displays viral potential scores with color-coded styling (green for high, yellow for medium, gray for low) and appropriate icons.",
   "frontend/src/hooks/useTrendingClips.ts": "React Query hook for fetching trending clips sorted by viral potential from the backend, used to power the viral suggestions feature.",
   "frontend/index.html": "HTML entry point with page title set to \"Beast Clipping\".",
-  "frontend/src/hooks/useIsOwner.ts": "React Query hook that checks if the authenticated user is the application owner, returns isOwner, isLoading, and error states with proper error handling and caching.",
+  "frontend/src/hooks/useIsOwner.ts": "React Query hook that checks if the authenticated user is the application owner by calling the backend's isCallerAdmin method, returns isOwner boolean, loading state, and error with proper caching.",
   "frontend/src/hooks/useAdminStats.ts": "React Query hook that fetches admin statistics including total clips count and trending clips analytics from the backend, with comprehensive error handling and retry logic.",
   "frontend/src/components/AdminPanel.tsx": "Admin dashboard component displaying system statistics cards and trending clips analytics table with loading skeletons, error states, and retry functionality.",
   "frontend/src/components/AdminErrorBoundary.tsx": "React error boundary component that catches and displays admin panel errors gracefully with retry and home navigation options, preventing admin failures from crashing the entire application.",

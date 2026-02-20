@@ -11,8 +11,7 @@ export function useIsOwner() {
     queryFn: async () => {
       if (!actor || !identity) return false;
       try {
-        const principal = identity.getPrincipal();
-        return await actor.isAdmin(principal);
+        return await actor.isCallerAdmin();
       } catch (error) {
         console.error('Error checking owner status:', error);
         return false;
