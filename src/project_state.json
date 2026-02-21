@@ -1,13 +1,14 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 41,
+  "projectStateVersion": 49,
   "summary": "YouTube video clipping application",
   "architectural_notes": [
-    "Admin panel authentication switched from principal-based to user ID-based access control"
+    "Admin panel authentication switched from principal-based to user ID-based access control",
+    "Backend admin check simplified to use HashMap storage for admin principals with pre-populated owner principal during initialization"
   ],
   "known_issues": [
     "AI clip generation feature is not implemented despite being listed as completed in existing features",
-    "Admin button is now visible in header, but authenticated owner is denied access to the admin panel"
+    "Admin panel stuck in 'checking permissions' state instead of displaying content"
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -378,6 +379,70 @@
         "REQ-72"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-app-tsx-admin-route-to-display-clearer-error-messaging-when-access-is-denied-including-the-backend-s-iscalleradmin-response-value-the-authenticated-principal-and-instructions-for-resolving-the-access-issue",
+      "title": "Update the frontend App.tsx admin route to display clearer error messaging when access is denied, including the backend's isCallerAdmin response value, the authenticated principal, and instructions for resolving the access issue",
+      "reqIds": [
+        "REQ-80"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-new-section-to-the-adminpanel-component-that-displays-the-currently-authenticated-user-s-principal-id-prominently-at-the-top-of-the-dashboard-for-identity-verification",
+      "title": "Add a new section to the AdminPanel component that displays the currently authenticated user's principal ID prominently at the top of the dashboard for identity verification",
+      "reqIds": [
+        "REQ-86"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-adminpanel-component-to-retrieve-the-authenticated-user-s-principal-from-the-useinternetidentity-hook-and-display-it-in-the-user-id-section",
+      "title": "Update the AdminPanel component to retrieve the authenticated user's principal from the useInternetIdentity hook and display it in the user ID section",
+      "reqIds": [
+        "REQ-87"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-copy-to-clipboard-button-next-to-the-displayed-principal-id-in-the-admin-panel-to-allow-easy-copying-of-the-user-id-for-verification-purposes",
+      "title": "Add a copy-to-clipboard button next to the displayed principal ID in the admin panel to allow easy copying of the user ID for verification purposes",
+      "reqIds": [
+        "REQ-88"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-debug-and-fix-the-admin-route-component-in-frontend-src-app-tsx-to-identify-why-the-permissions-check-is-stuck-in-a-loading-state-and-never-resolves-to-display-the-adminpanel-component-or-access-denied-message",
+      "title": "Debug and fix the admin route component in frontend/src/App.tsx to identify why the permissions check is stuck in a loading state and never resolves to display the AdminPanel component or access denied message",
+      "reqIds": [
+        "REQ-89"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-comprehensive-error-handling-and-timeout-logic-to-the-admin-route-permissions-check-in-frontend-src-app-tsx-to-prevent-infinite-loading-states-when-the-backend-iscalleradmin-call-hangs-or-fails-silently",
+      "title": "Add comprehensive error handling and timeout logic to the admin route permissions check in frontend/src/App.tsx to prevent infinite loading states when the backend isCallerAdmin call hangs or fails silently",
+      "reqIds": [
+        "REQ-90"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-the-useisowner-hook-in-frontend-src-hooks-useisowner-ts-correctly-handles-the-react-query-loading-states-and-errors-ensuring-it-does-not-return-an-undefined-or-permanently-loading-state-that-causes-the-admin-route-to-hang",
+      "title": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles the React Query loading states and errors, ensuring it does not return an undefined or permanently loading state that causes the admin route to hang",
+      "reqIds": [
+        "REQ-91"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frontend-console-logging-in-the-admin-route-component-to-output-the-complete-state-of-the-permissions-check-including-isloading-value-iserror-value-isowner-value-error-object-if-present-and-the-exact-render-decision-being-made",
+      "title": "Add frontend console logging in the admin route component to output the complete state of the permissions check including: isLoading value, isError value, isOwner value, error object if present, and the exact render decision being made",
+      "reqIds": [
+        "REQ-92"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -661,6 +726,82 @@
       "reqIds": [
         "REQ-76"
       ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-52",
+      "summary": "Fix the backend isCallerAdmin method in backend/main.mo to return true for the authenticated owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae', resolving the access denial issue shown in the debug logs where isOwner value is false despite the correct principal being authenticated",
+      "reqIds": [
+        "REQ-77"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-53",
+      "summary": "Verify and fix the owner principal initialization in backend/main.mo to ensure the admin token is correctly extracted from initialization arguments and stored as the owner principal, confirming it matches '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
+      "reqIds": [
+        "REQ-78"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-54",
+      "summary": "Add comprehensive backend logging in the isCallerAdmin method to output the caller's principal in text format, the stored owner principal in text format, the boolean comparison result, and any intermediate values to diagnose why the authentication check is failing",
+      "reqIds": [
+        "REQ-79"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-55",
+      "summary": "Replace the current admin principal comparison logic in backend/main.mo with a HashMap-based storage system that stores admin principals for faster and more reliable lookups",
+      "reqIds": [
+        "REQ-81"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-56",
+      "summary": "Pre-populate the admin principals HashMap in backend/main.mo with the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' during actor initialization",
+      "reqIds": [
+        "REQ-82"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-57",
+      "summary": "Update the isCallerAdmin method in backend/main.mo to check if the caller's principal exists in the admin principals HashMap, returning true if found and false otherwise",
+      "reqIds": [
+        "REQ-83"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-58",
+      "summary": "Resolve the backend compilation error that caused the last deployment to fail, ensuring the admin authentication refactoring compiles successfully",
+      "reqIds": [
+        "REQ-84"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-59",
+      "summary": "Verify that the refactored isCallerAdmin method correctly returns true when called by the authenticated owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae', resolving the access denial issue",
+      "reqIds": [
+        "REQ-85"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-60",
+      "summary": "Display the current user's principal/user ID in the admin panel for verification",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-61",
+      "summary": "Fix the admin panel permissions check that is stuck in a loading state showing 'checking permissions' instead of rendering the admin panel content",
+      "reqIds": [],
       "status": "pending"
     }
   ],

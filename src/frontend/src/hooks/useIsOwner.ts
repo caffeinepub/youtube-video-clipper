@@ -1,10 +1,27 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useInternetIdentity } from './useInternetIdentity';
+import { useState, useEffect } from 'react';
 
 export function useIsOwner() {
   const { actor, isFetching: actorFetching } = useActor();
   const { identity, isInitializing } = useInternetIdentity();
+  const [timeoutReached, setTimeoutReached] = useState(false);
+
+  // Reset timeout when identity or actor changes
+  useEffect(() => {
+    setTimeoutReached(false);
+  }, [identity, actor]);
+
+  // Set a timeout to prevent infinite loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      console.log('[useIsOwner] ⏰ TIMEOUT: 10 seconds elapsed, forcing loading state to complete');
+      setTimeoutReached(true);
+    }, 10000);
+
+    return () => clearTimeout(timer);
+  }, [identity, actor, actorFetching, isInitializing]);
 
   const query = useQuery<{
     isOwner: boolean;
@@ -120,16 +137,23 @@ export function useIsOwner() {
     },
     enabled: !!actor && !actorFetching && !!identity && !isInitializing,
     retry: 2,
+    retryDelay: 1000,
     staleTime: 5 * 60 * 1000,
     refetchOnMount: true,
     refetchOnWindowFocus: false,
   });
 
-  // Consider it loading if:
-  // 1. Actor is still fetching
-  // 2. Identity is still initializing
-  // 3. We have an identity but the query hasn't fetched yet (not enabled or still loading)
-  const isLoading = actorFetching || isInitializing || (!!identity && !query.isFetched);
+  // Improved loading state logic:
+  // 1. If actor is fetching or identity is initializing, we're loading
+  // 2. If we have an identity and actor, but query hasn't been enabled yet, we're loading
+  // 3. If query is enabled and currently fetching/loading, we're loading
+  // 4. If timeout is reached, stop loading regardless
+  const queryEnabled = !!actor && !actorFetching && !!identity && !isInitializing;
+  const isLoading = !timeoutReached && (
+    actorFetching || 
+    isInitializing || 
+    (queryEnabled && (query.isLoading || query.isFetching))
+  );
 
   console.log('[useIsOwner] ========== HOOK STATE ==========');
   console.log('[useIsOwner] Timestamp:', new Date().toISOString());
@@ -137,20 +161,21 @@ export function useIsOwner() {
   console.log('[useIsOwner] isInitializing:', isInitializing);
   console.log('[useIsOwner] hasIdentity:', !!identity);
   console.log('[useIsOwner] hasActor:', !!actor);
-  console.log('[useIsOwner] queryEnabled:', !!actor && !actorFetching && !!identity && !isInitializing);
-  console.log('[useIsOwner] queryIsFetched:', query.isFetched);
+  console.log('[useIsOwner] queryEnabled:', queryEnabled);
   console.log('[useIsOwner] queryIsLoading:', query.isLoading);
-  console.log('[useIsOwner] queryData:', query.data);
-  console.log('[useIsOwner] queryError:', query.error);
-  console.log('[useIsOwner] isLoading (computed):', isLoading);
-  console.log('[useIsOwner] isOwner (final):', query.data?.isOwner ?? false);
-  console.log('[useIsOwner] debugInfo:', query.data?.debugInfo);
+  console.log('[useIsOwner] queryIsFetching:', query.isFetching);
+  console.log('[useIsOwner] queryIsFetched:', query.isFetched);
+  console.log('[useIsOwner] queryIsError:', query.isError);
+  console.log('[useIsOwner] timeoutReached:', timeoutReached);
+  console.log('[useIsOwner] COMPUTED isLoading:', isLoading);
+  console.log('[useIsOwner] COMPUTED isOwner:', query.data?.isOwner ?? false);
   console.log('[useIsOwner] =====================================');
 
   return {
     isOwner: query.data?.isOwner ?? false,
     isLoading,
-    error: query.error,
+    isError: query.isError || timeoutReached,
+    error: timeoutReached ? 'Permission check timed out after 10 seconds' : (query.error as Error)?.message,
     debugInfo: query.data?.debugInfo,
   };
 }

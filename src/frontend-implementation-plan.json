@@ -1,6 +1,71 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Implement user ID-based admin authentication system",
-  "requirements": []
+  "title": "Fix admin panel stuck in 'checking permissions' loading state",
+  "requirements": [
+    {
+      "id": "REQ-89",
+      "summary": "Debug and fix the admin route component to identify why the permissions check is stuck in a loading state",
+      "acceptanceCriteria": [
+        "The admin route no longer displays 'checking permissions' indefinitely",
+        "The permissions check completes and renders either the AdminPanel or an access denied message",
+        "Console logging shows the exact state and flow of the permissions check"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Fix the admin route's permissions check logic that currently displays 'checking permissions' indefinitely. Add comprehensive console logging to show the exact values of isLoading, isError, isOwner, and error throughout the render cycle. Ensure the loading state properly transitions to either showing the AdminPanel or an access denied message based on the resolved permissions check. Review the conditional rendering logic to identify why the loading message persists and implement proper state resolution."
+        }
+      ]
+    },
+    {
+      "id": "REQ-90",
+      "summary": "Add comprehensive error handling and timeout logic to prevent infinite loading states",
+      "acceptanceCriteria": [
+        "If the permissions check takes longer than 10 seconds, display a timeout error message",
+        "If the backend call fails, display a clear error message instead of hanging",
+        "The loading state has a maximum duration after which it transitions to an error state"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Implement timeout logic in the admin route component to prevent the permissions check from hanging indefinitely. Add a 10-second timeout mechanism that transitions the loading state to an error state if the permissions check does not complete. Ensure that if the isCallerAdmin backend call fails or hangs, a clear error message is displayed to the user instead of showing 'checking permissions' forever. Add fallback UI states for timeout and error conditions."
+        }
+      ]
+    },
+    {
+      "id": "REQ-91",
+      "summary": "Verify the useIsOwner hook correctly handles React Query loading states and errors",
+      "acceptanceCriteria": [
+        "The useIsOwner hook returns a definitive isLoading boolean that transitions to false",
+        "The hook handles errors and returns an error state instead of hanging",
+        "Console logging shows the exact React Query state transitions"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useIsOwner.ts",
+          "operation": "modify",
+          "description": "Review and fix the useIsOwner hook to ensure it correctly handles React Query loading states and errors. Verify that the isLoading boolean properly transitions from true to false after the query completes. Add error handling to catch and return error states instead of allowing the hook to hang. Implement comprehensive console logging to output React Query state transitions including isLoading, isFetching, isError, error details, and the resolved isOwner value. Ensure the enabled condition properly accounts for actor availability and authentication state to prevent the query from being stuck in a pending state."
+        }
+      ]
+    },
+    {
+      "id": "REQ-92",
+      "summary": "Add frontend console logging in the admin route to output complete permissions check state",
+      "acceptanceCriteria": [
+        "Console logs show the permissions check state on every render",
+        "Logs clearly indicate why the 'checking permissions' message persists",
+        "Logs show when and how the loading state should transition to a resolved state"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Add comprehensive console logging within the admin route component that outputs the complete state of the permissions check on every render. Log the exact values of isLoading, isError, isOwner, error object (if present), authentication state from useInternetIdentity, actor availability from useActor, and the specific render decision being made (showing loading, showing AdminPanel, or showing access denied). Include timestamps in the logs and log the conditional logic evaluation to clearly indicate why the 'checking permissions' message persists and what conditions must be met for the loading state to transition to a resolved state."
+        }
+      ]
+    }
+  ]
 }

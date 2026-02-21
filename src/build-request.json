@@ -1,91 +1,91 @@
 {
   "kind": "build_request",
-  "title": "Implement user ID-based admin authentication system",
+  "title": "Fix admin panel stuck in 'checking permissions' loading state",
   "projectName": "Beast Clipping",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-73",
-      "text": "Replace principal-based admin authentication with a user ID system in backend/main.mo that stores and checks admin user IDs instead of principals",
-      "target": "backend",
+      "id": "REQ-89",
+      "text": "Debug and fix the admin route component in frontend/src/App.tsx to identify why the permissions check is stuck in a loading state and never resolves to display the AdminPanel component or access denied message",
+      "target": "frontend",
       "source": {
         "messageIds": [
           "msg-latest"
         ],
         "quotes": [
-          "Can you use user id for the admin panel so you can add me to use it please"
+          "It is just saying checking promissions"
         ]
       },
       "acceptanceCriteria": [
-        "Backend maintains a list of authorized admin user IDs",
-        "isCallerAdmin method checks caller's user ID against the admin list",
-        "User ID '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' is added to the admin list",
-        "Backend logging shows user ID comparisons during authentication"
+        "The admin route no longer displays 'checking permissions' indefinitely",
+        "The permissions check completes and renders either the AdminPanel or an access denied message",
+        "Console logging shows the exact state and flow of the permissions check"
       ]
     },
     {
-      "id": "REQ-74",
-      "text": "Create a backend method to add new admin user IDs that can only be called by existing admins",
-      "target": "backend",
+      "id": "REQ-90",
+      "text": "Add comprehensive error handling and timeout logic to the admin route permissions check in frontend/src/App.tsx to prevent infinite loading states when the backend isCallerAdmin call hangs or fails silently",
+      "target": "frontend",
       "source": {
         "messageIds": [
           "msg-latest"
         ],
         "quotes": [
-          "Can you use user id for the admin panel so you can add me to use it please"
+          "It is just saying checking promissions"
         ]
       },
       "acceptanceCriteria": [
-        "Method addAdmin(userId: Text) exists and is protected",
-        "Only existing admins can call addAdmin",
-        "New admin user IDs are persisted across canister upgrades",
-        "Method returns success/failure status"
+        "If the permissions check takes longer than 10 seconds, display a timeout error message",
+        "If the backend call fails, display a clear error message instead of hanging",
+        "The loading state has a maximum duration after which it transitions to an error state"
       ]
     },
     {
-      "id": "REQ-75",
-      "text": "Update the backend to map Internet Identity principals to user IDs and use user IDs for all admin checks",
-      "target": "backend",
+      "id": "REQ-91",
+      "text": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles the React Query loading states and errors, ensuring it does not return an undefined or permanently loading state that causes the admin route to hang",
+      "target": "frontend",
       "source": {
         "messageIds": [
           "msg-latest"
+        ],
+        "quotes": [
+          "It is just saying checking promissions"
         ]
       },
       "acceptanceCriteria": [
-        "Backend creates user IDs for authenticated principals",
-        "User ID generation is consistent for the same principal",
-        "isCallerAdmin uses the generated user ID for authorization checks",
-        "User ID mapping is logged for debugging"
+        "The useIsOwner hook returns a definitive isLoading boolean that transitions to false",
+        "The hook handles errors and returns an error state instead of hanging",
+        "Console logging shows the exact React Query state transitions"
       ]
     },
     {
-      "id": "REQ-76",
-      "text": "Initialize the backend admin system with user ID '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' as the first admin during canister initialization",
-      "target": "backend",
+      "id": "REQ-92",
+      "text": "Add frontend console logging in the admin route component to output the complete state of the permissions check including: isLoading value, isError value, isOwner value, error object if present, and the exact render decision being made",
+      "target": "frontend",
       "source": {
         "messageIds": [
           "msg-latest"
+        ],
+        "quotes": [
+          "It is just saying checking promissions"
         ]
       },
       "acceptanceCriteria": [
-        "User ID '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' is added to admin list on initialization",
-        "This user ID immediately has admin access after deployment",
-        "Initialization logging confirms admin setup",
-        "Admin list persists across canister upgrades"
+        "Console logs show the permissions check state on every render",
+        "Logs clearly indicate why the 'checking permissions' message persists",
+        "Logs show when and how the loading state should transition to a resolved state"
       ]
     }
   ],
   "constraints": [
-    "Maintain single-actor backend architecture in backend/main.mo",
-    "Preserve existing user profile and clip management functionality",
-    "Do not modify Internet Identity authentication flow",
-    "Ensure admin list persists across canister upgrades"
+    "Do not modify the backend isCallerAdmin method or actor initialization logic",
+    "Do not change the useActor hook or Internet Identity authentication flow",
+    "Focus only on the frontend permissions check rendering logic and state management"
   ],
   "nonGoals": [
-    "Implementing role-based access control beyond admin/non-admin",
-    "Creating a UI for managing admin users in this build",
-    "Changing the frontend authentication mechanism",
-    "Adding email-based or password-based authentication"
+    "Redesigning the admin panel UI",
+    "Adding new admin features",
+    "Changing the authentication mechanism"
   ],
   "imageRequirements": {
     "required": [],

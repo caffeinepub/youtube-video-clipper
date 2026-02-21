@@ -1,62 +1,68 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T00:31:43.817Z",
+  "generatedAt": "2026-02-21T00:56:44.405Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 4,
-    "implemented": 0,
+    "implemented": 4,
     "items": [
       {
-        "id": "REQ-73",
-        "summary": "Replace principal-based admin authentication with a user ID system in backend/main.mo that stores and checks admin user IDs instead of principals",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "id": "REQ-89",
+        "summary": "Debug and fix the admin route component in frontend/src/App.tsx to identify why the permissions check is stuck in a loading state and never resolves to display the AdminPanel component or access denied message",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx"
+        ]
       },
       {
-        "id": "REQ-74",
-        "summary": "Create a backend method to add new admin user IDs that can only be called by existing admins",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "id": "REQ-90",
+        "summary": "Add comprehensive error handling and timeout logic to the admin route permissions check in frontend/src/App.tsx to prevent infinite loading states when the backend isCallerAdmin call hangs or fails silently",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx"
+        ]
       },
       {
-        "id": "REQ-75",
-        "summary": "Update the backend to map Internet Identity principals to user IDs and use user IDs for all admin checks",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "id": "REQ-91",
+        "summary": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles the React Query loading states and errors, ensuring it does not return an undefined or permanently loading state that causes the admin route to hang",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/hooks/useIsOwner.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/hooks/useIsOwner.ts"
+        ]
       },
       {
-        "id": "REQ-76",
-        "summary": "Initialize the backend admin system with user ID '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' as the first admin during canister initialization",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "id": "REQ-92",
+        "summary": "Add frontend console logging in the admin route component to output the complete state of the permissions check including: isLoading value, isError value, isOwner value, error object if present, and the exact render decision being made",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx"
+        ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/ClipCard.tsx",
-    "frontend/src/components/ClipList.tsx",
-    "frontend/src/components/ClipTimestampControls.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useClips.ts",
-    "frontend/src/hooks/useTrendingClips.ts",
+    "frontend/src/hooks/useIsOwner.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

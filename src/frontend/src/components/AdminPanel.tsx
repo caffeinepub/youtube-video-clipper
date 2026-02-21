@@ -4,15 +4,33 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAdminStats } from '../hooks/useAdminStats';
-import { BarChart3, TrendingUp, Video, AlertCircle, RefreshCw } from 'lucide-react';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { BarChart3, TrendingUp, Video, AlertCircle, RefreshCw, User, Copy, Check } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useState } from 'react';
 
 export default function AdminPanel() {
   const { totalClips, trendingAnalytics, isLoading, error } = useAdminStats();
+  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
+  const [copied, setCopied] = useState(false);
+
+  const principalId = identity?.getPrincipal().toString();
 
   const handleRetry = () => {
     queryClient.invalidateQueries({ queryKey: ['adminStats'] });
+  };
+
+  const handleCopyPrincipal = async () => {
+    if (principalId) {
+      try {
+        await navigator.clipboard.writeText(principalId);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      } catch (err) {
+        console.error('Failed to copy principal ID:', err);
+      }
+    }
   };
 
   if (isLoading) {
@@ -22,6 +40,7 @@ export default function AdminPanel() {
           <Skeleton className="h-10 w-64 mb-2" />
           <Skeleton className="h-5 w-96" />
         </div>
+        <Skeleton className="h-32" />
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Skeleton className="h-40" />
           <Skeleton className="h-40" />
@@ -60,6 +79,45 @@ export default function AdminPanel() {
           System statistics and trending clips analytics
         </p>
       </div>
+
+      {/* User Identity Card */}
+      <Card className="border-primary/20 bg-primary/5">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-medium flex items-center gap-2">
+            <User className="h-4 w-4" />
+            Your User ID
+          </CardTitle>
+          <CardDescription>
+            Authenticated principal for admin verification
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <code className="flex-1 px-3 py-2 bg-muted rounded-md text-sm font-mono break-all">
+              {principalId || 'Loading identity...'}
+            </code>
+            <Button
+              onClick={handleCopyPrincipal}
+              variant="outline"
+              size="sm"
+              disabled={!principalId}
+              className="shrink-0"
+            >
+              {copied ? (
+                <>
+                  <Check className="w-4 h-4 mr-2" />
+                  Copied!
+                </>
+              ) : (
+                <>
+                  <Copy className="w-4 h-4 mr-2" />
+                  Copy
+                </>
+              )}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
