@@ -1,84 +1,92 @@
 {
   "kind": "build_request",
-  "title": "Fix admin panel button visibility in header after login",
-  "projectName": "Beast Clipping",
+  "title": "Fix admin panel navigation button not appearing after authentication",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-142",
-      "text": "Debug and fix the Layout component in frontend/src/components/Layout.tsx to ensure the Admin navigation button renders in the header when a user authenticates with Internet Identity, identifying any conditional logic, loading state handling, or hook dependencies that prevent the button from appearing",
+      "id": "REQ-164",
+      "text": "Debug and fix the Layout component in frontend/src/components/Layout.tsx to ensure the Admin navigation button renders in the header immediately after a user authenticates with Internet Identity, identifying why the button is not appearing despite email-based authentication being implemented",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-current"
+          "msg-latest"
         ],
         "quotes": [
-          "It don't show the admin panel button when I login"
+          "No I can't it isn't poping up"
         ]
       },
       "acceptanceCriteria": [
-        "Admin button appears in the header immediately after successful Internet Identity login",
-        "Button visibility is not blocked by loading states or undefined hook returns",
-        "Console logging traces the button rendering decision for debugging"
+        "Admin navigation button appears in the Layout header when an authenticated user logs in",
+        "Button visibility is not delayed or blocked by conditional rendering logic",
+        "Authentication state changes trigger proper re-renders of the Layout component"
       ]
     },
     {
-      "id": "REQ-143",
-      "text": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles authentication state changes and returns the admin status without blocking or causing rendering delays when the user logs in with Internet Identity",
+      "id": "REQ-165",
+      "text": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles the authentication state change from Internet Identity login and returns the admin status without causing rendering delays or false negatives for the email jj7250328@gmail.com",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-current"
+          "msg-latest"
         ],
         "quotes": [
-          "It don't show the admin panel button when I login"
+          "No I can't it isn't poping up"
         ]
       },
       "acceptanceCriteria": [
-        "Hook returns admin status immediately after authentication completes",
-        "No race conditions between authentication state and admin check",
-        "Loading states resolve correctly without hanging"
+        "useIsOwner hook responds immediately to authentication state changes",
+        "Hook returns correct admin status for the email jj7250328@gmail.com",
+        "No loading states block the Layout component from rendering the Admin button"
       ]
     },
     {
-      "id": "REQ-144",
-      "text": "Add comprehensive frontend console logging in the Layout component to track the authentication lifecycle and Admin button rendering decisions, outputting: 1) when authentication state changes, 2) the isOwner hook return value and loading state, 3) whether the button render condition evaluates to true/false, 4) confirmation when the button element is added to the DOM",
+      "id": "REQ-166",
+      "text": "Add comprehensive frontend console logging in the Layout component to trace why the Admin button is not rendering, outputting authentication state, useIsOwner hook return values, loading states, and the exact conditional logic evaluation that determines button visibility",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-current"
+          "msg-latest"
+        ],
+        "quotes": [
+          "No I can't it isn't poping up"
         ]
       },
       "acceptanceCriteria": [
-        "Console logs show complete authentication and rendering flow",
-        "Logs identify exact point where button rendering fails or succeeds",
-        "Timestamp tracking shows timing of state changes"
+        "Console logs show authentication state transitions",
+        "Logs display useIsOwner hook return values and types",
+        "Logs confirm whether conditional rendering logic evaluates to show or hide the button",
+        "Logs include timestamps to identify timing issues"
       ]
     },
     {
-      "id": "REQ-145",
-      "text": "Ensure the Layout component header conditionally renders the Admin navigation link only after the useIsOwner hook confirms admin access, with proper fallback handling if the hook is loading or returns undefined, preventing the button from being hidden due to premature evaluation",
-      "target": "frontend",
+      "id": "REQ-167",
+      "text": "Verify the backend isCallerAdmin method correctly authenticates users with email jj7250328@gmail.com and returns true, ensuring the email-based authentication system is functioning properly",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-current"
+          "msg-latest"
+        ],
+        "quotes": [
+          "No I can't it isn't poping up"
         ]
       },
       "acceptanceCriteria": [
-        "Admin button does not render before authentication completes",
-        "Admin button appears as soon as admin status is confirmed",
-        "No flash of content or button disappearing after initial render"
+        "Backend isCallerAdmin returns true for authenticated users with email jj7250328@gmail.com",
+        "Email comparison is case-insensitive or normalized",
+        "Backend logs confirm successful email retrieval and comparison"
       ]
     }
   ],
   "constraints": [
-    "Do not modify immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui"
+    "Do not modify Internet Identity authentication hooks in frontend/src/hooks/useInternetIdentity.ts or useInternetIdentity.tsx",
+    "Preserve existing email-based authentication logic implemented in Version 43",
+    "Maintain single-actor architecture in backend/main.mo"
   ],
   "nonGoals": [
-    "Changing the admin authentication method from Internet Identity principal-based to password-based",
-    "Modifying the backend isCallerAdmin logic or HashMap structure",
-    "Adding new admin authentication features or alternative login methods",
-    "Changing the admin panel content or statistics display"
+    "Implementing new authentication methods beyond email-based verification",
+    "Redesigning the admin panel UI or statistics display",
+    "Adding password-based authentication",
+    "Modifying the AdminPanel component content or layout"
   ],
   "imageRequirements": {
     "required": [],

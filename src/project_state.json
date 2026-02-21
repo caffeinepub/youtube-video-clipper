@@ -1,17 +1,18 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 79,
+  "projectStateVersion": 89,
   "summary": "YouTube video clipping application",
   "architectural_notes": [
     "Admin panel authentication switched from principal-based to user ID-based access control",
-    "Admin panel authentication will revert from password-based back to Internet Identity principal-based access control"
+    "Admin panel authentication transitioning from Internet Identity principal-based to email-based access control using the email address 'jj7250328@gmail.com'"
   ],
   "known_issues": [
     "AI clip generation feature is not implemented despite being listed as completed in existing features",
     "Admin panel stuck in 'checking permissions' state instead of displaying content",
     "Admin panel user ID display feature not working - the user ID section is not rendering despite implementation",
     "Admin panel displaying 'Checking permissions...' message but not progressing to show admin dashboard content after user verification",
-    "Admin panel navigation button not appearing in the header for authenticated users despite Internet Identity login"
+    "Admin panel navigation button not appearing in the header for authenticated users despite Internet Identity login",
+    "Admin panel navigation link not appearing/rendering after email-based authentication implementation in Version 43"
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -622,6 +623,86 @@
         "REQ-145"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-debug-and-fix-the-layout-component-in-frontend-src-components-layout-tsx-to-ensure-the-admin-navigation-button-renders-in-the-header-immediately-after-a-user-authenticates-with-internet-identity-identifying-and-resolving-any-conditional-rendering-logic-react-query-state-handling-or-hook-timing-issues-that-prevent-the-button-from-appearing",
+      "title": "Debug and fix the Layout component in frontend/src/components/Layout.tsx to ensure the Admin navigation button renders in the header immediately after a user authenticates with Internet Identity, identifying and resolving any conditional rendering logic, React Query state handling, or hook timing issues that prevent the button from appearing",
+      "reqIds": [
+        "REQ-146"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-the-useisowner-hook-in-frontend-src-hooks-useisowner-ts-correctly-handles-the-authentication-state-change-event-from-internet-identity-login-and-triggers-a-re-render-of-the-layout-component-with-the-updated-admin-status-without-delays-or-false-negatives",
+      "title": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles the authentication state change event from Internet Identity login and triggers a re-render of the Layout component with the updated admin status without delays or false negatives",
+      "reqIds": [
+        "REQ-147"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-comprehensive-frontend-console-logging-in-the-layout-component-that-outputs-detailed-debugging-information-when-the-component-renders-after-login-including-authentication-status-changes-the-exact-moment-internet-identity-authentication-completes-the-useisowner-hook-s-loading-and-return-states-the-conditional-logic-evaluation-for-rendering-the-admin-button-and-confirmation-when-the-button-dom-element-is-created",
+      "title": "Add comprehensive frontend console logging in the Layout component that outputs detailed debugging information when the component renders after login, including: authentication status changes, the exact moment Internet Identity authentication completes, the useIsOwner hook's loading and return states, the conditional logic evaluation for rendering the Admin button, and confirmation when the button DOM element is created",
+      "reqIds": [
+        "REQ-148"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-layout-component-s-admin-button-conditional-rendering-logic-waits-for-both-authentication-completion-and-the-useisowner-hook-to-resolve-before-making-a-render-decision-preventing-premature-evaluation-that-would-hide-the-button-due-to-undefined-or-loading-states",
+      "title": "Ensure the Layout component's Admin button conditional rendering logic waits for both authentication completion AND the useIsOwner hook to resolve before making a render decision, preventing premature evaluation that would hide the button due to undefined or loading states",
+      "reqIds": [
+        "REQ-149"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-frontend-debug-component-or-section-in-the-adminpanel-that-displays-1-the-current-authenticated-user-s-principal-id-2-all-admin-principals-returned-from-the-backend-debug-endpoint-3-a-visual-comparison-showing-whether-the-user-s-principal-matches-any-admin-principal-4-any-character-or-format-differences-detected",
+      "title": "Create a frontend debug component or section in the AdminPanel that displays: 1) the current authenticated user's principal ID, 2) all admin principals returned from the backend debug endpoint, 3) a visual comparison showing whether the user's principal matches any admin principal, 4) any character or format differences detected",
+      "reqIds": [
+        "REQ-154"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admindebugpanel-component-in-frontend-src-components-admindebugpanel-tsx-to-call-the-new-getadmindebuginfo-backend-method-and-display-1-all-admin-principals-stored-in-the-backend-2-the-hashmap-size-3-a-character-by-character-comparison-between-the-authenticated-user-s-principal-and-each-stored-admin-principal-to-identify-any-formatting-or-encoding-differences",
+      "title": "Update the AdminDebugPanel component in frontend/src/components/AdminDebugPanel.tsx to call the new getAdminDebugInfo backend method and display: 1) all admin principals stored in the backend, 2) the HashMap size, 3) a character-by-character comparison between the authenticated user's principal and each stored admin principal to identify any formatting or encoding differences",
+      "reqIds": [
+        "REQ-156"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-the-admin-route-protection-in-frontend-src-app-tsx-works-correctly-with-the-new-email-based-authentication-displaying-the-adminpanel-only-when-the-backend-confirms-the-user-s-email-is-jj7250328-gmail-com",
+      "title": "Verify the admin route protection in frontend/src/App.tsx works correctly with the new email-based authentication, displaying the AdminPanel only when the backend confirms the user's email is jj7250328@gmail.com",
+      "reqIds": [
+        "REQ-163"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-debug-and-fix-the-layout-component-in-frontend-src-components-layout-tsx-to-ensure-the-admin-navigation-button-renders-in-the-header-immediately-after-a-user-authenticates-with-internet-identity-identifying-why-the-button-is-not-appearing-despite-email-based-authentication-being-implemented",
+      "title": "Debug and fix the Layout component in frontend/src/components/Layout.tsx to ensure the Admin navigation button renders in the header immediately after a user authenticates with Internet Identity, identifying why the button is not appearing despite email-based authentication being implemented",
+      "reqIds": [
+        "REQ-164"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-the-useisowner-hook-in-frontend-src-hooks-useisowner-ts-correctly-handles-the-authentication-state-change-from-internet-identity-login-and-returns-the-admin-status-without-causing-rendering-delays-or-false-negatives-for-the-email-jj7250328-gmail-com",
+      "title": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles the authentication state change from Internet Identity login and returns the admin status without causing rendering delays or false negatives for the email jj7250328@gmail.com",
+      "reqIds": [
+        "REQ-165"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-comprehensive-frontend-console-logging-in-the-layout-component-to-trace-why-the-admin-button-is-not-rendering-outputting-authentication-state-useisowner-hook-return-values-loading-states-and-the-exact-conditional-logic-evaluation-that-determines-button-visibility",
+      "title": "Add comprehensive frontend console logging in the Layout component to trace why the Admin button is not rendering, outputting authentication state, useIsOwner hook return values, loading states, and the exact conditional logic evaluation that determines button visibility",
+      "reqIds": [
+        "REQ-166"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1198,32 +1279,64 @@
       "status": "pending"
     },
     {
-      "id": "AR-105",
-      "summary": "Restore Internet Identity principal-based admin authentication where only the user's specific login principal has admin access",
+      "id": "AR-117",
+      "summary": "Replace Internet Identity principal-based admin authentication with email-based authentication where only the email 'jj7250328@gmail.com' has admin panel access",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-106",
-      "summary": "Remove the password-based admin authentication system from the backend by eliminating the adminPasswordHash variable, validateAdminPassword method, and all password validation logic in backend/main.mo",
+      "id": "AR-118",
+      "summary": "Remove all Internet Identity principal-based admin authentication logic from the backend in backend/main.mo, including the adminPrincipals HashMap and any principal comparison methods",
       "reqIds": [
-        "REQ-134"
+        "REQ-157"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-107",
-      "summary": "Update the backend isCallerAdmin method in backend/main.mo to authenticate the user's Internet Identity principal by checking if the caller's principal matches the owner principal stored in the adminPrincipals HashMap, ensuring it returns true for principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
+      "id": "AR-119",
+      "summary": "Implement email-based admin authentication in backend/main.mo where only the hardcoded email 'jj7250328@gmail.com' is granted admin access",
       "reqIds": [
-        "REQ-135"
+        "REQ-158"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-108",
-      "summary": "Verify the adminPrincipals HashMap in backend/main.mo is correctly initialized with the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' during actor initialization, ensuring the principal format is exact and HashMap lookups succeed",
+      "id": "AR-120",
+      "summary": "Create a backend method getCallerEmail that retrieves the email address associated with the authenticated Internet Identity principal",
       "reqIds": [
-        "REQ-136"
+        "REQ-159"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-121",
+      "summary": "Update the backend isCallerAdmin method in backend/main.mo to use email comparison instead of principal comparison, returning true only when the caller's email exactly matches 'jj7250328@gmail.com'",
+      "reqIds": [
+        "REQ-160"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-122",
+      "summary": "Add backend logging in the isCallerAdmin method to output the caller's email address and the authentication result for debugging purposes",
+      "reqIds": [
+        "REQ-161"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-123",
+      "summary": "Update the frontend useIsOwner hook in frontend/src/hooks/useIsOwner.ts to continue calling the backend isCallerAdmin method without modifications, as the authentication logic change is backend-only",
+      "reqIds": [
+        "REQ-162"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-127",
+      "summary": "Verify the backend isCallerAdmin method correctly authenticates users with email jj7250328@gmail.com and returns true, ensuring the email-based authentication system is functioning properly",
+      "reqIds": [
+        "REQ-167"
       ],
       "status": "pending"
     }

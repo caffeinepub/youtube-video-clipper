@@ -3,13 +3,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { useAdminStats } from '../hooks/useAdminStats';
-import { BarChart3, TrendingUp, Video, AlertCircle, RefreshCw } from 'lucide-react';
+import { BarChart3, TrendingUp, Video, AlertCircle, RefreshCw, ChevronDown, ChevronUp, Bug } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
+import AdminDebugPanel from './AdminDebugPanel';
+import { useState } from 'react';
 
 export default function AdminPanel() {
   const { totalClips, trendingAnalytics, isLoading, error } = useAdminStats();
   const queryClient = useQueryClient();
+  const [debugOpen, setDebugOpen] = useState(true);
 
   const handleRetry = () => {
     queryClient.invalidateQueries({ queryKey: ['adminStats'] });
@@ -60,6 +64,22 @@ export default function AdminPanel() {
         <h1 className="text-3xl font-bold text-foreground mb-2">Admin Panel</h1>
         <p className="text-muted-foreground">Manage and monitor your Beast Clipping platform</p>
       </div>
+
+      {/* Debug Panel - Collapsible */}
+      <Collapsible open={debugOpen} onOpenChange={setDebugOpen}>
+        <CollapsibleTrigger asChild>
+          <Button variant="outline" className="w-full justify-between">
+            <span className="flex items-center gap-2">
+              <Bug className="w-4 h-4" />
+              Authentication Debug Panel
+            </span>
+            {debugOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </Button>
+        </CollapsibleTrigger>
+        <CollapsibleContent className="mt-4">
+          <AdminDebugPanel />
+        </CollapsibleContent>
+      </Collapsible>
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

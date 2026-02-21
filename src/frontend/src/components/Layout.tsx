@@ -23,7 +23,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   // Debug logging for admin button visibility
   useEffect(() => {
     const timestamp = new Date().toISOString();
-    console.group(`[Layout] Render State - ${timestamp}`);
+    console.group(`[Layout] ${timestamp} - Render State`);
     console.log('Authentication:', {
       isAuthenticated,
       loginStatus,
@@ -31,17 +31,27 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     });
     console.log('Admin Status:', {
       isOwner,
+      isOwnerType: typeof isOwner,
       isOwnerLoading,
       isOwnerFetched,
     });
-    console.log('Admin Button Condition:', {
-      shouldShowButton: isAuthenticated && !isOwnerLoading && isOwnerFetched && isOwner,
+    
+    const shouldShowButton = isAuthenticated && !isOwnerLoading && isOwnerFetched && isOwner;
+    console.log('Admin Button Visibility:', {
+      shouldShowButton,
       breakdown: {
-        isAuthenticated,
-        notLoading: !isOwnerLoading,
-        isFetched: isOwnerFetched,
-        isOwner,
-      }
+        '1_isAuthenticated': isAuthenticated,
+        '2_notLoading': !isOwnerLoading,
+        '3_isFetched': isOwnerFetched,
+        '4_isOwner': isOwner,
+      },
+      failureReason: !shouldShowButton ? (
+        !isAuthenticated ? 'Not authenticated' :
+        isOwnerLoading ? 'Still loading admin status' :
+        !isOwnerFetched ? 'Admin status not fetched yet' :
+        !isOwner ? 'User is not an admin' :
+        'Unknown'
+      ) : 'Button should be visible'
     });
     console.groupEnd();
   }, [isAuthenticated, loginStatus, identity, isOwner, isOwnerLoading, isOwnerFetched]);
@@ -55,9 +65,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       try {
         console.log('[Layout] Initiating login');
         await login();
+        console.log('[Layout] Login completed successfully');
       } catch (error: any) {
         console.error('[Layout] Login error:', error);
         if (error.message === 'User is already authenticated') {
+          console.log('[Layout] Clearing existing session and retrying');
           await clear();
           setTimeout(() => login(), 300);
         }
@@ -67,6 +79,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   // Determine if admin button should be shown
   const showAdminButton = isAuthenticated && !isOwnerLoading && isOwnerFetched && isOwner;
+
+  // Log whenever showAdminButton changes
+  useEffect(() => {
+    console.log(`[Layout] showAdminButton changed to: ${showAdminButton}`);
+  }, [showAdminButton]);
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -105,6 +122,13 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 <div className="flex items-center gap-2 px-4 py-2 text-muted-foreground">
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
                   <span className="text-sm">Checking permissions...</span>
+                </div>
+              )}
+              
+              {/* Debug info - remove after fixing */}
+              {isAuthenticated && isOwnerFetched && !isOwnerLoading && (
+                <div className="text-xs text-muted-foreground px-2">
+                  Admin: {isOwner ? '✓' : '✗'}
                 </div>
               )}
               

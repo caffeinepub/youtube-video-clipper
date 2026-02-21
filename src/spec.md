@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the Admin panel button visibility issue in the header after Internet Identity login.
+**Goal:** Fix the Admin navigation button not appearing in the header after user authentication with Internet Identity.
 
 **Planned changes:**
-- Debug and fix Layout component conditional rendering logic for the Admin navigation button
-- Verify useIsOwner hook correctly handles authentication state changes without delays
-- Add comprehensive console logging to track authentication lifecycle and button rendering decisions
-- Ensure proper fallback handling for loading states to prevent premature evaluation hiding the button
+- Debug Layout component to identify why Admin button fails to render after authentication
+- Verify useIsOwner hook correctly handles authentication state changes and returns admin status for email jj7250328@gmail.com
+- Add comprehensive console logging to trace authentication state, useIsOwner return values, and conditional rendering logic
+- Verify backend isCallerAdmin method correctly authenticates and returns true for email jj7250328@gmail.com
 
-**User-visible outcome:** After logging in with Internet Identity, users with admin privileges will immediately see the Admin button appear in the header navigation, providing access to the admin panel.
+**User-visible outcome:** After authenticating with Internet Identity using email jj7250328@gmail.com, the Admin navigation button immediately appears in the header, allowing access to the admin panel.

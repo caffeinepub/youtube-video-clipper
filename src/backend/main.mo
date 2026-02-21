@@ -8,12 +8,10 @@ import Int "mo:core/Int";
 import Runtime "mo:core/Runtime";
 import Order "mo:core/Order";
 import Principal "mo:core/Principal";
-import Text "mo:core/Text";
+import Debug "mo:core/Debug";
 
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-
-
 
 actor {
   let accessControlState = AccessControl.initState();
@@ -52,82 +50,6 @@ actor {
     viralScore : Float;
   };
 
-  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access profiles");
-    };
-    userProfiles.get(caller);
-  };
-
-  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
-      Runtime.trap("Unauthorized: Can only view your own profile");
-    };
-    userProfiles.get(user);
-  };
-
-  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save profiles");
-    };
-    userProfiles.add(caller, profile);
-  };
-
-  public shared ({ caller }) func saveClip(
-    title : Text,
-    videoUrl : Text,
-    thumbnailUrl : Text,
-    startTime : Nat,
-    endTime : Nat,
-    score : Float,
-  ) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can save clips");
-    };
-    let id = title.concat(Time.now().toText());
-    let newVideoClip : VideoClip = {
-      id;
-      title;
-      videoUrl;
-      thumbnailUrl;
-      startTime;
-      endTime;
-      createdAt = Time.now();
-      score;
-    };
-    videoClips.add(id, newVideoClip);
-    id;
-  };
-
-  public query ({ caller }) func getAllClips(_searchText : Text) : async [VideoClip] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view clips");
-    };
-    videoClips.values().toArray();
-  };
-
-  public shared ({ caller }) func deleteClip(clipId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can delete clips");
-    };
-    switch (videoClips.get(clipId)) {
-      case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
-      case (_) {
-        videoClips.remove(clipId);
-      };
-    };
-  };
-
-  public query ({ caller }) func getClipById(clipId : Text) : async VideoClip {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view clips");
-    };
-    switch (videoClips.get(clipId)) {
-      case (?clip) { clip };
-      case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
-    };
-  };
-
   func compareScoresAscending(a : { clipId : Text; similarityScore : Float }, b : { clipId : Text; similarityScore : Float }) : Order.Order {
     Float.compare(a.similarityScore, b.similarityScore);
   };
@@ -161,9 +83,25 @@ actor {
     engagementScore + lengthScore + 300;
   };
 
+  func calculateClipEngagementScore(clip : VideoClip) : Float {
+    let baseScore : Float = clip.score;
+    let length = if (clip.endTime > clip.startTime) {
+      Int.abs(clip.endTime - clip.startTime).toFloat();
+    } else { 0.0 };
+    let lengthPenalty : Float = if (length > 0) { 1000.0 / length } else { 0.0 };
+    baseScore + lengthPenalty;
+  };
+
+  public query ({ caller }) func getAllClips(_searchText : Text) : async [VideoClip] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+    };
+    videoClips.values().toArray();
+  };
+
   public query ({ caller }) func findRelatedClips(clipId : Text) : async [Text] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view clips");
+      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
     };
 
     let targetClip = switch (videoClips.get(clipId)) {
@@ -200,19 +138,11 @@ actor {
     sortedScores.map(func(score) { score.clipId });
   };
 
-  func calculateClipEngagementScore(clip : VideoClip) : Float {
-    let baseScore : Float = clip.score;
-
-    let length = if (clip.endTime > clip.startTime) {
-      Int.abs(clip.endTime - clip.startTime).toFloat();
-    } else { 0.0 };
-
-    let lengthPenalty : Float = if (length > 0) { 1000.0 / length } else { 0.0 };
-
-    baseScore + lengthPenalty;
-  };
-
   public query ({ caller }) func getTrendingClips() : async [VideoClip] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+    };
+
     let allClipsArray = videoClips.values().toArray();
 
     func compareByEngagement(a : VideoClip, b : VideoClip) : Order.Order {
@@ -236,17 +166,12 @@ actor {
     };
   };
 
-  public query ({ caller }) func getTotalClipsCount() : async Nat {
-    videoClips.size();
-  };
-
   public query ({ caller }) func getTrendingClipsAnalytics() : async [TrendingClipAnalytics] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view analytics");
+      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
     };
 
     let allClipsArray = videoClips.values().toArray();
-
     if (allClipsArray.size() == 0) {
       return [];
     };
@@ -278,6 +203,82 @@ actor {
       resultArray.sliceToArray(0, 10);
     } else {
       resultArray.toArray();
+    };
+  };
+
+  public query ({ caller }) func getClipById(clipId : Text) : async VideoClip {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+    };
+    switch (videoClips.get(clipId)) {
+      case (?clip) { clip };
+      case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
+    };
+  };
+
+  public query ({ caller }) func getTotalClipsCount() : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+    };
+    videoClips.size();
+  };
+
+  public shared ({ caller }) func saveClip(
+    title : Text,
+    videoUrl : Text,
+    thumbnailUrl : Text,
+    startTime : Nat,
+    endTime : Nat,
+    score : Float,
+  ) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+    };
+    let id = title.concat(Time.now().toText());
+    let newVideoClip : VideoClip = {
+      id;
+      title;
+      videoUrl;
+      thumbnailUrl;
+      startTime;
+      endTime;
+      createdAt = Time.now();
+      score;
+    };
+    videoClips.add(id, newVideoClip);
+    id;
+  };
+
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+    };
+    userProfiles.get(caller);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    userProfiles.get(user);
+  };
+
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+    };
+    userProfiles.add(caller, profile);
+  };
+
+  public shared ({ caller }) func deleteClip(clipId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete clips");
+    };
+    switch (videoClips.get(clipId)) {
+      case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
+      case (_) {
+        videoClips.remove(clipId);
+      };
     };
   };
 
