@@ -1,91 +1,91 @@
 {
   "kind": "build_request",
-  "title": "Fix admin panel stuck in 'checking permissions' loading state",
+  "title": "Fix admin panel to properly display user identity section and system statistics",
   "projectName": "Beast Clipping",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-89",
-      "text": "Debug and fix the admin route component in frontend/src/App.tsx to identify why the permissions check is stuck in a loading state and never resolves to display the AdminPanel component or access denied message",
+      "id": "REQ-93",
+      "text": "Fix the AdminPanel component in frontend/src/components/AdminPanel.tsx to ensure the user identity section containing the principal ID displays correctly above the system statistics, replacing the current 'Debug Info' card that shows only principal and isOwner values",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-user-latest"
         ],
         "quotes": [
-          "It is just saying checking promissions"
+          "This is what it is showing me and no it is not showing me a user Id"
         ]
       },
       "acceptanceCriteria": [
-        "The admin route no longer displays 'checking permissions' indefinitely",
-        "The permissions check completes and renders either the AdminPanel or an access denied message",
-        "Console logging shows the exact state and flow of the permissions check"
+        "AdminPanel component renders a clearly labeled 'Your Identity' or 'User ID' section at the top of the dashboard",
+        "The section displays the authenticated user's full principal ID retrieved from the useInternetIdentity hook",
+        "The principal ID is displayed in a readable format with proper text styling and layout",
+        "A copy-to-clipboard button is present next to the principal ID",
+        "The user identity section is visually distinct from the debug information and system statistics"
       ]
     },
     {
-      "id": "REQ-90",
-      "text": "Add comprehensive error handling and timeout logic to the admin route permissions check in frontend/src/App.tsx to prevent infinite loading states when the backend isCallerAdmin call hangs or fails silently",
+      "id": "REQ-94",
+      "text": "Fix the AdminPanel component in frontend/src/components/AdminPanel.tsx to ensure system statistics (total clips count and trending clips table) render below the user identity section instead of showing only debug information",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-user-latest"
         ],
         "quotes": [
-          "It is just saying checking promissions"
+          "This is what it is showing me and no it is not showing me a user Id"
         ]
       },
       "acceptanceCriteria": [
-        "If the permissions check takes longer than 10 seconds, display a timeout error message",
-        "If the backend call fails, display a clear error message instead of hanging",
-        "The loading state has a maximum duration after which it transitions to an error state"
+        "System statistics section displays total clips count fetched from useAdminStats hook",
+        "Trending clips table renders with columns for title, viral score, and view count",
+        "Statistics section only renders after user identity section",
+        "Loading states are handled gracefully with skeleton loaders or loading messages",
+        "Error states display appropriate error messages without crashing the component"
       ]
     },
     {
-      "id": "REQ-91",
-      "text": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles the React Query loading states and errors, ensuring it does not return an undefined or permanently loading state that causes the admin route to hang",
+      "id": "REQ-95",
+      "text": "Remove or relocate the 'Debug Info' card in AdminPanel component that currently displays raw principal and isOwner boolean values, as this technical debug information should not be the primary content of the admin dashboard",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "It is just saying checking promissions"
+          "msg-user-latest"
         ]
       },
       "acceptanceCriteria": [
-        "The useIsOwner hook returns a definitive isLoading boolean that transitions to false",
-        "The hook handles errors and returns an error state instead of hanging",
-        "Console logging shows the exact React Query state transitions"
+        "Debug Info card displaying 'Principal:', 'isOwner value:', 'isOwner type:', and 'Check browser console' is removed from the main admin panel view",
+        "Debug information is either moved to browser console logging only or placed in a collapsible debug section",
+        "User-facing admin panel displays only production-ready UI elements (user identity, statistics, trending clips)"
       ]
     },
     {
-      "id": "REQ-92",
-      "text": "Add frontend console logging in the admin route component to output the complete state of the permissions check including: isLoading value, isError value, isOwner value, error object if present, and the exact render decision being made",
+      "id": "REQ-96",
+      "text": "Verify the useAdminStats hook in frontend/src/hooks/useAdminStats.ts is correctly fetching data from the backend and returning valid statistics without errors that would prevent the admin panel from rendering properly",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "It is just saying checking promissions"
+          "msg-user-latest"
         ]
       },
       "acceptanceCriteria": [
-        "Console logs show the permissions check state on every render",
-        "Logs clearly indicate why the 'checking permissions' message persists",
-        "Logs show when and how the loading state should transition to a resolved state"
+        "useAdminStats hook successfully calls backend methods getTotalClipsCount and getTrendingClipsAnalytics",
+        "Hook returns loading state that resolves to data or error state",
+        "React Query configuration prevents infinite loading or hanging states",
+        "Error handling logs issues to console and returns error state to component"
       ]
     }
   ],
   "constraints": [
-    "Do not modify the backend isCallerAdmin method or actor initialization logic",
-    "Do not change the useActor hook or Internet Identity authentication flow",
-    "Focus only on the frontend permissions check rendering logic and state management"
+    "Do not modify frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts",
+    "Maintain existing authentication and authorization logic",
+    "Keep all Motoko backend logic in the single main actor file"
   ],
   "nonGoals": [
-    "Redesigning the admin panel UI",
-    "Adding new admin features",
-    "Changing the authentication mechanism"
+    "Changing the backend admin authentication logic or principal comparison",
+    "Modifying the useIsOwner hook or admin route protection",
+    "Adding new admin statistics or analytics features",
+    "Changing the visual theme or color scheme of the admin panel"
   ],
   "imageRequirements": {
     "required": [],

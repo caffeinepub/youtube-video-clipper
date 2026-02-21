@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the admin panel route that is stuck displaying "checking permissions" indefinitely by debugging the permissions check flow and adding proper error handling.
+**Goal:** Fix the admin panel to properly display user identity and system statistics instead of showing only debug information.
 
 **Planned changes:**
-- Debug the admin route component in App.tsx to identify why the permissions check never resolves
-- Add comprehensive error handling and 10-second timeout logic to prevent infinite loading states
-- Verify the useIsOwner hook correctly handles React Query loading states and errors
-- Add detailed console logging to track permissions check state transitions and render decisions
+- Replace the "Debug Info" card with a user-friendly "Your Identity" or "User ID" section at the top of the admin panel that displays the authenticated user's principal ID with a copy-to-clipboard button
+- Ensure system statistics (total clips count and trending clips table) render below the user identity section
+- Remove or relocate the raw debug information (principal, isOwner boolean) to browser console or a collapsible debug section
+- Verify the useAdminStats hook correctly fetches and returns data without errors
 
-**User-visible outcome:** The admin panel loads successfully after permissions check, or displays a clear error/access denied message instead of being stuck on "checking permissions".
+**User-visible outcome:** Admin users will see a properly structured admin dashboard with their user identity displayed prominently at the top, followed by meaningful system statistics including total clips count and a trending clips table, instead of raw debug information.

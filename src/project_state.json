@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 49,
+  "projectStateVersion": 51,
   "summary": "YouTube video clipping application",
   "architectural_notes": [
     "Admin panel authentication switched from principal-based to user ID-based access control",
@@ -8,7 +8,8 @@
   ],
   "known_issues": [
     "AI clip generation feature is not implemented despite being listed as completed in existing features",
-    "Admin panel stuck in 'checking permissions' state instead of displaying content"
+    "Admin panel stuck in 'checking permissions' state instead of displaying content",
+    "Admin panel user ID display feature not working - the user ID section is not rendering despite implementation"
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -802,6 +803,38 @@
       "id": "AR-61",
       "summary": "Fix the admin panel permissions check that is stuck in a loading state showing 'checking permissions' instead of rendering the admin panel content",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-62",
+      "summary": "Fix the AdminPanel component in frontend/src/components/AdminPanel.tsx to ensure the user identity section containing the principal ID displays correctly above the system statistics, replacing the current 'Debug Info' card that shows only principal and isOwner values",
+      "reqIds": [
+        "REQ-93"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-63",
+      "summary": "Fix the AdminPanel component in frontend/src/components/AdminPanel.tsx to ensure system statistics (total clips count and trending clips table) render below the user identity section instead of showing only debug information",
+      "reqIds": [
+        "REQ-94"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-64",
+      "summary": "Remove or relocate the 'Debug Info' card in AdminPanel component that currently displays raw principal and isOwner boolean values, as this technical debug information should not be the primary content of the admin dashboard",
+      "reqIds": [
+        "REQ-95"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-65",
+      "summary": "Verify the useAdminStats hook in frontend/src/hooks/useAdminStats.ts is correctly fetching data from the backend and returning valid statistics without errors that would prevent the admin panel from rendering properly",
+      "reqIds": [
+        "REQ-96"
+      ],
       "status": "pending"
     }
   ],

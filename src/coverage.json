@@ -1,58 +1,50 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T00:56:44.405Z",
+  "generatedAt": "2026-02-21T01:02:22.740Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
     "total": 4,
-    "implemented": 4,
+    "implemented": 0,
     "items": [
       {
-        "id": "REQ-89",
-        "summary": "Debug and fix the admin route component in frontend/src/App.tsx to identify why the permissions check is stuck in a loading state and never resolves to display the AdminPanel component or access denied message",
-        "status": "implemented",
+        "id": "REQ-93",
+        "summary": "Fix the AdminPanel component in frontend/src/components/AdminPanel.tsx to ensure the user identity section containing the principal ID displays correctly above the system statistics, replacing the current 'Debug Info' card that shows only principal and isOwner values",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/App.tsx"
+          "frontend/src/components/AdminPanel.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/App.tsx"
-        ]
+        "matchedFiles": []
       },
       {
-        "id": "REQ-90",
-        "summary": "Add comprehensive error handling and timeout logic to the admin route permissions check in frontend/src/App.tsx to prevent infinite loading states when the backend isCallerAdmin call hangs or fails silently",
-        "status": "implemented",
+        "id": "REQ-94",
+        "summary": "Fix the AdminPanel component in frontend/src/components/AdminPanel.tsx to ensure system statistics (total clips count and trending clips table) render below the user identity section instead of showing only debug information",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/App.tsx"
+          "frontend/src/components/AdminPanel.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/App.tsx"
-        ]
+        "matchedFiles": []
       },
       {
-        "id": "REQ-91",
-        "summary": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles the React Query loading states and errors, ensuring it does not return an undefined or permanently loading state that causes the admin route to hang",
-        "status": "implemented",
+        "id": "REQ-95",
+        "summary": "Remove or relocate the 'Debug Info' card in AdminPanel component that currently displays raw principal and isOwner boolean values, as this technical debug information should not be the primary content of the admin dashboard",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/hooks/useIsOwner.ts"
+          "frontend/src/components/AdminPanel.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/hooks/useIsOwner.ts"
-        ]
+        "matchedFiles": []
       },
       {
-        "id": "REQ-92",
-        "summary": "Add frontend console logging in the admin route component to output the complete state of the permissions check including: isLoading value, isError value, isOwner value, error object if present, and the exact render decision being made",
-        "status": "implemented",
+        "id": "REQ-96",
+        "summary": "Verify the useAdminStats hook in frontend/src/hooks/useAdminStats.ts is correctly fetching data from the backend and returning valid statistics without errors that would prevent the admin panel from rendering properly",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/App.tsx"
+          "frontend/src/hooks/useAdminStats.ts"
         ],
-        "matchedFiles": [
-          "frontend/src/App.tsx"
-        ]
+        "matchedFiles": []
       }
     ]
   },
@@ -62,7 +54,6 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
-    "frontend/src/hooks/useIsOwner.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
