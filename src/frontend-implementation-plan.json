@@ -1,6 +1,23 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add admin panel with owner-only access control",
-  "requirements": []
+  "title": "Fix admin access control display and debugging in frontend",
+  "requirements": [
+    {
+      "id": "REQ-64",
+      "summary": "Update the frontend App.tsx admin route protection to display the exact principal received from the backend isCallerAdmin check in the access denied message for debugging purposes",
+      "acceptanceCriteria": [
+        "The access denied message includes the authenticated user's principal ID",
+        "The debug info is clearly visible to help diagnose authentication issues",
+        "The message formatting matches the screenshot layout"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Update the admin route protection logic to display the caller's principal ID in the access denied message. The current implementation shows a generic access denied screen. Modify the admin route guard to fetch and display the authenticated user's principal from the identity object, showing it in a 'Debug Info:' section with the format 'Principal: [principal-text]' followed by 'Check browser console for detailed logs'. Ensure the principal display matches the layout shown in the screenshot with proper formatting and visibility for debugging authentication issues."
+        }
+      ]
+    }
+  ]
 }

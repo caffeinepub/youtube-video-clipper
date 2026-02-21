@@ -1,18 +1,85 @@
 {
   "kind": "build_request",
-  "title": "Add admin panel with owner-only access control",
-  "projectName": "Beast Clipping",
-  "priority": "normal",
-  "requirements": [],
+  "title": "Fix admin access control to allow authenticated owner to access admin panel",
+  "priority": "high",
+  "requirements": [
+    {
+      "id": "REQ-61",
+      "text": "Fix the backend owner principal verification in backend/main.mo to correctly authenticate the owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and grant admin access by ensuring isCallerAdmin returns true for this principal",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-user-latest"
+        ],
+        "quotes": [
+          "Access Denied",
+          "Principal: 7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The backend isCallerAdmin method returns true when called by principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
+        "The admin panel is accessible to the authenticated owner without showing 'Access Denied'",
+        "Backend logs confirm the principal comparison succeeds for the owner"
+      ]
+    },
+    {
+      "id": "REQ-62",
+      "text": "Verify the owner principal initialization logic in backend/main.mo correctly stores and compares the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' during canister deployment and authentication checks",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-user-latest"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The owner principal is correctly initialized and stored in the backend state",
+        "The stored owner principal matches '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
+        "Principal comparison logic correctly identifies the owner"
+      ]
+    },
+    {
+      "id": "REQ-63",
+      "text": "Add comprehensive backend logging in the isCallerAdmin method to output the caller's principal text representation, the stored owner principal text representation, and the boolean comparison result to diagnose why authentication is failing for the authenticated owner",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-user-latest"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend logs show the caller principal in text format when isCallerAdmin is called",
+        "Backend logs show the stored owner principal in text format",
+        "Backend logs show the result of the principal comparison (true/false)",
+        "Logs are visible in the canister console for debugging"
+      ]
+    },
+    {
+      "id": "REQ-64",
+      "text": "Update the frontend App.tsx admin route protection to display the exact principal received from the backend isCallerAdmin check in the access denied message for debugging purposes",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-latest"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The access denied message includes the authenticated user's principal ID",
+        "The debug info is clearly visible to help diagnose authentication issues",
+        "The message formatting matches the screenshot layout"
+      ]
+    }
+  ],
   "constraints": [
-    "The admin panel and owner verification functionality already exist in the codebase",
-    "Do not modify existing useIsOwner hook, AdminPanel component, or admin routing logic",
-    "The backend already has isOwner method and admin statistics endpoints"
+    "Do not modify the Internet Identity authentication flow",
+    "Preserve existing admin panel functionality and UI",
+    "Do not change the single-actor backend architecture",
+    "Keep all console logging for debugging until the issue is resolved"
   ],
   "nonGoals": [
-    "Creating new admin panel features beyond what already exists",
-    "Modifying the existing admin panel UI design",
-    "Adding additional user roles or permission levels"
+    "Implementing multi-admin support",
+    "Adding role-based access control beyond owner/user distinction",
+    "Changing the admin panel UI design",
+    "Modifying the admin token URL parameter extraction logic"
   ],
   "imageRequirements": {
     "required": [],

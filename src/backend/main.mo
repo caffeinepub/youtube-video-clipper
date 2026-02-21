@@ -1,21 +1,18 @@
 import Map "mo:core/Map";
 import List "mo:core/List";
-import Nat "mo:core/Nat";
-import VarArray "mo:core/VarArray";
 import Time "mo:core/Time";
 import Float "mo:core/Float";
-import Text "mo:core/Text";
-import Int "mo:core/Int";
 import Array "mo:core/Array";
-import Principal "mo:core/Principal";
+import VarArray "mo:core/VarArray";
+import Int "mo:core/Int";
+import Text "mo:core/Text";
 import Runtime "mo:core/Runtime";
 import Order "mo:core/Order";
 import Iter "mo:core/Iter";
+import Principal "mo:core/Principal";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
-import Migration "migration";
 
-(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -55,7 +52,7 @@ actor {
 
   // User Profile Functions
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can view profiles");
     };
     userProfiles.get(caller);
@@ -69,7 +66,7 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
@@ -77,7 +74,7 @@ actor {
 
   // Clip Management Functions
   public shared ({ caller }) func saveClip(title : Text, videoUrl : Text, thumbnailUrl : Text, startTime : Nat, endTime : Nat, score : Float) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
       Runtime.trap("Unauthorized: Only users can save clips");
     };
 
@@ -98,21 +95,23 @@ actor {
   };
 
   public query ({ caller }) func getAllClips() : async [Clip] {
+    // Public access - anyone can view all clips (including guests)
     clips.values().toArray();
   };
 
   public shared ({ caller }) func deleteClip(clipId : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
       Runtime.trap("Unauthorized: Only admins can delete clips");
     };
 
     if (not clips.containsKey(clipId)) {
-      Runtime.trap("Clip with ID " # clipId # " not found ");
+      Runtime.trap("Clip with ID " # clipId # " not found");
     };
     clips.remove(clipId);
   };
 
   public query ({ caller }) func getClipById(clipId : Text) : async Clip {
+    // Public access - anyone can view individual clips (including guests)
     switch (clips.get(clipId)) {
       case (?clip) { clip };
       case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
@@ -127,8 +126,8 @@ actor {
       engagementScore := (min / max) * 1000;
     };
 
-    let durationA = (if (clipA.endTime > clipA.startTime) { Int.abs(clipA.endTime - clipA.startTime).toFloat() } else { 0.0 });
-    let durationB = (if (clipB.endTime > clipB.startTime) { Int.abs(clipB.endTime - clipB.startTime).toFloat() } else { 0.0 });
+    let durationA = if (clipA.endTime > clipA.startTime) { Int.abs(clipA.endTime - clipA.startTime).toFloat() } else { 0.0 };
+    let durationB = if (clipB.endTime > clipB.startTime) { Int.abs(clipB.endTime - clipB.startTime).toFloat() } else { 0.0 };
 
     var lengthScore : Float = if (durationB > 0) {
       1000 - Float.abs(durationA - durationB);
@@ -148,6 +147,7 @@ actor {
   };
 
   public query ({ caller }) func findRelatedClips(clipId : Text) : async [Text] {
+    // Public access - anyone can find related clips (including guests)
     let targetClip = switch (clips.get(clipId)) {
       case (?clip) { clip };
       case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
@@ -183,13 +183,14 @@ actor {
 
   func calculateClipEngagementScore(clip : Clip) : Float {
     let baseScore : Float = clip.score;
-    let length = (if (clip.endTime > clip.startTime) { Int.abs(clip.endTime - clip.startTime).toFloat() } else { 0.0 });
+    let length = if (clip.endTime > clip.startTime) { Int.abs(clip.endTime - clip.startTime).toFloat() } else { 0.0 };
     let lengthPenalty : Float = if (length > 0) { 1000.0 / length } else { 0.0 };
 
     baseScore + lengthPenalty;
   };
 
   public query ({ caller }) func getTrendingClips() : async [Clip] {
+    // Public access - anyone can view trending clips (including guests)
     let allClipsArray = clips.values().toArray();
 
     func compareByEngagement(a : Clip, b : Clip) : Order.Order {
@@ -213,10 +214,15 @@ actor {
   };
 
   public query ({ caller }) func getTotalClipsCount() : async Nat {
+    // Public access - anyone can view clip count (including guests)
     clips.size();
   };
 
   public query ({ caller }) func getTrendingClipsAnalytics() : async [TrendingClipAnalytics] {
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can view analytics");
+    };
+
     let allClipsArray = clips.values().toArray();
 
     if (allClipsArray.size() == 0) {
@@ -253,7 +259,9 @@ actor {
   };
 
   public query ({ caller }) func generateClipsAutomatically(_youtubeVideoId : Text) : async [AutoGeneratedClipSuggestion] {
-    // This function will be implemented in the frontend, as GPT API outcalls cannot be performed from managed canisters
+    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+      Runtime.trap("Unauthorized: Only users can generate clips automatically");
+    };
     [];
   };
 };

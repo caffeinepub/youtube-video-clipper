@@ -1,10 +1,11 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 17,
+  "projectStateVersion": 35,
   "summary": "YouTube video clipping application",
   "architectural_notes": [],
   "known_issues": [
-    "AI clip generation feature is not implemented despite being listed as completed in existing features"
+    "AI clip generation feature is not implemented despite being listed as completed in existing features",
+    "Admin button is now visible in header, but authenticated owner is denied access to the admin panel"
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -191,6 +192,174 @@
         "REQ-31"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-debug-and-fix-the-layout-component-s-admin-navigation-link-rendering-logic-to-ensure-the-admin-button-appears-in-the-header-when-the-authenticated-user-is-the-owner",
+      "title": "Debug and fix the Layout component's admin navigation link rendering logic to ensure the 'Admin' button appears in the header when the authenticated user is the owner",
+      "reqIds": [
+        "REQ-32"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-the-useisowner-hook-is-correctly-returning-ownership-status-and-handling-loading-states-without-blocking-the-header-from-rendering",
+      "title": "Verify the useIsOwner hook is correctly returning ownership status and handling loading states without blocking the header from rendering",
+      "reqIds": [
+        "REQ-33"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-modify-the-layout-component-frontend-src-components-layout-tsx-to-ensure-the-admin-navigation-button-renders-in-the-header-for-the-authenticated-owner-bypassing-any-conditional-logic-that-may-be-preventing-it-from-appearing-add-explicit-console-logging-to-track-isowner-state-and-button-render-conditions",
+      "title": "Modify the Layout component (frontend/src/components/Layout.tsx) to ensure the Admin navigation button renders in the header for the authenticated owner, bypassing any conditional logic that may be preventing it from appearing. Add explicit console logging to track isOwner state and button render conditions.",
+      "reqIds": [
+        "REQ-35"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-defensive-fallback-rendering-in-layout-tsx-so-that-if-useisowner-hook-returns-undefined-or-takes-too-long-to-resolve-a-temporary-check-admin-button-still-appears-for-authenticated-users-allowing-manual-verification-of-admin-access",
+      "title": "Add defensive fallback rendering in Layout.tsx so that if useIsOwner hook returns undefined or takes too long to resolve, a temporary 'Check Admin' button still appears for authenticated users, allowing manual verification of admin access.",
+      "reqIds": [
+        "REQ-36"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-review-and-fix-the-useisowner-hook-frontend-src-hooks-useisowner-ts-to-ensure-it-correctly-returns-the-ownership-status-without-blocking-or-returning-false-negatives-add-error-logging-and-ensure-react-query-is-configured-with-appropriate-staletime-and-refetchonmount-settings",
+      "title": "Review and fix the useIsOwner hook (frontend/src/hooks/useIsOwner.ts) to ensure it correctly returns the ownership status without blocking or returning false negatives. Add error logging and ensure React Query is configured with appropriate staleTime and refetchOnMount settings.",
+      "reqIds": [
+        "REQ-37"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-comprehensive-console-logging-throughout-the-layout-component-to-trace-the-complete-rendering-lifecycle-of-the-admin-navigation-button-including-authentication-state-changes-useisowner-hook-return-values-conditional-rendering-decisions-and-any-errors-that-may-prevent-the-button-from-displaying",
+      "title": "Add comprehensive console logging throughout the Layout component to trace the complete rendering lifecycle of the Admin navigation button, including: authentication state changes, useIsOwner hook return values, conditional rendering decisions, and any errors that may prevent the button from displaying",
+      "reqIds": [
+        "REQ-38"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-that-the-useisowner-hook-in-frontend-src-hooks-useisowner-ts-is-correctly-calling-the-backend-iscalleradmin-method-and-add-detailed-logging-for-the-request-response-and-any-errors-encountered-during-the-call",
+      "title": "Verify that the useIsOwner hook in frontend/src/hooks/useIsOwner.ts is correctly calling the backend isCallerAdmin method and add detailed logging for the request, response, and any errors encountered during the call",
+      "reqIds": [
+        "REQ-39"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-explicit-fallback-rendering-in-the-layout-component-header-that-always-displays-a-debug-check-admin-status-button-for-authenticated-users-regardless-of-useisowner-return-value-to-enable-manual-verification-of-the-admin-check-functionality",
+      "title": "Add explicit fallback rendering in the Layout component header that always displays a 'Debug: Check Admin Status' button for authenticated users, regardless of useIsOwner return value, to enable manual verification of the admin check functionality",
+      "reqIds": [
+        "REQ-40"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-all-conditional-rendering-logic-for-the-admin-navigation-button-in-the-layout-component-header-and-force-it-to-always-display-when-a-user-is-authenticated-regardless-of-the-useisowner-hook-return-value",
+      "title": "Remove all conditional rendering logic for the Admin navigation button in the Layout component header and force it to always display when a user is authenticated, regardless of the useIsOwner hook return value",
+      "reqIds": [
+        "REQ-42"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-permanent-visual-indicator-e-g-test-mode-badge-or-styling-to-the-admin-button-to-make-it-immediately-obvious-that-admin-access-checking-has-been-temporarily-disabled-for-debugging-purposes",
+      "title": "Add a permanent visual indicator (e.g., 'TEST MODE' badge or styling) to the Admin button to make it immediately obvious that admin access checking has been temporarily disabled for debugging purposes",
+      "reqIds": [
+        "REQ-43"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-browser-console-logging-in-the-layout-component-that-outputs-admin-button-forced-visible-when-the-component-renders-with-an-authenticated-user-confirming-the-button-rendering-logic-is-executing",
+      "title": "Add browser console logging in the Layout component that outputs 'ADMIN BUTTON FORCED VISIBLE' when the component renders with an authenticated user, confirming the button rendering logic is executing",
+      "reqIds": [
+        "REQ-44"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-read-and-analyze-the-layout-component-frontend-src-components-layout-tsx-to-identify-why-the-admin-navigation-button-is-not-rendering-in-the-header-despite-multiple-debugging-attempts",
+      "title": "Read and analyze the Layout component (frontend/src/components/Layout.tsx) to identify why the Admin navigation button is not rendering in the header despite multiple debugging attempts",
+      "reqIds": [
+        "REQ-45"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-read-and-analyze-the-useisowner-hook-frontend-src-hooks-useisowner-ts-to-verify-it-correctly-calls-the-backend-iscalleradmin-method-and-returns-the-ownership-status-without-false-negatives",
+      "title": "Read and analyze the useIsOwner hook (frontend/src/hooks/useIsOwner.ts) to verify it correctly calls the backend isCallerAdmin method and returns the ownership status without false negatives",
+      "reqIds": [
+        "REQ-46"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-based-on-the-code-analysis-implement-a-definitive-fix-for-the-admin-button-visibility-issue-that-ensures-the-button-appears-in-the-header-for-authenticated-owners",
+      "title": "Based on the code analysis, implement a definitive fix for the Admin button visibility issue that ensures the button appears in the header for authenticated owners",
+      "reqIds": [
+        "REQ-47"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-route-protection-in-frontend-src-app-tsx-to-properly-handle-the-iscalleradmin-check-and-display-the-adminpanel-component-when-the-authenticated-user-is-verified-as-owner",
+      "title": "Update the admin route protection in frontend/src/App.tsx to properly handle the isCallerAdmin check and display the AdminPanel component when the authenticated user is verified as owner",
+      "reqIds": [
+        "REQ-49"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-the-useisowner-hook-in-frontend-src-hooks-useisowner-ts-correctly-processes-the-backend-iscalleradmin-response-and-returns-the-admin-status-without-false-negatives",
+      "title": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly processes the backend isCallerAdmin response and returns the admin status without false negatives",
+      "reqIds": [
+        "REQ-50"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frontend-console-logging-in-the-useisowner-hook-to-display-the-authenticated-user-s-principal-and-the-backend-s-iscalleradmin-response-helping-identify-any-principal-mismatch-issues",
+      "title": "Add frontend console logging in the useIsOwner hook to display the authenticated user's principal and the backend's isCallerAdmin response, helping identify any principal mismatch issues",
+      "reqIds": [
+        "REQ-53"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frontend-console-logging-in-the-app-tsx-admin-route-to-display-the-iscalleradmin-check-result-and-the-access-decision-confirming-whether-the-access-denial-occurs-in-the-frontend-or-backend",
+      "title": "Add frontend console logging in the App.tsx admin route to display the isCallerAdmin check result and the access decision, confirming whether the access denial occurs in the frontend or backend",
+      "reqIds": [
+        "REQ-54"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-read-and-analyze-the-useactor-hook-in-frontend-src-hooks-useactor-ts-to-verify-the-admin-token-from-url-parameters-is-correctly-extracted-and-passed-to-the-backend-during-actor-initialization",
+      "title": "Read and analyze the useActor hook in frontend/src/hooks/useActor.ts to verify the admin token from URL parameters is correctly extracted and passed to the backend during actor initialization",
+      "reqIds": [
+        "REQ-57"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-the-admin-route-protection-logic-in-frontend-src-app-tsx-correctly-processes-the-iscalleradmin-response-and-grants-access-to-the-adminpanel-component-when-the-authenticated-user-is-the-owner",
+      "title": "Verify the admin route protection logic in frontend/src/App.tsx correctly processes the isCallerAdmin response and grants access to the AdminPanel component when the authenticated user is the owner",
+      "reqIds": [
+        "REQ-60"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-app-tsx-admin-route-protection-to-display-the-exact-principal-received-from-the-backend-iscalleradmin-check-in-the-access-denied-message-for-debugging-purposes",
+      "title": "Update the frontend App.tsx admin route protection to display the exact principal received from the backend isCallerAdmin check in the access denied message for debugging purposes",
+      "reqIds": [
+        "REQ-64"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -285,6 +454,108 @@
       "summary": "Create a backend function generateClipsAutomatically that accepts a YouTube video ID and returns an array of auto-generated clip suggestions, each containing start timestamp, end timestamp, title, and viral score",
       "reqIds": [
         "REQ-28"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-21",
+      "summary": "Ensure the backend isCallerAdmin method correctly identifies the owner principal and returns true for the authenticated owner",
+      "reqIds": [
+        "REQ-34"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-25",
+      "summary": "Verify the backend isCallerAdmin method in backend/main.mo correctly compares the caller's principal against the owner principal and add logging to track all admin check invocations with their results",
+      "reqIds": [
+        "REQ-41"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-26",
+      "summary": "Fix admin access control - ensure authenticated owner has permission to access the admin panel",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-27",
+      "summary": "Fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner principal and grant admin access, ensuring it returns true when called by the authenticated owner",
+      "reqIds": [
+        "REQ-48"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-28",
+      "summary": "Debug the backend isCallerAdmin method in backend/main.mo to identify why it returns false for the authenticated owner principal, adding comprehensive logging to track the caller principal, owner principal, and comparison result",
+      "reqIds": [
+        "REQ-51"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-29",
+      "summary": "Verify the owner principal initialization in backend/main.mo is correctly extracting and storing the admin token from the initialization parameters, ensuring it matches the principal of the authenticated Internet Identity user",
+      "reqIds": [
+        "REQ-52"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-32",
+      "summary": "Verify the useActor hook in frontend/src/hooks/useActor.ts correctly passes the admin token from URL parameters to the backend during actor initialization, ensuring the backend can associate the authenticated principal with admin privileges",
+      "reqIds": [
+        "REQ-55"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-33",
+      "summary": "Read and analyze the backend isCallerAdmin method in backend/main.mo to verify it correctly compares the authenticated caller's principal against the owner principal and returns the correct boolean result",
+      "reqIds": [
+        "REQ-56"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-35",
+      "summary": "Fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner by ensuring the owner principal is properly initialized during canister deployment and the caller principal comparison returns true for the authenticated owner",
+      "reqIds": [
+        "REQ-58"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-36",
+      "summary": "Add comprehensive backend logging in the isCallerAdmin method to output the caller's principal, the stored owner principal, and the comparison result to help diagnose authentication failures",
+      "reqIds": [
+        "REQ-59"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-37",
+      "summary": "Fix the backend owner principal verification in backend/main.mo to correctly authenticate the owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and grant admin access by ensuring isCallerAdmin returns true for this principal",
+      "reqIds": [
+        "REQ-61"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-38",
+      "summary": "Verify the owner principal initialization logic in backend/main.mo correctly stores and compares the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' during canister deployment and authentication checks",
+      "reqIds": [
+        "REQ-62"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-39",
+      "summary": "Add comprehensive backend logging in the isCallerAdmin method to output the caller's principal text representation, the stored owner principal text representation, and the boolean comparison result to diagnose why authentication is failing for the authenticated owner",
+      "reqIds": [
+        "REQ-63"
       ],
       "status": "pending"
     }
