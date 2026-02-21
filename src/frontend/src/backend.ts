@@ -135,6 +135,9 @@ export interface backendInterface {
     getTrendingClipsAnalytics(): Promise<Array<TrendingClipAnalytics>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    isPersistentAdmin(): Promise<boolean>;
+    migrateDefaultAdmins(): Promise<void>;
+    registerAdmin(adminPrincipal: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveClip(title: string, videoUrl: string, thumbnailUrl: string, startTime: bigint, endTime: bigint, score: number): Promise<string>;
 }
@@ -334,6 +337,48 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.isCallerAdmin();
+            return result;
+        }
+    }
+    async isPersistentAdmin(): Promise<boolean> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.isPersistentAdmin();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.isPersistentAdmin();
+            return result;
+        }
+    }
+    async migrateDefaultAdmins(): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.migrateDefaultAdmins();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.migrateDefaultAdmins();
+            return result;
+        }
+    }
+    async registerAdmin(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.registerAdmin(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.registerAdmin(arg0);
             return result;
         }
     }

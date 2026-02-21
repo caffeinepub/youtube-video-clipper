@@ -1,13 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the admin panel error that prevents the authenticated owner from accessing the admin dashboard.
+**Goal:** Fix admin panel authentication so the owner principal can access the admin panel without seeing "Access Denied".
 
 **Planned changes:**
-- Debug and resolve errors in the AdminPanel component that prevent rendering
-- Fix the admin route protection logic to properly handle isCallerAdmin checks
-- Correct the backend isCallerAdmin method to successfully authenticate the owner principal
-- Ensure the adminPrincipals HashMap correctly stores and retrieves the owner principal
-- Add proper error handling and loading states throughout the admin access flow
+- Fix the backend isCallerAdmin method to correctly authenticate the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'
+- Verify the adminPrincipals HashMap initialization correctly stores the owner principal during actor initialization
+- Add comprehensive backend logging to diagnose authentication failures (caller principal, HashMap lookup result, HashMap size, stored principals, return value)
 
-**User-visible outcome:** The authenticated owner can successfully access and view the admin dashboard at /admin without errors.
+**User-visible outcome:** The authenticated owner can access the admin panel and view system statistics, user identity, and trending clips without encountering the "Access Denied" error message.

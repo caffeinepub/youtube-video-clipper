@@ -29,13 +29,14 @@ export function useIsOwner() {
         return false;
       }
 
-      console.log('[useIsOwner] ✓ Actor and identity available, calling isCallerAdmin()...');
+      console.log('[useIsOwner] ✓ Actor and identity available, calling isPersistentAdmin()...');
       console.log('[useIsOwner] Current principal:', identity.getPrincipal().toString());
 
       try {
         const startTime = Date.now();
         
-        const result = await actor.isCallerAdmin();
+        // Changed from isCallerAdmin() to isPersistentAdmin()
+        const result = await actor.isPersistentAdmin();
         
         const endTime = Date.now();
         const duration = endTime - startTime;

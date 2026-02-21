@@ -52,6 +52,9 @@ export interface backendInterface {
     getTrendingClipsAnalytics(): Promise<Array<TrendingClipAnalytics>>;
     getUserProfile(user: Principal): Promise<UserProfile | null>;
     isCallerAdmin(): Promise<boolean>;
+    isPersistentAdmin(): Promise<boolean>;
+    migrateDefaultAdmins(): Promise<void>;
+    registerAdmin(adminPrincipal: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveClip(title: string, videoUrl: string, thumbnailUrl: string, startTime: bigint, endTime: bigint, score: number): Promise<string>;
 }

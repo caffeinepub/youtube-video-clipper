@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 63,
+  "projectStateVersion": 65,
   "summary": "YouTube video clipping application",
   "architectural_notes": [
     "Admin panel authentication switched from principal-based to user ID-based access control",
@@ -10,7 +10,7 @@
     "AI clip generation feature is not implemented despite being listed as completed in existing features",
     "Admin panel stuck in 'checking permissions' state instead of displaying content",
     "Admin panel user ID display feature not working - the user ID section is not rendering despite implementation",
-    "Admin panel not working after user ID verification"
+    "Admin panel displaying 'Checking permissions...' message but not progressing to show admin dashboard content after user verification"
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -1041,6 +1041,30 @@
       "summary": "Fix the backend isCallerAdmin method in backend/main.mo to ensure it correctly authenticates the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and returns true, resolving any HashMap lookup or principal comparison issues",
       "reqIds": [
         "REQ-121"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-86",
+      "summary": "Fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and return true instead of false, resolving the 'Access Denied' error shown in the uploaded screenshot where the principal ID is displayed but access is denied",
+      "reqIds": [
+        "REQ-122"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-87",
+      "summary": "Verify the adminPrincipals HashMap initialization in backend/main.mo correctly stores the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' during actor initialization, ensuring the principal format matches exactly and the HashMap lookup succeeds during authentication checks",
+      "reqIds": [
+        "REQ-123"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-88",
+      "summary": "Add comprehensive backend logging in the isCallerAdmin method to output: 1) the caller's principal using Principal.toText(), 2) the result of the adminPrincipals HashMap lookup (whether the principal exists), 3) the current size of the adminPrincipals HashMap, 4) all principals stored in the HashMap by iterating through entries for comparison, 5) the final boolean return value, enabling diagnosis of why authentication is failing for the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
+      "reqIds": [
+        "REQ-124"
       ],
       "status": "pending"
     }

@@ -55,6 +55,9 @@ export interface _SERVICE {
   'getTrendingClipsAnalytics' : ActorMethod<[], Array<TrendingClipAnalytics>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
+  'isPersistentAdmin' : ActorMethod<[], boolean>,
+  'migrateDefaultAdmins' : ActorMethod<[], undefined>,
+  'registerAdmin' : ActorMethod<[string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'saveClip' : ActorMethod<
     [string, string, string, bigint, bigint, number],

@@ -65,6 +65,9 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+  'isPersistentAdmin' : IDL.Func([], [IDL.Bool], []),
+  'migrateDefaultAdmins' : IDL.Func([], [], []),
+  'registerAdmin' : IDL.Func([IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'saveClip' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Float64],
@@ -133,6 +136,9 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
+    'isPersistentAdmin' : IDL.Func([], [IDL.Bool], []),
+    'migrateDefaultAdmins' : IDL.Func([], [], []),
+    'registerAdmin' : IDL.Func([IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'saveClip' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Float64],
