@@ -1,11 +1,11 @@
 import { SiYoutube } from 'react-icons/si';
 import { Scissors, Shield, LogIn, LogOut } from 'lucide-react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useIsOwner } from '../hooks/useIsOwner';
 import { Link, useLocation } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
-import AdminPasswordInput from './AdminPasswordInput';
-import { useAdminPasswordAuth } from '../hooks/useAdminPasswordAuth';
+import { useEffect } from 'react';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const currentYear = new Date().getFullYear();
@@ -13,20 +13,47 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     typeof window !== 'undefined' ? window.location.hostname : 'youtube-clipper'
   );
   const { identity, login, clear, loginStatus } = useInternetIdentity();
-  const { isValidated, clearValidation } = useAdminPasswordAuth();
+  const { isOwner, isLoading: isOwnerLoading, isFetched: isOwnerFetched } = useIsOwner();
   const location = useLocation();
   const queryClient = useQueryClient();
 
   const isAuthenticated = !!identity;
   const isLoggingIn = loginStatus === 'logging-in';
 
+  // Debug logging for admin button visibility
+  useEffect(() => {
+    const timestamp = new Date().toISOString();
+    console.group(`[Layout] Render State - ${timestamp}`);
+    console.log('Authentication:', {
+      isAuthenticated,
+      loginStatus,
+      principalId: identity?.getPrincipal().toString() || 'none',
+    });
+    console.log('Admin Status:', {
+      isOwner,
+      isOwnerLoading,
+      isOwnerFetched,
+    });
+    console.log('Admin Button Condition:', {
+      shouldShowButton: isAuthenticated && !isOwnerLoading && isOwnerFetched && isOwner,
+      breakdown: {
+        isAuthenticated,
+        notLoading: !isOwnerLoading,
+        isFetched: isOwnerFetched,
+        isOwner,
+      }
+    });
+    console.groupEnd();
+  }, [isAuthenticated, loginStatus, identity, isOwner, isOwnerLoading, isOwnerFetched]);
+
   const handleAuth = async () => {
     if (isAuthenticated) {
+      console.log('[Layout] Logging out and clearing cache');
       await clear();
-      clearValidation(); // Clear password validation on logout
       queryClient.clear();
     } else {
       try {
+        console.log('[Layout] Initiating login');
         await login();
       } catch (error: any) {
         console.error('[Layout] Login error:', error);
@@ -37,6 +64,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       }
     }
   };
+
+  // Determine if admin button should be shown
+  const showAdminButton = isAuthenticated && !isOwnerLoading && isOwnerFetched && isOwner;
 
   return (
     <div className="min-h-screen flex flex-col bg-background">
@@ -55,13 +85,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </Link>
             
             <div className="flex items-center gap-3">
-              {/* Admin password input - shown for authenticated users who haven't validated yet */}
-              {isAuthenticated && !isValidated && (
-                <AdminPasswordInput />
-              )}
-
-              {/* Admin panel button - shown only after password validation */}
-              {isAuthenticated && isValidated && (
+              {/* Admin panel button - shown only for admin users after verification */}
+              {showAdminButton && (
                 <Link
                   to="/admin"
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all ${
@@ -73,6 +98,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Shield className="w-5 h-5" />
                   <span>Admin Panel</span>
                 </Link>
+              )}
+              
+              {/* Show loading indicator for admin check when authenticated */}
+              {isAuthenticated && isOwnerLoading && (
+                <div className="flex items-center gap-2 px-4 py-2 text-muted-foreground">
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                  <span className="text-sm">Checking permissions...</span>
+                </div>
               )}
               
               {/* Login/Logout button */}

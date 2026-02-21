@@ -1,32 +1,84 @@
 {
   "kind": "build_request",
-  "title": "Read backend code to display admin password",
-  "priority": "normal",
+  "title": "Fix admin panel button visibility in header after login",
+  "projectName": "Beast Clipping",
+  "priority": "high",
   "requirements": [
     {
-      "id": "REQ-138",
-      "text": "Read and display the contents of backend/main.mo file to show the user the hardcoded admin password value configured in the password-based authentication system",
-      "target": "backend",
+      "id": "REQ-142",
+      "text": "Debug and fix the Layout component in frontend/src/components/Layout.tsx to ensure the Admin navigation button renders in the header when a user authenticates with Internet Identity, identifying any conditional logic, loading state handling, or hook dependencies that prevent the button from appearing",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-read-backend"
+          "msg-user-current"
+        ],
+        "quotes": [
+          "It don't show the admin panel button when I login"
         ]
       },
       "acceptanceCriteria": [
-        "The backend/main.mo file contents are read successfully",
-        "The hardcoded admin password value is identified and displayed to the user",
-        "The password is shown in clear text so the user can use it for admin access"
+        "Admin button appears in the header immediately after successful Internet Identity login",
+        "Button visibility is not blocked by loading states or undefined hook returns",
+        "Console logging traces the button rendering decision for debugging"
+      ]
+    },
+    {
+      "id": "REQ-143",
+      "text": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles authentication state changes and returns the admin status without blocking or causing rendering delays when the user logs in with Internet Identity",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-current"
+        ],
+        "quotes": [
+          "It don't show the admin panel button when I login"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Hook returns admin status immediately after authentication completes",
+        "No race conditions between authentication state and admin check",
+        "Loading states resolve correctly without hanging"
+      ]
+    },
+    {
+      "id": "REQ-144",
+      "text": "Add comprehensive frontend console logging in the Layout component to track the authentication lifecycle and Admin button rendering decisions, outputting: 1) when authentication state changes, 2) the isOwner hook return value and loading state, 3) whether the button render condition evaluates to true/false, 4) confirmation when the button element is added to the DOM",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-current"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Console logs show complete authentication and rendering flow",
+        "Logs identify exact point where button rendering fails or succeeds",
+        "Timestamp tracking shows timing of state changes"
+      ]
+    },
+    {
+      "id": "REQ-145",
+      "text": "Ensure the Layout component header conditionally renders the Admin navigation link only after the useIsOwner hook confirms admin access, with proper fallback handling if the hook is loading or returns undefined, preventing the button from being hidden due to premature evaluation",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-user-current"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin button does not render before authentication completes",
+        "Admin button appears as soon as admin status is confirmed",
+        "No flash of content or button disappearing after initial render"
       ]
     }
   ],
   "constraints": [
-    "Only read the file, do not modify any backend code",
-    "Display the exact password value without modifications"
+    "Do not modify immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui"
   ],
   "nonGoals": [
-    "Changing the admin password",
-    "Implementing password hashing or encryption",
-    "Modifying the authentication system"
+    "Changing the admin authentication method from Internet Identity principal-based to password-based",
+    "Modifying the backend isCallerAdmin logic or HashMap structure",
+    "Adding new admin authentication features or alternative login methods",
+    "Changing the admin panel content or statistics display"
   ],
   "imageRequirements": {
     "required": [],

@@ -1,6 +1,76 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Read backend code to display admin password",
-  "requirements": []
+  "title": "Fix admin panel button visibility in header after login",
+  "requirements": [
+    {
+      "id": "REQ-142",
+      "summary": "Debug and fix the Layout component to ensure the Admin navigation button renders in the header when a user authenticates with Internet Identity",
+      "acceptanceCriteria": [
+        "Admin button appears in the header immediately after successful Internet Identity login",
+        "Button visibility is not blocked by loading states or undefined hook returns",
+        "Console logging traces the button rendering decision for debugging"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Review and fix the conditional rendering logic for the Admin navigation button. Ensure the useIsOwner hook is called correctly and its return values (loading state and isOwner boolean) are properly handled. Add defensive checks to prevent the button from being hidden due to premature evaluation during authentication state transitions. Ensure the component waits for authentication to complete before evaluating admin status."
+        }
+      ]
+    },
+    {
+      "id": "REQ-143",
+      "summary": "Verify the useIsOwner hook correctly handles authentication state changes and returns admin status without blocking or causing rendering delays",
+      "acceptanceCriteria": [
+        "Hook returns admin status immediately after authentication completes",
+        "No race conditions between authentication state and admin check",
+        "Loading states resolve correctly without hanging"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useIsOwner.ts",
+          "operation": "modify",
+          "description": "Review the hook implementation to ensure it correctly waits for the actor to be available before querying admin status. Verify that the hook properly depends on authentication state from useInternetIdentity and actor availability from useActor. Ensure the loading state is accurately tracked and returned, preventing race conditions where the hook might return undefined or stale values during authentication transitions. Add proper retry logic if the backend call fails during the authentication flow."
+        }
+      ]
+    },
+    {
+      "id": "REQ-144",
+      "summary": "Add comprehensive frontend console logging in the Layout component to track the authentication lifecycle and Admin button rendering decisions",
+      "acceptanceCriteria": [
+        "Console logs show complete authentication and rendering flow",
+        "Logs identify exact point where button rendering fails or succeeds",
+        "Timestamp tracking shows timing of state changes"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Add detailed console.log statements with timestamps to track: 1) when the component renders and re-renders, 2) the current authentication state from useInternetIdentity (identity present/absent, loginStatus), 3) the useIsOwner hook return values (isOwner, loading states), 4) the boolean evaluation of the condition that determines whether to render the Admin button, 5) confirmation when the Admin Link element is included in the DOM. Use console.group for better log organization and include all relevant state values in each log entry."
+        },
+        {
+          "path": "frontend/src/hooks/useIsOwner.ts",
+          "operation": "modify",
+          "description": "Add console logging to track: 1) when the hook initializes and updates, 2) when the actor becomes available, 3) when the backend isCallerAdmin query is called, 4) the response from the backend call (success/failure, return value), 5) when loading states change. Include timestamps and the current authentication principal in log entries to correlate with Layout component logs."
+        }
+      ]
+    },
+    {
+      "id": "REQ-145",
+      "summary": "Ensure the Layout component header conditionally renders the Admin navigation link only after the useIsOwner hook confirms admin access, with proper fallback handling",
+      "acceptanceCriteria": [
+        "Admin button does not render before authentication completes",
+        "Admin button appears as soon as admin status is confirmed",
+        "No flash of content or button disappearing after initial render"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/Layout.tsx",
+          "operation": "modify",
+          "description": "Implement robust conditional rendering logic that prevents the Admin button from rendering prematurely. Ensure the condition checks: 1) authentication is complete (identity exists), 2) useIsOwner hook is not in a loading state, 3) isOwner is explicitly true (not undefined or null). Add a loading placeholder in the header navigation area during authentication to prevent layout shift. Ensure the button appears smoothly without flashing or disappearing once admin status is confirmed. Consider using a separate loading indicator for the admin button area if the hook is still checking permissions after login."
+        }
+      ]
+    }
+  ]
 }

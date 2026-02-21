@@ -40,7 +40,6 @@ export interface VideoClip {
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
-  'checkAdminPassword' : ActorMethod<[string], boolean>,
   'deleteClip' : ActorMethod<[string], undefined>,
   'findRelatedClips' : ActorMethod<[string], Array<string>>,
   'generateClipsAutomatically' : ActorMethod<

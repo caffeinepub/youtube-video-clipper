@@ -13,11 +13,11 @@ import Text "mo:core/Text";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
+
+
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
-
-  let adminPassword = "testpasswordtestpasswordtestpasswordtestpassword";
 
   type VideoClip = {
     id : Text;
@@ -52,24 +52,6 @@ actor {
     viralScore : Float;
   };
 
-  // REMOVED: getStoredAdminPassword function - passwords should NEVER be exposed via API
-  // This function had no authorization and would leak the admin password to anyone
-
-  public shared ({ caller }) func checkAdminPassword(password : Text) : async Bool {
-    // Password verification should be available to authenticated users only
-    // to prevent anonymous brute force attacks
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only authenticated users can verify passwords");
-    };
-    
-    let isValid = password == adminPassword;
-    if (isValid) {
-      // Grant admin role upon successful password verification
-      AccessControl.assignRole(accessControlState, caller, caller, #admin);
-    };
-    isValid;
-  };
-
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access profiles");
@@ -78,9 +60,6 @@ actor {
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can access profiles");
-    };
     if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
@@ -234,10 +213,6 @@ actor {
   };
 
   public query ({ caller }) func getTrendingClips() : async [VideoClip] {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view clips");
-    };
-
     let allClipsArray = videoClips.values().toArray();
 
     func compareByEngagement(a : VideoClip, b : VideoClip) : Order.Order {
@@ -262,9 +237,6 @@ actor {
   };
 
   public query ({ caller }) func getTotalClipsCount() : async Nat {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only users can view clips");
-    };
     videoClips.size();
   };
 

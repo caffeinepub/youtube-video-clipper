@@ -1,6 +1,6 @@
 {
-  "frontend/src/App.tsx": "Main application component with TanStack Router setup, managing home page state for video playback and clip selection, and admin route protection using password-based authentication with password prompt UI.",
-  "frontend/src/components/Layout.tsx": "Layout wrapper component with header containing Beast Clipping branding, conditional admin password input for unauthenticated admins, admin panel button for validated users, and integrated login/logout functionality.",
+  "frontend/src/App.tsx": "Main application component with TanStack Router setup, managing home page state for video playback and clip selection, and admin route protection using Internet Identity principal-based authentication via the useIsOwner hook.",
+  "frontend/src/components/Layout.tsx": "Layout wrapper component with header containing Beast Clipping branding, admin panel button for authenticated admin users (with proper loading state handling and comprehensive debug logging), and integrated login/logout functionality.",
   "frontend/src/components/VideoUrlForm.tsx": "Form component for entering YouTube URLs with integrated AI clip generation button that appears after loading a video, handles validation, and triggers automatic clip suggestion generation.",
   "frontend/src/components/YouTubePlayer.tsx": "Embedded YouTube player component that displays videos in a responsive iframe container.",
   "frontend/src/components/ClipTimestampControls.tsx": "Clip creation interface with timestamp inputs, validation, and save functionality that integrates with the backend, managing its own title state and correctly calling the useClipTimestamps and useClipCreation hooks with proper parameter signatures.",
@@ -16,7 +16,7 @@
   "frontend/src/components/ViralScoreBadge.tsx": "Reusable badge component that displays viral potential scores with color-coded styling (green for high, yellow for medium, gray for low) and appropriate icons.",
   "frontend/src/hooks/useTrendingClips.ts": "React Query hook for fetching trending clips sorted by viral potential from the backend, using VideoClip type.",
   "frontend/index.html": "HTML entry point with page title set to \"Beast Clipping\".",
-  "frontend/src/hooks/useIsOwner.ts": "React Query hook that checks if the authenticated user is an admin by calling isPersistentAdmin() instead of isCallerAdmin(), with comprehensive error handling and logging for debugging authentication flow.",
+  "frontend/src/hooks/useIsOwner.ts": "React Query hook that checks if the authenticated user is an admin by calling isCallerAdmin() from the backend, with comprehensive console logging to track authentication state, actor availability, and query lifecycle for debugging admin button visibility issues.",
   "frontend/src/hooks/useAdminStats.ts": "React Query hook that fetches admin statistics including total clips count and trending clips analytics from the backend, with improved error handling that throws errors instead of silently returning defaults.",
   "frontend/src/components/AdminPanel.tsx": "Admin dashboard component displaying system statistics cards and trending clips analytics table with engagement scores, simplified to remove principal-based authentication debugging features.",
   "frontend/src/components/AdminErrorBoundary.tsx": "React error boundary component that catches and displays admin panel errors with detailed error messages, stack traces, and component stacks for better debugging, preventing admin failures from crashing the entire application.",

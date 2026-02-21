@@ -1,18 +1,19 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 75,
+  "projectStateVersion": 79,
   "summary": "YouTube video clipping application",
   "architectural_notes": [
     "Admin panel authentication switched from principal-based to user ID-based access control",
-    "Admin panel authentication will transition from principal/user ID-based to password-based access control"
+    "Admin panel authentication will revert from password-based back to Internet Identity principal-based access control"
   ],
   "known_issues": [
     "AI clip generation feature is not implemented despite being listed as completed in existing features",
     "Admin panel stuck in 'checking permissions' state instead of displaying content",
     "Admin panel user ID display feature not working - the user ID section is not rendering despite implementation",
-    "Admin panel displaying 'Checking permissions...' message but not progressing to show admin dashboard content after user verification"
+    "Admin panel displaying 'Checking permissions...' message but not progressing to show admin dashboard content after user verification",
+    "Admin panel navigation button not appearing in the header for authenticated users despite Internet Identity login"
   ],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
       "id": "feature-create-a-form-where-users-can-input-a-youtube-video-url",
@@ -547,6 +548,78 @@
       "title": "Update the admin route protection logic in frontend/src/App.tsx to use password-based authentication instead of principal-based checks, prompting for password if not already validated",
       "reqIds": [
         "REQ-133"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-remove-the-useadminpasswordauth-hook-and-all-password-authentication-logic-from-the-frontend-including-the-adminpasswordinput-component-and-any-password-validation-state-management",
+      "title": "Remove the useAdminPasswordAuth hook and all password authentication logic from the frontend, including the AdminPasswordInput component and any password validation state management",
+      "reqIds": [
+        "REQ-137"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-layout-component-in-frontend-src-components-layout-tsx-to-remove-the-adminpasswordinput-component-and-display-the-admin-navigation-link-directly-for-authenticated-users-without-requiring-password-entry",
+      "title": "Update the Layout component in frontend/src/components/Layout.tsx to remove the AdminPasswordInput component and display the Admin navigation link directly for authenticated users without requiring password entry",
+      "reqIds": [
+        "REQ-138"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-useisowner-hook-in-frontend-src-hooks-useisowner-ts-to-call-the-backend-iscalleradmin-method-using-react-query-and-return-the-admin-status-based-on-the-authenticated-user-s-internet-identity-principal",
+      "title": "Implement the useIsOwner hook in frontend/src/hooks/useIsOwner.ts to call the backend isCallerAdmin method using React Query and return the admin status based on the authenticated user's Internet Identity principal",
+      "reqIds": [
+        "REQ-139"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-route-protection-logic-in-frontend-src-app-tsx-to-check-admin-access-using-the-useisowner-hook-that-validates-the-user-s-internet-identity-principal-instead-of-password-authentication-displaying-the-adminpanel-for-authorized-users",
+      "title": "Update the admin route protection logic in frontend/src/App.tsx to check admin access using the useIsOwner hook that validates the user's Internet Identity principal instead of password authentication, displaying the AdminPanel for authorized users",
+      "reqIds": [
+        "REQ-140"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-layout-component-to-conditionally-render-the-admin-navigation-link-only-when-the-useisowner-hook-confirms-the-authenticated-user-s-principal-has-admin-access",
+      "title": "Update the Layout component to conditionally render the Admin navigation link only when the useIsOwner hook confirms the authenticated user's principal has admin access",
+      "reqIds": [
+        "REQ-141"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-debug-and-fix-the-layout-component-in-frontend-src-components-layout-tsx-to-ensure-the-admin-navigation-button-renders-in-the-header-when-a-user-authenticates-with-internet-identity-identifying-any-conditional-logic-loading-state-handling-or-hook-dependencies-that-prevent-the-button-from-appearing",
+      "title": "Debug and fix the Layout component in frontend/src/components/Layout.tsx to ensure the Admin navigation button renders in the header when a user authenticates with Internet Identity, identifying any conditional logic, loading state handling, or hook dependencies that prevent the button from appearing",
+      "reqIds": [
+        "REQ-142"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-the-useisowner-hook-in-frontend-src-hooks-useisowner-ts-correctly-handles-authentication-state-changes-and-returns-the-admin-status-without-blocking-or-causing-rendering-delays-when-the-user-logs-in-with-internet-identity",
+      "title": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles authentication state changes and returns the admin status without blocking or causing rendering delays when the user logs in with Internet Identity",
+      "reqIds": [
+        "REQ-143"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-comprehensive-frontend-console-logging-in-the-layout-component-to-track-the-authentication-lifecycle-and-admin-button-rendering-decisions-outputting-1-when-authentication-state-changes-2-the-isowner-hook-return-value-and-loading-state-3-whether-the-button-render-condition-evaluates-to-true-false-4-confirmation-when-the-button-element-is-added-to-the-dom",
+      "title": "Add comprehensive frontend console logging in the Layout component to track the authentication lifecycle and Admin button rendering decisions, outputting: 1) when authentication state changes, 2) the isOwner hook return value and loading state, 3) whether the button render condition evaluates to true/false, 4) confirmation when the button element is added to the DOM",
+      "reqIds": [
+        "REQ-144"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-layout-component-header-conditionally-renders-the-admin-navigation-link-only-after-the-useisowner-hook-confirms-admin-access-with-proper-fallback-handling-if-the-hook-is-loading-or-returns-undefined-preventing-the-button-from-being-hidden-due-to-premature-evaluation",
+      "title": "Ensure the Layout component header conditionally renders the Admin navigation link only after the useIsOwner hook confirms admin access, with proper fallback handling if the hook is loading or returns undefined, preventing the button from being hidden due to premature evaluation",
+      "reqIds": [
+        "REQ-145"
       ],
       "version": 1
     }
@@ -1125,76 +1198,32 @@
       "status": "pending"
     },
     {
-      "id": "AR-92",
-      "summary": "Replace the admin authentication system to use passwords instead of user IDs/principals",
+      "id": "AR-105",
+      "summary": "Restore Internet Identity principal-based admin authentication where only the user's specific login principal has admin access",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-93",
-      "summary": "Replace the backend admin authentication system in backend/main.mo to use a password-based authentication mechanism instead of principal-based checks, storing a secure admin password hash that can be validated against user-provided passwords",
-      "reqIds": [
-        "REQ-129"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-94",
-      "summary": "Create a backend method 'checkAdminPassword' that accepts a password string as input and returns a boolean indicating whether the password matches the stored admin password hash",
-      "reqIds": [
-        "REQ-130"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-98",
-      "summary": "Remove or deprecate the principal-based admin authentication code including the adminPrincipals HashMap and isPersistentAdmin method from backend/main.mo",
+      "id": "AR-106",
+      "summary": "Remove the password-based admin authentication system from the backend by eliminating the adminPasswordHash variable, validateAdminPassword method, and all password validation logic in backend/main.mo",
       "reqIds": [
         "REQ-134"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-99",
-      "summary": "Set a hardcoded admin password in the backend for password-based authentication",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-100",
-      "summary": "Set a hardcoded admin password string in the backend/main.mo actor for password-based authentication",
+      "id": "AR-107",
+      "summary": "Update the backend isCallerAdmin method in backend/main.mo to authenticate the user's Internet Identity principal by checking if the caller's principal matches the owner principal stored in the adminPrincipals HashMap, ensuring it returns true for principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
       "reqIds": [
         "REQ-135"
       ],
       "status": "pending"
     },
     {
-      "id": "AR-101",
-      "summary": "Update the backend checkAdminPassword method to validate user-provided passwords against the hardcoded admin password",
+      "id": "AR-108",
+      "summary": "Verify the adminPrincipals HashMap in backend/main.mo is correctly initialized with the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' during actor initialization, ensuring the principal format is exact and HashMap lookups succeed",
       "reqIds": [
         "REQ-136"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-102",
-      "summary": "Read and display the contents of the backend/main.mo file to identify the hardcoded admin password value configured in the password-based authentication system",
-      "reqIds": [
-        "REQ-137"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-103",
-      "summary": "Read the backend/main.mo file to display the configured admin password in the password-based authentication system",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-104",
-      "summary": "Read and display the contents of backend/main.mo file to show the user the hardcoded admin password value configured in the password-based authentication system",
-      "reqIds": [
-        "REQ-138"
       ],
       "status": "pending"
     }

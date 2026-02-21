@@ -41,7 +41,6 @@ export const TrendingClipAnalytics = IDL.Record({
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-  'checkAdminPassword' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'deleteClip' : IDL.Func([IDL.Text], [], []),
   'findRelatedClips' : IDL.Func([IDL.Text], [IDL.Vec(IDL.Text)], ['query']),
   'generateClipsAutomatically' : IDL.Func(
@@ -110,7 +109,6 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
-    'checkAdminPassword' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'deleteClip' : IDL.Func([IDL.Text], [], []),
     'findRelatedClips' : IDL.Func([IDL.Text], [IDL.Vec(IDL.Text)], ['query']),
     'generateClipsAutomatically' : IDL.Func(
