@@ -1,92 +1,38 @@
 {
   "kind": "build_request",
-  "title": "Fix admin panel navigation button not appearing after authentication",
+  "title": "Retry previous deployment",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-164",
-      "text": "Debug and fix the Layout component in frontend/src/components/Layout.tsx to ensure the Admin navigation button renders in the header immediately after a user authenticates with Internet Identity, identifying why the button is not appearing despite email-based authentication being implemented",
-      "target": "frontend",
+      "id": "REQ-176",
+      "text": "Retry the previous deployment that failed, using the exact same build configuration and code state from the last attempt",
+      "target": "both",
       "source": {
         "messageIds": [
           "msg-latest"
         ],
         "quotes": [
-          "No I can't it isn't poping up"
+          "Retry"
         ]
       },
       "acceptanceCriteria": [
-        "Admin navigation button appears in the Layout header when an authenticated user logs in",
-        "Button visibility is not delayed or blocked by conditional rendering logic",
-        "Authentication state changes trigger proper re-renders of the Layout component"
-      ]
-    },
-    {
-      "id": "REQ-165",
-      "text": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles the authentication state change from Internet Identity login and returns the admin status without causing rendering delays or false negatives for the email jj7250328@gmail.com",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "No I can't it isn't poping up"
-        ]
-      },
-      "acceptanceCriteria": [
-        "useIsOwner hook responds immediately to authentication state changes",
-        "Hook returns correct admin status for the email jj7250328@gmail.com",
-        "No loading states block the Layout component from rendering the Admin button"
-      ]
-    },
-    {
-      "id": "REQ-166",
-      "text": "Add comprehensive frontend console logging in the Layout component to trace why the Admin button is not rendering, outputting authentication state, useIsOwner hook return values, loading states, and the exact conditional logic evaluation that determines button visibility",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "No I can't it isn't poping up"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Console logs show authentication state transitions",
-        "Logs display useIsOwner hook return values and types",
-        "Logs confirm whether conditional rendering logic evaluates to show or hide the button",
-        "Logs include timestamps to identify timing issues"
-      ]
-    },
-    {
-      "id": "REQ-167",
-      "text": "Verify the backend isCallerAdmin method correctly authenticates users with email jj7250328@gmail.com and returns true, ensuring the email-based authentication system is functioning properly",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "No I can't it isn't poping up"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend isCallerAdmin returns true for authenticated users with email jj7250328@gmail.com",
-        "Email comparison is case-insensitive or normalized",
-        "Backend logs confirm successful email retrieval and comparison"
+        "The deployment completes successfully without errors",
+        "All backend canister methods are accessible after deployment",
+        "The frontend application loads correctly in the browser",
+        "Admin authentication functionality works as expected after deployment"
       ]
     }
   ],
   "constraints": [
-    "Do not modify Internet Identity authentication hooks in frontend/src/hooks/useInternetIdentity.ts or useInternetIdentity.tsx",
-    "Preserve existing email-based authentication logic implemented in Version 43",
-    "Maintain single-actor architecture in backend/main.mo"
+    "Do not modify any code or configuration files",
+    "Use the exact same build artifacts and deployment parameters as the previous attempt",
+    "Maintain all existing feature implementations without changes"
   ],
   "nonGoals": [
-    "Implementing new authentication methods beyond email-based verification",
-    "Redesigning the admin panel UI or statistics display",
-    "Adding password-based authentication",
-    "Modifying the AdminPanel component content or layout"
+    "Adding new features or functionality",
+    "Modifying existing code or logic",
+    "Changing deployment configuration or parameters",
+    "Implementing bug fixes or improvements"
   ],
   "imageRequirements": {
     "required": [],

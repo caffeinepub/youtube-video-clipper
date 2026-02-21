@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 89,
+  "projectStateVersion": 93,
   "summary": "YouTube video clipping application",
   "architectural_notes": [
     "Admin panel authentication switched from principal-based to user ID-based access control",
@@ -703,6 +703,38 @@
         "REQ-166"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-a-messaging-interface-to-the-adminpanel-component-that-allows-the-admin-to-send-messages-to-users-including-user-selection-message-composition-and-send-functionality",
+      "title": "Add a messaging interface to the AdminPanel component that allows the admin to send messages to users, including user selection, message composition, and send functionality",
+      "reqIds": [
+        "REQ-168"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-clip-viewer-section-to-the-adminpanel-component-that-displays-all-clips-in-the-system-with-thumbnail-previews-metadata-and-playback-controls",
+      "title": "Add a clip viewer section to the AdminPanel component that displays all clips in the system with thumbnail previews, metadata, and playback controls",
+      "reqIds": [
+        "REQ-170"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-moderator-menu-section-to-the-adminpanel-component-with-controls-for-content-moderation-including-clip-deletion-user-management-and-content-flagging",
+      "title": "Add a moderator menu section to the AdminPanel component with controls for content moderation including clip deletion, user management, and content flagging",
+      "reqIds": [
+        "REQ-172"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-server-shutdown-control-button-to-the-adminpanel-component-that-allows-the-admin-to-gracefully-shut-down-or-restart-the-canister",
+      "title": "Add a server shutdown control button to the AdminPanel component that allows the admin to gracefully shut down or restart the canister",
+      "reqIds": [
+        "REQ-174"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1337,6 +1369,70 @@
       "summary": "Verify the backend isCallerAdmin method correctly authenticates users with email jj7250328@gmail.com and returns true, ensuring the email-based authentication system is functioning properly",
       "reqIds": [
         "REQ-167"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-128",
+      "summary": "Add messaging users feature to admin panel",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-129",
+      "summary": "Add clip viewer to admin panel",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-130",
+      "summary": "Add mod menu to admin panel",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-131",
+      "summary": "Add server shutdown control to admin panel",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-133",
+      "summary": "Create backend methods to support admin messaging functionality including storing messages, retrieving user lists, and sending messages to specific users",
+      "reqIds": [
+        "REQ-169"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-135",
+      "summary": "Create backend methods to support admin clip viewing including retrieving all clips with full metadata and user information",
+      "reqIds": [
+        "REQ-171"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-137",
+      "summary": "Create backend methods to support moderation functionality including bulk clip deletion, user banning, and content flagging",
+      "reqIds": [
+        "REQ-173"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-139",
+      "summary": "Create a backend method to handle canister shutdown or maintenance mode that can only be called by the admin",
+      "reqIds": [
+        "REQ-175"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-140",
+      "summary": "Retry the previous deployment that failed, using the exact same build configuration and code state from the last attempt",
+      "reqIds": [
+        "REQ-176"
       ],
       "status": "pending"
     }

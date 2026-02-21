@@ -1,67 +1,31 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T03:22:06.738Z",
+  "generatedAt": "2026-02-21T03:40:02.770Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 3,
+    "total": 1,
+    "implemented": 0,
     "items": [
       {
-        "id": "REQ-164",
-        "summary": "Debug and fix the Layout component in frontend/src/components/Layout.tsx to ensure the Admin navigation button renders in the header immediately after a user authenticates with Internet Identity, identifying why the button is not appearing despite email-based authentication being implemented",
-        "status": "implemented",
+        "id": "REQ-176",
+        "summary": "Retry the previous deployment that failed, using the exact same build configuration and code state from the last attempt",
+        "status": "missing",
         "plannedFiles": [
-          "frontend/src/components/Layout.tsx"
+          "frontend/src/main.tsx",
+          "frontend/src/App.tsx"
         ],
-        "matchedFiles": [
-          "frontend/src/components/Layout.tsx"
-        ]
-      },
-      {
-        "id": "REQ-165",
-        "summary": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly handles the authentication state change from Internet Identity login and returns the admin status without causing rendering delays or false negatives for the email jj7250328@gmail.com",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useIsOwner.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useIsOwner.ts"
-        ]
-      },
-      {
-        "id": "REQ-166",
-        "summary": "Add comprehensive frontend console logging in the Layout component to trace why the Admin button is not rendering, outputting authentication state, useIsOwner hook return values, loading states, and the exact conditional logic evaluation that determines button visibility",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useActor.ts",
-          "frontend/src/components/Layout.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/Layout.tsx"
-        ]
-      },
-      {
-        "id": "REQ-167",
-        "summary": "Verify the backend isCallerAdmin method correctly authenticates users with email jj7250328@gmail.com and returns true, ensuring the email-based authentication system is functioning properly",
-        "status": "unknown",
-        "plannedFiles": [],
         "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/components/Layout.tsx",
-    "frontend/src/hooks/useIsOwner.ts",
-    "frontend/src/hooks/useQueries.ts",
     "frontend/src/utils/urlParams.ts",
     "project_state.json",
     "scratch/component-selection.json",
