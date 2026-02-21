@@ -2,8 +2,8 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-update-the-frontend-app-tsx-admin-route-protection-to-display-the-exact-principal-received-from-the-backend-iscalleradmin-check-in-the-access-denied-message-for-debugging-purposes",
-      "featureTitle": "Update the frontend App.tsx admin route protection to display the exact principal received from the backend isCallerAdmin check in the access denied message for debugging purposes",
+      "featureId": "feature-add-frontend-console-logging-in-the-app-tsx-admin-route-that-outputs-1-the-exact-isadmin-boolean-value-returned-from-the-backend-call-2-the-type-of-the-isadmin-value-typeof-isadmin-3-the-result-of-explicit-boolean-checks-isadmin-true-isadmin-false-4-any-error-objects-if-the-backend-call-fails",
+      "featureTitle": "Add frontend console logging in the App.tsx admin route that outputs: 1) the exact isAdmin boolean value returned from the backend call, 2) the type of the isAdmin value (typeof isAdmin), 3) the result of explicit boolean checks (isAdmin === true, isAdmin === false), 4) any error objects if the backend call fails",
       "files": [
         "frontend/src/App.tsx"
       ],
@@ -16,7 +16,7 @@
         "authorization@4.0.0"
       ],
       "testIds": [
-        "REQ-64"
+        "REQ-67"
       ],
       "confidence": "high"
     }

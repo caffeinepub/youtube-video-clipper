@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 35,
+  "projectStateVersion": 37,
   "summary": "YouTube video clipping application",
   "architectural_notes": [],
   "known_issues": [
@@ -360,6 +360,14 @@
         "REQ-64"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-add-frontend-console-logging-in-the-app-tsx-admin-route-that-outputs-1-the-exact-isadmin-boolean-value-returned-from-the-backend-call-2-the-type-of-the-isadmin-value-typeof-isadmin-3-the-result-of-explicit-boolean-checks-isadmin-true-isadmin-false-4-any-error-objects-if-the-backend-call-fails",
+      "title": "Add frontend console logging in the App.tsx admin route that outputs: 1) the exact isAdmin boolean value returned from the backend call, 2) the type of the isAdmin value (typeof isAdmin), 3) the result of explicit boolean checks (isAdmin === true, isAdmin === false), 4) any error objects if the backend call fails",
+      "reqIds": [
+        "REQ-67"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -556,6 +564,30 @@
       "summary": "Add comprehensive backend logging in the isCallerAdmin method to output the caller's principal text representation, the stored owner principal text representation, and the boolean comparison result to diagnose why authentication is failing for the authenticated owner",
       "reqIds": [
         "REQ-63"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-40",
+      "summary": "Add extensive backend logging in the isCallerAdmin method in backend/main.mo to output: 1) the raw caller principal from Principal.toText(caller), 2) the raw owner principal from Principal.toText(ownerPrincipal), 3) the exact boolean result of the equality comparison, 4) any intermediate conversion or comparison steps",
+      "reqIds": [
+        "REQ-65"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-41",
+      "summary": "Verify the owner principal initialization in backend/main.mo by adding logging during canister initialization that outputs: 1) whether an admin token was provided in init args, 2) the exact principal text extracted from the admin token, 3) confirmation that ownerPrincipal variable was set",
+      "reqIds": [
+        "REQ-66"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-43",
+      "summary": "Review the backend actor initialization arguments and canister deployment configuration to verify the admin token containing principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' is being passed correctly during deployment",
+      "reqIds": [
+        "REQ-68"
       ],
       "status": "pending"
     }

@@ -103,10 +103,29 @@ function AdminPage() {
 
   console.log('[AdminPage] ========== COMPONENT RENDER ==========');
   console.log('[AdminPage] Timestamp:', new Date().toISOString());
-  console.log('[AdminPage] isOwner:', isOwner);
+  console.log('[AdminPage] isOwner value:', isOwner);
+  console.log('[AdminPage] isOwner type:', typeof isOwner);
+  console.log('[AdminPage] isOwner === true:', isOwner === true);
+  console.log('[AdminPage] isOwner === false:', isOwner === false);
+  console.log('[AdminPage] !!isOwner:', !!isOwner);
+  console.log('[AdminPage] Boolean(isOwner):', Boolean(isOwner));
   console.log('[AdminPage] isLoading:', isLoading);
   console.log('[AdminPage] hasIdentity:', !!identity);
   console.log('[AdminPage] identityPrincipal:', identity?.getPrincipal().toString() || 'none');
+  
+  // Explicit boolean checks
+  if (isOwner === true) {
+    console.log('[AdminPage] ✅ Explicit check: isOwner === true (PASS)');
+  } else {
+    console.log('[AdminPage] ❌ Explicit check: isOwner === true (FAIL)');
+  }
+  
+  if (isOwner === false) {
+    console.log('[AdminPage] ⚠️ Explicit check: isOwner === false (TRUE - will deny access)');
+  } else {
+    console.log('[AdminPage] ✅ Explicit check: isOwner === false (FALSE - will not deny on this check)');
+  }
+  
   console.log('[AdminPage] ==========================================');
 
   // Show loading state while checking permissions
@@ -133,6 +152,7 @@ function AdminPage() {
     console.log('[AdminPage] ========== ACCESS DENIED ==========');
     console.log('[AdminPage] Timestamp:', new Date().toISOString());
     console.log('[AdminPage] isOwner:', isOwner);
+    console.log('[AdminPage] isOwner type:', typeof isOwner);
     console.log('[AdminPage] isLoading:', isLoading);
     console.log('[AdminPage] identityPrincipal:', principalText);
     console.log('[AdminPage] ==========================================');
@@ -171,6 +191,14 @@ function AdminPage() {
                   <span className="text-muted-foreground">Principal:</span>{' '}
                   <span className="text-foreground">{principalText}</span>
                 </p>
+                <p className="break-all">
+                  <span className="text-muted-foreground">isOwner value:</span>{' '}
+                  <span className="text-foreground">{String(isOwner)}</span>
+                </p>
+                <p className="break-all">
+                  <span className="text-muted-foreground">isOwner type:</span>{' '}
+                  <span className="text-foreground">{typeof isOwner}</span>
+                </p>
                 <p className="text-muted-foreground mt-2">
                   Check browser console for detailed logs
                 </p>
@@ -186,6 +214,7 @@ function AdminPage() {
   console.log('[AdminPage] ========== ACCESS GRANTED ==========');
   console.log('[AdminPage] Timestamp:', new Date().toISOString());
   console.log('[AdminPage] isOwner:', isOwner);
+  console.log('[AdminPage] isOwner type:', typeof isOwner);
   console.log('[AdminPage] identityPrincipal:', identity?.getPrincipal().toString() || 'none');
   console.log('[AdminPage] ==========================================');
   console.log('[AdminPage] ✅ RENDERING: AdminPanel component');
