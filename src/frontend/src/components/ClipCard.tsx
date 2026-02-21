@@ -14,10 +14,10 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Trash2, Clock, Loader2 } from 'lucide-react';
 import ViralScoreBadge from './ViralScoreBadge';
-import type { Clip } from '../backend';
+import type { VideoClip } from '../backend';
 
 interface ClipCardProps {
-  clip: Clip;
+  clip: VideoClip;
   onClick: () => void;
   onDelete: () => void;
   isDeleting: boolean;

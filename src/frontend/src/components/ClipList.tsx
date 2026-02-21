@@ -3,10 +3,10 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Film, Loader2 } from 'lucide-react';
 import { useClips } from '../hooks/useClips';
 import ClipCard from './ClipCard';
-import type { Clip } from '../backend';
+import type { VideoClip } from '../backend';
 
 interface ClipListProps {
-  onClipSelect: (clip: Clip) => void;
+  onClipSelect: (clip: VideoClip) => void;
   selectedClipId?: string;
 }
 

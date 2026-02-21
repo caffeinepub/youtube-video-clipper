@@ -1,46 +1,41 @@
-import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { Clip } from '../backend';
+import type { VideoClip } from '../backend';
+import { useState } from 'react';
 
 export function useClips() {
   const { actor, isFetching } = useActor();
   const queryClient = useQueryClient();
   const [isDeletingClip, setIsDeletingClip] = useState<string | null>(null);
 
-  const clipsQuery = useQuery<Clip[]>({
+  const { data: clips = [], isLoading } = useQuery<VideoClip[]>({
     queryKey: ['clips'],
     queryFn: async () => {
       if (!actor) return [];
-      return await actor.getAllClips();
+      return await actor.getAllClips('');
     },
     enabled: !!actor && !isFetching,
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (clipId: string) => {
-      if (!actor) {
-        throw new Error('Actor not initialized');
-      }
+      if (!actor) throw new Error('Actor not available');
       setIsDeletingClip(clipId);
-      return await actor.deleteClip(clipId);
+      await actor.deleteClip(clipId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clips'] });
+      setIsDeletingClip(null);
     },
-    onSettled: () => {
+    onError: () => {
       setIsDeletingClip(null);
     },
   });
 
-  const deleteClip = (clipId: string) => {
-    deleteMutation.mutate(clipId);
-  };
-
   return {
-    clips: clipsQuery.data || [],
-    isLoading: clipsQuery.isLoading,
-    deleteClip,
+    clips,
+    isLoading,
+    deleteClip: deleteMutation.mutate,
     isDeletingClip,
   };
 }

@@ -1,12 +1,14 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the admin access control bug where the authenticated owner principal is incorrectly denied admin panel access despite being properly authenticated.
+**Goal:** Implement user ID-based admin authentication system to enable admin access for specific user IDs.
 
 **Planned changes:**
-- Fix the backend isCallerAdmin method to correctly authenticate and return true for owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'
-- Add comprehensive backend logging to output caller principal, stored owner principal, equality comparison result, and data types during admin checks
-- Verify and fix the owner principal initialization from deployment arguments to ensure it correctly stores the admin token
-- Enhance frontend debug information display to show raw backend response, error messages, and complete authentication flow details
+- Replace principal-based admin authentication with user ID system in backend
+- Store and check admin user IDs instead of principals
+- Add user ID '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' as the first admin
+- Create addAdmin method that only existing admins can call
+- Map Internet Identity principals to user IDs for authorization checks
+- Ensure admin list persists across canister upgrades
 
-**User-visible outcome:** The authenticated owner can successfully access the admin panel without seeing "Access Denied", with isOwner correctly displaying as true in the debug info.
+**User-visible outcome:** The user with ID '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' will be able to access the admin panel, and existing admins will be able to add additional admin user IDs through the backend.

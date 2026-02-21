@@ -1,19 +1,18 @@
 import { useEffect, useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Scissors, Save, AlertCircle, Loader2 } from 'lucide-react';
+import { Loader2, Save, Scissors } from 'lucide-react';
 import { useClipTimestamps } from '../hooks/useClipTimestamps';
 import { useClipCreation } from '../hooks/useClipCreation';
-import type { Clip } from '../backend';
 import { toast } from 'sonner';
+import type { VideoClip } from '../backend';
 
 interface ClipTimestampControlsProps {
   videoUrl: string;
   videoId: string;
-  selectedClip?: Clip | null;
+  selectedClip?: VideoClip | null;
   suggestedStartTime?: number;
   suggestedEndTime?: number;
   suggestedTitle?: string;
@@ -28,50 +27,67 @@ export default function ClipTimestampControls({
   suggestedTitle
 }: ClipTimestampControlsProps) {
   const [title, setTitle] = useState('');
+  
   const {
     startMinutes,
-    startSeconds,
-    endMinutes,
-    endSeconds,
     setStartMinutes,
+    startSeconds,
     setStartSeconds,
+    endMinutes,
     setEndMinutes,
+    endSeconds,
     setEndSeconds,
     getTotalSeconds,
     isValid,
-    validationError,
     formatTimeRange,
-    setFromSeconds
   } = useClipTimestamps();
 
   const { createClip, isCreating } = useClipCreation();
 
-  // Load selected clip data
+  const formatTimeDisplay = (minutes: string, seconds: string): string => {
+    const mins = parseInt(minutes) || 0;
+    const secs = parseInt(seconds) || 0;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // Update form when a clip is selected
   useEffect(() => {
     if (selectedClip) {
       setTitle(selectedClip.title);
-      setFromSeconds(Number(selectedClip.startTime), Number(selectedClip.endTime));
+      const startTime = Number(selectedClip.startTime);
+      const endTime = Number(selectedClip.endTime);
+      setStartMinutes(Math.floor(startTime / 60).toString());
+      setStartSeconds((startTime % 60).toString());
+      setEndMinutes(Math.floor(endTime / 60).toString());
+      setEndSeconds((endTime % 60).toString());
     }
-  }, [selectedClip, setFromSeconds]);
+  }, [selectedClip, setStartMinutes, setStartSeconds, setEndMinutes, setEndSeconds]);
 
-  // Load suggested clip data
+  // Update form when a suggestion is selected
   useEffect(() => {
     if (suggestedStartTime !== undefined && suggestedEndTime !== undefined) {
-      setFromSeconds(suggestedStartTime, suggestedEndTime);
+      setStartMinutes(Math.floor(suggestedStartTime / 60).toString());
+      setStartSeconds((suggestedStartTime % 60).toString());
+      setEndMinutes(Math.floor(suggestedEndTime / 60).toString());
+      setEndSeconds((suggestedEndTime % 60).toString());
       if (suggestedTitle) {
         setTitle(suggestedTitle);
       }
     }
-  }, [suggestedStartTime, suggestedEndTime, suggestedTitle, setFromSeconds]);
+  }, [suggestedStartTime, suggestedEndTime, suggestedTitle, setStartMinutes, setStartSeconds, setEndMinutes, setEndSeconds]);
 
   const handleSaveClip = async () => {
-    if (!title.trim()) {
-      toast.error('Please enter a clip title');
+    if (!isValid) {
+      toast.error('Invalid timestamp', {
+        description: 'End time must be greater than start time',
+      });
       return;
     }
 
-    if (!isValid) {
-      toast.error(validationError || 'Invalid timestamp range');
+    if (!title.trim()) {
+      toast.error('Title required', {
+        description: 'Please enter a title for your clip',
+      });
       return;
     }
 
@@ -80,16 +96,28 @@ export default function ClipTimestampControls({
     const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 
     try {
-      await createClip(title, videoUrl, thumbnailUrl, startTime, endTime);
-      toast.success('Clip saved successfully!');
+      await createClip(
+        title.trim(),
+        videoUrl,
+        thumbnailUrl,
+        startTime,
+        endTime
+      );
+
+      toast.success('Clip saved!', {
+        description: `"${title}" has been saved successfully`,
+      });
+
+      // Reset form
       setTitle('');
       setStartMinutes('0');
       setStartSeconds('0');
       setEndMinutes('0');
       setEndSeconds('0');
     } catch (error) {
-      toast.error('Failed to save clip');
-      console.error(error);
+      toast.error('Failed to save clip', {
+        description: error instanceof Error ? error.message : 'An error occurred',
+      });
     }
   };
 
@@ -101,94 +129,79 @@ export default function ClipTimestampControls({
           Create Clip
         </CardTitle>
         <CardDescription>
-          Set start and end times for your video clip
+          Set the start and end timestamps for your clip
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div>
-          <Label htmlFor="clip-title">Clip Title</Label>
+        <div className="space-y-2">
+          <Label htmlFor="title">Clip Title</Label>
           <Input
-            id="clip-title"
-            type="text"
-            placeholder="My awesome clip"
+            id="title"
+            placeholder="Enter clip title"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            className="mt-1.5"
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Start Time */}
+        <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
             <Label>Start Time</Label>
             <div className="flex gap-2 items-center">
-              <div className="flex-1">
-                <Input
-                  type="number"
-                  min="0"
-                  placeholder="Min"
-                  value={startMinutes}
-                  onChange={(e) => setStartMinutes(e.target.value)}
-                />
-              </div>
+              <Input
+                type="number"
+                min="0"
+                placeholder="MM"
+                value={startMinutes}
+                onChange={(e) => setStartMinutes(e.target.value)}
+                className="w-20"
+              />
               <span className="text-muted-foreground">:</span>
-              <div className="flex-1">
-                <Input
-                  type="number"
-                  min="0"
-                  max="59"
-                  placeholder="Sec"
-                  value={startSeconds}
-                  onChange={(e) => setStartSeconds(e.target.value)}
-                />
-              </div>
+              <Input
+                type="number"
+                min="0"
+                max="59"
+                placeholder="SS"
+                value={startSeconds}
+                onChange={(e) => setStartSeconds(e.target.value)}
+                className="w-20"
+              />
             </div>
+            <p className="text-xs text-muted-foreground">
+              {formatTimeDisplay(startMinutes, startSeconds)}
+            </p>
           </div>
 
-          {/* End Time */}
           <div className="space-y-2">
             <Label>End Time</Label>
             <div className="flex gap-2 items-center">
-              <div className="flex-1">
-                <Input
-                  type="number"
-                  min="0"
-                  placeholder="Min"
-                  value={endMinutes}
-                  onChange={(e) => setEndMinutes(e.target.value)}
-                />
-              </div>
+              <Input
+                type="number"
+                min="0"
+                placeholder="MM"
+                value={endMinutes}
+                onChange={(e) => setEndMinutes(e.target.value)}
+                className="w-20"
+              />
               <span className="text-muted-foreground">:</span>
-              <div className="flex-1">
-                <Input
-                  type="number"
-                  min="0"
-                  max="59"
-                  placeholder="Sec"
-                  value={endSeconds}
-                  onChange={(e) => setEndSeconds(e.target.value)}
-                />
-              </div>
+              <Input
+                type="number"
+                min="0"
+                max="59"
+                placeholder="SS"
+                value={endSeconds}
+                onChange={(e) => setEndSeconds(e.target.value)}
+                className="w-20"
+              />
             </div>
+            <p className="text-xs text-muted-foreground">
+              {formatTimeDisplay(endMinutes, endSeconds)}
+            </p>
           </div>
         </div>
 
-        {isValid && (
-          <div className="text-sm text-muted-foreground bg-muted/50 p-3 rounded-md">
-            Clip duration: {formatTimeRange()}
-          </div>
-        )}
-
-        {validationError && (
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>{validationError}</AlertDescription>
-          </Alert>
-        )}
-
-        <Button 
-          onClick={handleSaveClip} 
-          disabled={!isValid || isCreating || !title.trim()}
+        <Button
+          onClick={handleSaveClip}
+          disabled={isCreating || !isValid || !title.trim()}
           className="w-full"
         >
           {isCreating ? (

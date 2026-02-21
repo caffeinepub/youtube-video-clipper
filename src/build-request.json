@@ -1,87 +1,91 @@
 {
   "kind": "build_request",
-  "title": "Fix admin access control - isOwner returns false for authenticated owner",
+  "title": "Implement user ID-based admin authentication system",
   "projectName": "Beast Clipping",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-69",
-      "text": "Fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and return true when this principal makes the admin check call",
+      "id": "REQ-73",
+      "text": "Replace principal-based admin authentication with a user ID system in backend/main.mo that stores and checks admin user IDs instead of principals",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-current"
+          "msg-latest"
         ],
         "quotes": [
-          "Principal: 7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae",
-          "isOwner value: false",
-          "isOwner type: boolean"
+          "Can you use user id for the admin panel so you can add me to use it please"
         ]
       },
       "acceptanceCriteria": [
-        "The backend isCallerAdmin method returns true when called by principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
-        "The frontend debug info displays 'isOwner value: true' when the authenticated owner accesses the admin route",
-        "The admin panel is accessible to the authenticated owner without showing 'Access Denied'"
+        "Backend maintains a list of authorized admin user IDs",
+        "isCallerAdmin method checks caller's user ID against the admin list",
+        "User ID '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' is added to the admin list",
+        "Backend logging shows user ID comparisons during authentication"
       ]
     },
     {
-      "id": "REQ-70",
-      "text": "Add comprehensive backend logging in the isCallerAdmin method to output the exact principal comparison: log the caller principal as text, the stored owner principal as text, whether they are equal, and the data types being compared",
+      "id": "REQ-74",
+      "text": "Create a backend method to add new admin user IDs that can only be called by existing admins",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-current"
+          "msg-latest"
+        ],
+        "quotes": [
+          "Can you use user id for the admin panel so you can add me to use it please"
         ]
       },
       "acceptanceCriteria": [
-        "Backend logs show the exact caller principal text representation",
-        "Backend logs show the exact stored owner principal text representation",
-        "Backend logs show the boolean result of the principal equality comparison",
-        "Logs are visible in the canister console during admin access attempts"
+        "Method addAdmin(userId: Text) exists and is protected",
+        "Only existing admins can call addAdmin",
+        "New admin user IDs are persisted across canister upgrades",
+        "Method returns success/failure status"
       ]
     },
     {
-      "id": "REQ-71",
-      "text": "Verify the owner principal initialization in backend/main.mo is correctly storing the admin token from initialization arguments and confirm the stored principal matches '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
+      "id": "REQ-75",
+      "text": "Update the backend to map Internet Identity principals to user IDs and use user IDs for all admin checks",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-current"
+          "msg-latest"
         ]
       },
       "acceptanceCriteria": [
-        "Backend initialization logs confirm the admin token was received from init args",
-        "Backend logs show the exact principal extracted from the admin token matches the expected value",
-        "The ownerPrincipal variable is correctly set during canister deployment"
+        "Backend creates user IDs for authenticated principals",
+        "User ID generation is consistent for the same principal",
+        "isCallerAdmin uses the generated user ID for authorization checks",
+        "User ID mapping is logged for debugging"
       ]
     },
     {
-      "id": "REQ-72",
-      "text": "Update the frontend App.tsx admin route to display more detailed debug information when access is denied, including the raw backend response, any error messages, and the exact boolean comparison result",
-      "target": "frontend",
+      "id": "REQ-76",
+      "text": "Initialize the backend admin system with user ID '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' as the first admin during canister initialization",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-current"
+          "msg-latest"
         ]
       },
       "acceptanceCriteria": [
-        "The access denied screen shows the raw backend isCallerAdmin response value",
-        "Any backend errors or exceptions are displayed in the debug info",
-        "The frontend console logs show the complete authentication flow and decision path"
+        "User ID '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' is added to admin list on initialization",
+        "This user ID immediately has admin access after deployment",
+        "Initialization logging confirms admin setup",
+        "Admin list persists across canister upgrades"
       ]
     }
   ],
   "constraints": [
-    "The owner principal must remain '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
-    "Do not modify the Internet Identity authentication flow",
-    "Preserve the existing admin panel UI and functionality",
-    "Maintain the single-actor backend architecture"
+    "Maintain single-actor backend architecture in backend/main.mo",
+    "Preserve existing user profile and clip management functionality",
+    "Do not modify Internet Identity authentication flow",
+    "Ensure admin list persists across canister upgrades"
   ],
   "nonGoals": [
-    "Adding multi-admin support",
-    "Implementing role-based access control beyond owner verification",
-    "Changing the admin panel statistics or analytics features",
-    "Modifying the frontend Layout component's admin button visibility logic"
+    "Implementing role-based access control beyond admin/non-admin",
+    "Creating a UI for managing admin users in this build",
+    "Changing the frontend authentication mechanism",
+    "Adding email-based or password-based authentication"
   ],
   "imageRequirements": {
     "required": [],

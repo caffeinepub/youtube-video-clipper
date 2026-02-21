@@ -1,8 +1,10 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 39,
+  "projectStateVersion": 41,
   "summary": "YouTube video clipping application",
-  "architectural_notes": [],
+  "architectural_notes": [
+    "Admin panel authentication switched from principal-based to user ID-based access control"
+  ],
   "known_issues": [
     "AI clip generation feature is not implemented despite being listed as completed in existing features",
     "Admin button is now visible in header, but authenticated owner is denied access to the admin panel"
@@ -620,6 +622,44 @@
       "summary": "Verify the owner principal initialization in backend/main.mo is correctly storing the admin token from initialization arguments and confirm the stored principal matches '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
       "reqIds": [
         "REQ-71"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-47",
+      "summary": "Change admin authentication to use user ID instead of principal for access control",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-48",
+      "summary": "Replace principal-based admin authentication with a user ID system in backend/main.mo that stores and checks admin user IDs instead of principals",
+      "reqIds": [
+        "REQ-73"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-49",
+      "summary": "Create a backend method to add new admin user IDs that can only be called by existing admins",
+      "reqIds": [
+        "REQ-74"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-50",
+      "summary": "Update the backend to map Internet Identity principals to user IDs and use user IDs for all admin checks",
+      "reqIds": [
+        "REQ-75"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-51",
+      "summary": "Initialize the backend admin system with user ID '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' as the first admin during canister initialization",
+      "reqIds": [
+        "REQ-76"
       ],
       "status": "pending"
     }

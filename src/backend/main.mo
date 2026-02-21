@@ -5,17 +5,30 @@ import Float "mo:core/Float";
 import Array "mo:core/Array";
 import VarArray "mo:core/VarArray";
 import Int "mo:core/Int";
-import Text "mo:core/Text";
 import Runtime "mo:core/Runtime";
 import Order "mo:core/Order";
-import Iter "mo:core/Iter";
+import Text "mo:core/Text";
 import Principal "mo:core/Principal";
-import AccessControl "authorization/access-control";
+import Iter "mo:core/Iter";
+import Migration "migration";
 import MixinAuthorization "authorization/MixinAuthorization";
+import AccessControl "authorization/access-control";
 
+(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
+
+  let videoClips = Map.empty<Text, {
+    id : Text;
+    title : Text;
+    videoUrl : Text;
+    thumbnailUrl : Text;
+    startTime : Nat;
+    endTime : Nat;
+    createdAt : Time.Time;
+    score : Float;
+  }>();
 
   public type UserProfile = {
     name : Text;
@@ -23,7 +36,7 @@ actor {
 
   let userProfiles = Map.empty<Principal, UserProfile>();
 
-  type Clip = {
+  type VideoClip = {
     id : Text;
     title : Text;
     videoUrl : Text;
@@ -48,13 +61,7 @@ actor {
     viralScore : Float;
   };
 
-  let clips = Map.empty<Text, Clip>();
-
-  // User Profile Functions
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view profiles");
-    };
     userProfiles.get(caller);
   };
 
@@ -66,20 +73,25 @@ actor {
   };
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
   };
 
-  // Clip Management Functions
-  public shared ({ caller }) func saveClip(title : Text, videoUrl : Text, thumbnailUrl : Text, startTime : Nat, endTime : Nat, score : Float) : async Text {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
+  public shared ({ caller }) func saveClip(
+    title : Text,
+    videoUrl : Text,
+    thumbnailUrl : Text,
+    startTime : Nat,
+    endTime : Nat,
+    score : Float,
+  ) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can save clips");
     };
-
     let id = title.concat(Time.now().toText());
-    let newClip : Clip = {
+    let newVideoClip : VideoClip = {
       id;
       title;
       videoUrl;
@@ -89,79 +101,68 @@ actor {
       createdAt = Time.now();
       score;
     };
-
-    clips.add(id, newClip);
+    videoClips.add(id, newVideoClip);
     id;
   };
 
-  public query ({ caller }) func getAllClips() : async [Clip] {
-    // Public access - anyone can view all clips (including guests)
-    clips.values().toArray();
+  public query ({ caller }) func getAllClips(_searchText : Text) : async [VideoClip] {
+    videoClips.values().toArray();
   };
 
   public shared ({ caller }) func deleteClip(clipId : Text) : async () {
-    if (not AccessControl.hasPermission(accessControlState, caller, #admin)) {
-      Runtime.trap("Unauthorized: Only admins can delete clips");
+    switch (videoClips.get(clipId)) {
+      case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
+      case (_) {
+        if (not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("Unauthorized: Only admins can delete clips");
+        };
+        videoClips.remove(clipId);
+      };
     };
-
-    if (not clips.containsKey(clipId)) {
-      Runtime.trap("Clip with ID " # clipId # " not found");
-    };
-    clips.remove(clipId);
   };
 
-  public query ({ caller }) func getClipById(clipId : Text) : async Clip {
-    // Public access - anyone can view individual clips (including guests)
-    switch (clips.get(clipId)) {
+  public query ({ caller }) func getClipById(clipId : Text) : async VideoClip {
+    switch (videoClips.get(clipId)) {
       case (?clip) { clip };
       case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
     };
-  };
-
-  func getClipSimilarityScore(clipA : Clip, clipB : Clip) : Float {
-    var engagementScore : Float = 0;
-    if (clipA.score > 0 and clipB.score > 0) {
-      let min = if (clipA.score < clipB.score) { clipA.score } else { clipB.score };
-      let max = if (clipA.score > clipB.score) { clipA.score } else { clipB.score };
-      engagementScore := (min / max) * 1000;
-    };
-
-    let durationA = if (clipA.endTime > clipA.startTime) { Int.abs(clipA.endTime - clipA.startTime).toFloat() } else { 0.0 };
-    let durationB = if (clipB.endTime > clipB.startTime) { Int.abs(clipB.endTime - clipB.startTime).toFloat() } else { 0.0 };
-
-    var lengthScore : Float = if (durationB > 0) {
-      1000 - Float.abs(durationA - durationB);
-    } else { 0 };
-
-    if (lengthScore < 0) { lengthScore := 0 };
-
-    if (clipA.title == clipB.title) {
-      lengthScore := lengthScore * 1.5;
-    };
-
-    engagementScore + lengthScore + 300.0;
   };
 
   func compareScoresAscending(a : { clipId : Text; similarityScore : Float }, b : { clipId : Text; similarityScore : Float }) : Order.Order {
     Float.compare(a.similarityScore, b.similarityScore);
   };
 
+  func getClipSimilarityScore(clipA : VideoClip, clipB : VideoClip) : Float {
+    var engagementScore : Float = 0;
+    if (clipA.score > 0 and clipB.score > 0) {
+      let min = if (clipA.score < clipB.score) { clipA.score } else { clipB.score };
+      let max = if (clipA.score > clipB.score) { clipA.score } else { clipB.score };
+      engagementScore := (min / max) * 1000;
+    };
+    let durationA = if (clipA.endTime > clipA.startTime) { clipA.endTime - clipA.startTime } else { 0 };
+    let durationB = if (clipB.endTime > clipB.startTime) { clipB.endTime - clipB.startTime } else { 0 };
+    var lengthScore : Float = if (durationB > 0) {
+      1000 - Int.abs(durationA.toInt() - durationB.toInt()).toFloat();
+    } else { 0.0 };
+    if (lengthScore < 0) { lengthScore := 0 };
+    if (clipA.title == clipB.title) {
+      lengthScore := lengthScore * 1.5;
+    };
+    engagementScore + lengthScore + 300;
+  };
+
   public query ({ caller }) func findRelatedClips(clipId : Text) : async [Text] {
-    // Public access - anyone can find related clips (including guests)
-    let targetClip = switch (clips.get(clipId)) {
+    let targetClip = switch (videoClips.get(clipId)) {
       case (?clip) { clip };
       case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
     };
-
-    let nonTargetClipIds = clips.keys().toArray().filter(func(id) { id != clipId });
+    let nonTargetClipIds = videoClips.keys().toArray().filter(func(id) { id != clipId });
     let relatedClipScores = List.empty<{ clipId : Text; similarityScore : Float }>();
-
     for (otherClipId in nonTargetClipIds.values()) {
-      let similarityScore = switch (clips.get(otherClipId)) {
+      let similarityScore = switch (videoClips.get(otherClipId)) {
         case (?clip) { getClipSimilarityScore(targetClip, clip) };
         case (null) { 0.0 };
       };
-
       if (similarityScore > 0) {
         relatedClipScores.add({
           clipId = otherClipId;
@@ -169,42 +170,34 @@ actor {
         });
       };
     };
-
     let sortedScores = relatedClipScores.toArray().sort(
       compareScoresAscending
     );
-
     if (sortedScores.size() == 0) {
       return [];
     };
-
     sortedScores.map(func(score) { score.clipId });
   };
 
-  func calculateClipEngagementScore(clip : Clip) : Float {
+  func calculateClipEngagementScore(clip : VideoClip) : Float {
     let baseScore : Float = clip.score;
     let length = if (clip.endTime > clip.startTime) { Int.abs(clip.endTime - clip.startTime).toFloat() } else { 0.0 };
     let lengthPenalty : Float = if (length > 0) { 1000.0 / length } else { 0.0 };
-
     baseScore + lengthPenalty;
   };
 
-  public query ({ caller }) func getTrendingClips() : async [Clip] {
-    // Public access - anyone can view trending clips (including guests)
-    let allClipsArray = clips.values().toArray();
-
-    func compareByEngagement(a : Clip, b : Clip) : Order.Order {
+  public query ({ caller }) func getTrendingClips() : async [VideoClip] {
+    let allClipsArray = videoClips.values().toArray();
+    func compareByEngagement(a : VideoClip, b : VideoClip) : Order.Order {
       Float.compare(
         calculateClipEngagementScore(a),
         calculateClipEngagementScore(b),
       );
     };
-
     let sortedClips = allClipsArray.sort(
       compareByEngagement
     );
-
-    let resultArray = sortedClips.toVarArray<Clip>();
+    let resultArray = sortedClips.toVarArray<VideoClip>();
     let size = resultArray.size();
     if (size > 10) {
       resultArray.sliceToArray(0, 10);
@@ -214,32 +207,23 @@ actor {
   };
 
   public query ({ caller }) func getTotalClipsCount() : async Nat {
-    // Public access - anyone can view clip count (including guests)
-    clips.size();
+    videoClips.size();
   };
 
   public query ({ caller }) func getTrendingClipsAnalytics() : async [TrendingClipAnalytics] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can view analytics");
-    };
-
-    let allClipsArray = clips.values().toArray();
-
+    let allClipsArray = videoClips.values().toArray();
     if (allClipsArray.size() == 0) {
       return [];
     };
-
-    func compareByTrends(a : Clip, b : Clip) : Order.Order {
+    func compareByTrends(a : VideoClip, b : VideoClip) : Order.Order {
       Float.compare(
         calculateClipEngagementScore(a),
         calculateClipEngagementScore(b),
       );
     };
-
     let sortedClips = allClipsArray.sort(
       compareByTrends
     );
-
     let analytics = sortedClips.map(func(clip) {
       {
         id = clip.id;
@@ -248,7 +232,6 @@ actor {
         trendingScore = calculateClipEngagementScore(clip);
       };
     });
-
     let resultArray = analytics.toVarArray<TrendingClipAnalytics>();
     let size = resultArray.size();
     if (size > 10) {
@@ -259,9 +242,6 @@ actor {
   };
 
   public query ({ caller }) func generateClipsAutomatically(_youtubeVideoId : Text) : async [AutoGeneratedClipSuggestion] {
-    if (not AccessControl.hasPermission(accessControlState, caller, #user)) {
-      Runtime.trap("Unauthorized: Only users can generate clips automatically");
-    };
     [];
   };
 };

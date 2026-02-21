@@ -1,28 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Admin Access Control - Owner Authentication",
-  "requirements": [
-    {
-      "id": "REQ-72",
-      "summary": "Enhance frontend admin access denied screen with detailed debug information",
-      "acceptanceCriteria": [
-        "The access denied screen shows the raw backend isCallerAdmin response value",
-        "Any backend errors or exceptions are displayed in the debug info",
-        "The frontend console logs show the complete authentication flow and decision path"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Update the admin route's access denied screen to display comprehensive debug information including the raw backend isCallerAdmin response, any error messages caught during the admin check, the complete authentication flow state (identity presence, actor availability, query execution state), and the exact boolean comparison result. Add structured console logging that traces the decision path from identity check through isCallerAdmin call to final access decision. Include error boundary integration to capture and display any exceptions thrown during the authentication process. Ensure all debug information is displayed in a structured format within the existing Debug Info section alongside the current principal and isOwner fields."
-        },
-        {
-          "path": "frontend/src/hooks/useIsOwner.ts",
-          "operation": "modify",
-          "description": "Enhance the useIsOwner hook to capture and return detailed debugging information including the raw backend response, any errors or exceptions encountered during the isCallerAdmin call, the query execution state, and timing information. Add comprehensive console logging that outputs the complete authentication flow: actor availability check, identity verification, isCallerAdmin method invocation, response parsing, and final boolean result. Structure the returned data to include both the isOwner boolean and an additional debugInfo object containing response metadata, error details, and execution trace. Ensure error handling preserves the original error message and stack trace for display in the UI."
-        }
-      ]
-    }
-  ]
+  "title": "Implement user ID-based admin authentication system",
+  "requirements": []
 }
