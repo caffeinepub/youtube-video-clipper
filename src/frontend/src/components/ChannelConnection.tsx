@@ -7,69 +7,30 @@ import { Youtube, Loader2, CheckCircle2, AlertCircle, Link2 } from 'lucide-react
 import { useYouTubeChannel } from '../hooks/useYouTubeChannel';
 
 export default function ChannelConnection() {
-  console.log('[ChannelConnection] Component rendering');
-  
   const { channelStatus, isLoading, connectChannel, disconnectChannel, error } = useYouTubeChannel();
   const [isConnecting, setIsConnecting] = useState(false);
 
-  console.log('[ChannelConnection] State:', {
-    channelStatus,
-    isLoading,
-    isConnecting,
-    error,
-    timestamp: new Date().toISOString()
-  });
-
   const handleConnect = async () => {
-    console.log('[ChannelConnection] handleConnect - START', {
-      timestamp: new Date().toISOString()
-    });
-    
     setIsConnecting(true);
     
     try {
-      console.log('[ChannelConnection] Calling connectChannel mutation...');
-      const result = await connectChannel();
-      console.log('[ChannelConnection] connectChannel - SUCCESS', {
-        result,
-        timestamp: new Date().toISOString()
-      });
+      await connectChannel();
     } catch (err) {
-      console.error('[ChannelConnection] connectChannel - ERROR', {
-        error: err,
-        errorMessage: err instanceof Error ? err.message : String(err),
-        errorStack: err instanceof Error ? err.stack : undefined,
-        timestamp: new Date().toISOString()
-      });
+      console.error('[ChannelConnection] Connection error:', err);
     } finally {
-      console.log('[ChannelConnection] handleConnect - FINALLY, setting isConnecting to false');
       setIsConnecting(false);
     }
   };
 
   const handleDisconnect = async () => {
-    console.log('[ChannelConnection] handleDisconnect - START', {
-      timestamp: new Date().toISOString()
-    });
-    
     try {
-      console.log('[ChannelConnection] Calling disconnectChannel mutation...');
       await disconnectChannel();
-      console.log('[ChannelConnection] disconnectChannel - SUCCESS', {
-        timestamp: new Date().toISOString()
-      });
     } catch (err) {
-      console.error('[ChannelConnection] disconnectChannel - ERROR', {
-        error: err,
-        errorMessage: err instanceof Error ? err.message : String(err),
-        errorStack: err instanceof Error ? err.stack : undefined,
-        timestamp: new Date().toISOString()
-      });
+      console.error('[ChannelConnection] Disconnect error:', err);
     }
   };
 
   if (isLoading) {
-    console.log('[ChannelConnection] Rendering loading state');
     return (
       <Card>
         <CardContent className="pt-6">
@@ -81,11 +42,6 @@ export default function ChannelConnection() {
     );
   }
 
-  console.log('[ChannelConnection] Rendering main UI', {
-    isConnected: channelStatus?.isConnected,
-    channelName: channelStatus?.channelName
-  });
-
   return (
     <Card>
       <CardHeader>
@@ -94,20 +50,20 @@ export default function ChannelConnection() {
           YouTube Channel
         </CardTitle>
         <CardDescription>
-          Connect your YouTube channel to post clips directly
+          Connect your Google account to automatically post clips to your YouTube channel
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        {channelStatus?.isConnected && channelStatus.channelName ? (
+        {channelStatus?.isConnected ? (
           <div className="space-y-4">
             <div className="flex items-center gap-3 p-3 bg-muted rounded-lg">
               <Avatar className="h-10 w-10">
-                <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent(channelStatus.channelName)}&background=random`} />
-                <AvatarFallback>{channelStatus.channelName.charAt(0).toUpperCase()}</AvatarFallback>
+                <AvatarImage src={`https://ui-avatars.com/api/?name=${encodeURIComponent(channelStatus.channelName || 'User')}&background=random`} />
+                <AvatarFallback>{(channelStatus.channelName || 'U').charAt(0).toUpperCase()}</AvatarFallback>
               </Avatar>
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">{channelStatus.channelName}</p>
-                <p className="text-xs text-muted-foreground">Connected</p>
+                <p className="font-medium text-sm truncate">{channelStatus.channelName || 'My Channel'}</p>
+                <p className="text-xs text-muted-foreground">Google account connected</p>
               </div>
               <CheckCircle2 className="w-5 h-5 text-green-600 flex-shrink-0" />
             </div>
@@ -117,15 +73,18 @@ export default function ChannelConnection() {
               onClick={handleDisconnect}
               disabled={isConnecting}
             >
-              Disconnect Channel
+              Disconnect Google Account
             </Button>
           </div>
         ) : (
           <div className="space-y-4">
             <div className="text-center py-4">
               <Link2 className="w-12 h-12 mx-auto text-muted-foreground mb-3" />
-              <p className="text-sm text-muted-foreground">
-                No channel connected yet
+              <p className="text-sm text-muted-foreground mb-2">
+                No Google account connected
+              </p>
+              <p className="text-xs text-muted-foreground">
+                Connect your Google account to enable automatic posting to YouTube
               </p>
             </div>
             <Button
@@ -141,7 +100,7 @@ export default function ChannelConnection() {
               ) : (
                 <>
                   <Youtube className="w-4 h-4 mr-2" />
-                  Connect YouTube Channel
+                  Connect Google Account
                 </>
               )}
             </Button>

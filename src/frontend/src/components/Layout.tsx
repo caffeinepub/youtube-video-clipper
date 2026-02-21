@@ -6,6 +6,7 @@ import { Link, useLocation } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
+import UserIdDisplay from './UserIdDisplay';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const currentYear = new Date().getFullYear();
@@ -102,6 +103,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </Link>
             
             <div className="flex items-center gap-3">
+              {/* User ID Display - shown when authenticated */}
+              <UserIdDisplay />
+              
               {/* Admin panel button - shown only for admin users after verification */}
               {showAdminButton && (
                 <Link

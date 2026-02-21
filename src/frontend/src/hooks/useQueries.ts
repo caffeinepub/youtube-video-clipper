@@ -8,24 +8,9 @@ export function useGetCallerUserProfile() {
   const query = useQuery<UserProfile | null>({
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
-      const timestamp = new Date().toISOString();
-      console.log(`[useGetCallerUserProfile] ${timestamp} - Fetching user profile`);
-      
       if (!actor) throw new Error('Actor not available');
       
       const profile = await actor.getCallerUserProfile();
-      console.log('[useGetCallerUserProfile] Profile fetched:', profile);
-      
-      if (profile && profile.name) {
-        const parts = profile.name.split('|');
-        if (parts.length === 2) {
-          console.log('[useGetCallerUserProfile] Extracted from profile:', {
-            name: parts[0],
-            email: parts[1],
-          });
-        }
-      }
-      
       return profile;
     },
     enabled: !!actor && !actorFetching,
@@ -45,18 +30,58 @@ export function useSaveCallerUserProfile() {
 
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
-      const timestamp = new Date().toISOString();
-      console.log(`[useSaveCallerUserProfile] ${timestamp} - Saving profile:`, profile);
-      
       if (!actor) throw new Error('Actor not available');
       
       await actor.saveCallerUserProfile(profile);
-      console.log('[useSaveCallerUserProfile] Profile saved successfully');
     },
     onSuccess: () => {
-      console.log('[useSaveCallerUserProfile] Invalidating queries after profile save');
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       queryClient.invalidateQueries({ queryKey: ['isOwner'] });
+    },
+  });
+}
+
+export function useHasGoogleOAuth() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['hasGoogleOAuth'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.hasGoogleOAuthCredentials();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useIsYouTubeConnected() {
+  const { actor, isFetching: actorFetching } = useActor();
+
+  return useQuery<boolean>({
+    queryKey: ['isYouTubeConnected'],
+    queryFn: async () => {
+      if (!actor) throw new Error('Actor not available');
+      return actor.isYouTubeChannelConnected();
+    },
+    enabled: !!actor && !actorFetching,
+  });
+}
+
+export function useStoreGoogleOAuth() {
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ authorizationCode, redirectUri }: { authorizationCode: string; redirectUri: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      
+      await actor.storeGoogleOAuthCredentials(authorizationCode, redirectUri);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      queryClient.invalidateQueries({ queryKey: ['hasGoogleOAuth'] });
+      queryClient.invalidateQueries({ queryKey: ['isYouTubeConnected'] });
+      queryClient.invalidateQueries({ queryKey: ['youtubeChannel'] });
     },
   });
 }

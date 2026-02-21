@@ -1,66 +1,52 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix YouTube channel connection functionality",
+  "title": "Enable Google account connection for automatic YouTube channel posting",
   "requirements": [
     {
-      "id": "REQ-184",
-      "summary": "Debug and fix the YouTube channel connection flow in the ChannelConnection component to identify why the OAuth connection process is not working as expected",
+      "id": "REQ-2",
+      "summary": "Modify ChannelConnection component to use real Google OAuth flow instead of mock implementation",
       "acceptanceCriteria": [
-        "The 'Connect YouTube Channel' button triggers the OAuth flow without errors",
-        "Users can successfully authenticate with YouTube",
-        "Connection status displays correctly after successful authentication",
-        "Error messages are shown clearly if connection fails"
+        "Connect button initiates real Google OAuth flow",
+        "Connected state shows the user's Google account email and YouTube channel name",
+        "Disconnect button revokes access and clears stored tokens"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/ChannelConnection.tsx",
           "operation": "modify",
-          "description": "Add comprehensive debugging logs to track the OAuth connection flow. Log button click events, connection initiation, OAuth callback handling, success/failure responses, and state changes. Include detailed error logging with error types, messages, and stack traces. Add console.log statements for channel connection status changes, loading states, and API response data to help identify the exact failure point in the connection process."
-        }
-      ]
-    },
-    {
-      "id": "REQ-185",
-      "summary": "Verify and fix the useYouTubeChannel hook to ensure it correctly handles the YouTube OAuth flow, manages connection state, and communicates with backend channel connection methods",
-      "acceptanceCriteria": [
-        "The hook successfully initiates OAuth connection flow",
-        "Connection status is retrieved and updated correctly",
-        "Loading and error states are handled properly",
-        "React Query cache invalidation works after connection/disconnection"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useYouTubeChannel.ts",
-          "operation": "modify",
-          "description": "Add extensive debugging throughout the hook to track OAuth flow execution. Log the initiation of OAuth requests, OAuth callback URL parameters (access_token, refresh_token, channel_id, channel_name, expires_at), backend actor method calls (connectYouTubeChannel, isYouTubeChannelConnected), mutation states (idle, loading, success, error), and React Query cache invalidation events. Include error boundary logging for mutation failures with full error details. Verify that the mock OAuth flow correctly simulates the real YouTube OAuth response structure and that all required parameters are being passed to the backend method."
-        }
-      ]
-    },
-    {
-      "id": "REQ-187",
-      "summary": "Add comprehensive error logging throughout the YouTube connection flow in frontend components and hooks to output detailed debugging information",
-      "acceptanceCriteria": [
-        "Frontend logs show OAuth initiation, callback handling, and response data",
-        "Backend logs show credential storage attempts and results",
-        "Error messages are descriptive and actionable",
-        "Console logs help identify the exact failure point in the connection flow"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/ChannelConnection.tsx",
-          "operation": "modify",
-          "description": "Enhance error logging to include OAuth callback URL parameters, connection mutation results, and user profile updates. Log the complete flow from button click through OAuth redirect, callback handling, backend response, and UI state update. Add timestamp logging for each step to measure timing issues. Include logging for edge cases like missing OAuth parameters, network failures, and backend errors."
+          "description": "Replace the mock OAuth implementation with real Google OAuth 2.0 flow. Initiate OAuth by calling the backend hasGoogleOAuthCredentials() to check connection status, and storeGoogleOAuthCredentials() after receiving the authorization code from Google's OAuth redirect. Update the UI to display the connected Google account email and YouTube channel name from the backend UserProfile. Implement disconnect functionality that clears OAuth credentials by calling backend methods. Remove mock data and extensive debug logging once OAuth flow is working."
         },
         {
           "path": "frontend/src/hooks/useYouTubeChannel.ts",
           "operation": "modify",
-          "description": "Add structured logging for OAuth state management including initialization, token exchange, credential storage requests, and query invalidation. Log React Query mutation lifecycle events (onMutate, onSuccess, onError, onSettled) with complete context data. Include logging for connection status checks and disconnection flow. Add performance timing logs to identify bottlenecks in the OAuth flow."
+          "description": "Replace mock OAuth implementation with real Google OAuth integration. Use the backend methods hasGoogleOAuthCredentials(), isYouTubeChannelConnected(), connectYouTubeChannel(), and storeGoogleOAuthCredentials() to manage the OAuth flow. Implement proper redirect handling for Google OAuth callback with authorization code exchange. Update connection status checks to use real backend data from UserProfile.youtubeAuth and UserProfile.googleOAuthCredentials. Remove mock OAuth logic and simplify debug logging."
         },
         {
-          "path": "frontend/src/utils/youtubeOAuthDebug.ts",
-          "operation": "create",
-          "description": "Create a dedicated debugging utility module for YouTube OAuth flow tracking. Export functions to log OAuth initiation, callback parameter parsing, token validation, and connection status changes. Provide a centralized logging format with timestamps, log levels (info, warn, error), and structured data output. Include helper functions to validate OAuth response structure and check for common OAuth error patterns."
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Add queries for checking Google OAuth connection status using hasGoogleOAuthCredentials() and isYouTubeChannelConnected() backend methods. Include these in the existing query invalidation logic when profile updates occur. Ensure the useGetCallerUserProfile hook properly exposes googleOAuthCredentials and youtubeAuth fields from the UserProfile type."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Update ClipCard to disable YouTube post button when Google account is not connected",
+      "acceptanceCriteria": [
+        "Post to YouTube button is disabled when no Google account is connected",
+        "Tooltip or message directs users to connect their Google account first",
+        "Button becomes enabled once Google account is successfully connected"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ClipCard.tsx",
+          "operation": "modify",
+          "description": "Add connection status check using the useYouTubeChannel hook to determine if a Google account is connected before enabling the YouTube post button. Disable the button when hasGoogleOAuthCredentials() returns false. Display a tooltip or helper text that directs users to the channel connection page to connect their Google account first. Update the button state to become enabled once the OAuth connection is established."
+        },
+        {
+          "path": "frontend/src/hooks/usePostToYouTube.ts",
+          "operation": "modify",
+          "description": "Add pre-flight validation to check if the user has connected their Google account before attempting to post. Use the hasGoogleOAuthCredentials() backend method to verify OAuth tokens exist. Display user-friendly error messages when posting fails due to missing or expired OAuth credentials, directing users to reconnect their Google account. Handle backend authorization errors gracefully with appropriate user feedback."
         }
       ]
     }

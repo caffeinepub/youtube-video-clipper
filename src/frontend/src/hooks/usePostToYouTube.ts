@@ -10,6 +10,23 @@ export function usePostToYouTube() {
     mutationFn: async (clipMetadata: ClipMetadata) => {
       if (!actor) throw new Error('Actor not available');
       
+      // Check if Google account is connected
+      const hasOAuth = await actor.hasGoogleOAuthCredentials();
+      if (!hasOAuth) {
+        throw new Error('Please connect your Google account first to post to YouTube');
+      }
+      
+      // Validate clip duration for YouTube Shorts (max 60 seconds)
+      const startSec = Number(clipMetadata.startTimestamp);
+      const endSec = Number(clipMetadata.endTimestamp);
+      const durationSeconds = endSec - startSec;
+      
+      if (durationSeconds > 60) {
+        throw new Error(
+          `YouTube Shorts must be 60 seconds or less. Your clip is ${durationSeconds} seconds. Please adjust the timestamps.`
+        );
+      }
+      
       const result = await actor.postClipToYouTube(clipMetadata);
       
       if (!result.success) {
@@ -19,7 +36,6 @@ export function usePostToYouTube() {
       return result;
     },
     onSuccess: () => {
-      // Optionally invalidate any relevant queries
       queryClient.invalidateQueries({ queryKey: ['clips'] });
     },
   });

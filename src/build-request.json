@@ -1,96 +1,103 @@
 {
   "kind": "build_request",
-  "title": "Fix YouTube channel connection functionality",
-  "priority": "high",
+  "title": "Enable Google account connection for automatic YouTube channel posting",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-184",
-      "text": "Debug and fix the YouTube channel connection flow in the ChannelConnection component (frontend/src/components/ChannelConnection.tsx) to identify why the OAuth connection process is not working as expected, ensuring users can successfully connect their YouTube channels",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "It isn't working"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The 'Connect YouTube Channel' button triggers the OAuth flow without errors",
-        "Users can successfully authenticate with YouTube",
-        "Connection status displays correctly after successful authentication",
-        "Error messages are shown clearly if connection fails"
-      ]
-    },
-    {
-      "id": "REQ-185",
-      "text": "Verify and fix the useYouTubeChannel hook (frontend/src/hooks/useYouTubeChannel.ts) to ensure it correctly handles the YouTube OAuth flow, manages connection state, and communicates with the backend channel connection methods",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-recent"
-        ],
-        "quotes": [
-          "It isn't working"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The hook successfully initiates OAuth connection flow",
-        "Connection status is retrieved and updated correctly",
-        "Loading and error states are handled properly",
-        "React Query cache invalidation works after connection/disconnection"
-      ]
-    },
-    {
-      "id": "REQ-186",
-      "text": "Review and fix the backend YouTube channel OAuth storage method in backend/main.mo to ensure it correctly stores and retrieves channel credentials associated with user profiles",
+      "id": "REQ-1",
+      "text": "Implement Google OAuth 2.0 authentication flow in the backend to allow users to connect their Google accounts and authorize the app to post videos to their YouTube channels",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-latest"
         ],
         "quotes": [
-          "It isn't working"
+          "Can you make it so they can connect their google account so the app auto posts it to their channel"
         ]
       },
       "acceptanceCriteria": [
-        "OAuth credentials are stored securely per user profile",
-        "Channel connection status can be queried successfully",
-        "Credentials persist across canister upgrades via migration",
-        "Error handling prevents data corruption"
+        "Backend stores Google OAuth tokens securely for each user",
+        "Users can authorize YouTube channel access through Google OAuth",
+        "Backend can refresh expired OAuth tokens automatically"
       ]
     },
     {
-      "id": "REQ-187",
-      "text": "Add comprehensive error logging throughout the YouTube connection flow in both frontend (ChannelConnection component and useYouTubeChannel hook) and backend (OAuth storage method) to output detailed debugging information including OAuth callback responses, credential storage results, and any failure points",
-      "target": "both",
+      "id": "REQ-2",
+      "text": "Modify the existing ChannelConnection component to use Google OAuth instead of the current mock implementation, displaying the connected Google account and YouTube channel information",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-recent"
+          "msg-latest"
         ],
         "quotes": [
-          "It isn't working"
+          "Can you make it so they can connect their google account so the app auto posts it to their channel"
         ]
       },
       "acceptanceCriteria": [
-        "Frontend logs show OAuth initiation, callback handling, and response data",
-        "Backend logs show credential storage attempts and results",
-        "Error messages are descriptive and actionable",
-        "Console logs help identify the exact failure point in the connection flow"
+        "Connect button initiates real Google OAuth flow",
+        "Connected state shows the user's Google account email and YouTube channel name",
+        "Disconnect button revokes access and clears stored tokens"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Update the existing postToYouTube backend method to use the stored Google OAuth credentials to automatically post clips to the user's connected YouTube channel without requiring manual interaction",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "so the app auto posts it to their channel"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Clips are posted directly to the user's YouTube channel using their OAuth credentials",
+        "Posting happens automatically when the user clicks the post button",
+        "Error handling for expired or invalid OAuth tokens with user feedback"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add backend validation to ensure users have connected their Google account before allowing them to post clips to YouTube",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ]
+      },
+      "acceptanceCriteria": [
+        "postToYouTube method returns an error if no Google account is connected",
+        "Backend checks for valid OAuth tokens before attempting to post"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Update the ClipCard component to disable the YouTube post button and show a helpful message when the user has not connected their Google account",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Post to YouTube button is disabled when no Google account is connected",
+        "Tooltip or message directs users to connect their Google account first",
+        "Button becomes enabled once Google account is successfully connected"
       ]
     }
   ],
   "constraints": [
-    "Do not modify immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui",
-    "Maintain single-actor backend architecture with all logic in backend/main.mo",
-    "Use React Query for all backend data fetching and mutations",
-    "Preserve existing YouTube OAuth integration patterns from Version 47"
+    "Must use Google OAuth 2.0 for authentication (not custom authentication)",
+    "OAuth tokens must be stored securely per user in the backend",
+    "Must work within Internet Computer's single-actor architecture",
+    "Cannot use external databases or third-party backend services"
   ],
   "nonGoals": [
-    "Implementing features from Version 46 (admin panel enhancements) - will be addressed separately",
-    "Fixing clip isolation issues (clips showing on other accounts) - will be addressed separately",
-    "Adding new YouTube features beyond fixing the existing connection flow",
-    "Refactoring the OAuth implementation approach"
+    "Building a full video editing interface like creator.reka.ai",
+    "Advanced timeline editing or multi-track video features",
+    "Automatic clip generation without user interaction",
+    "Posting to social media platforms other than YouTube"
   ],
   "imageRequirements": {
     "required": [],

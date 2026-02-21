@@ -8,6 +8,7 @@ import { useAdminStats } from '../hooks/useAdminStats';
 import { BarChart3, TrendingUp, Video, AlertCircle, RefreshCw, ChevronDown, ChevronUp, Bug } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
 import AdminDebugPanel from './AdminDebugPanel';
+import AdminManagement from './AdminManagement';
 import { useState } from 'react';
 
 export default function AdminPanel() {
@@ -80,6 +81,9 @@ export default function AdminPanel() {
           <AdminDebugPanel />
         </CollapsibleContent>
       </Collapsible>
+
+      {/* Admin Management Section */}
+      <AdminManagement />
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

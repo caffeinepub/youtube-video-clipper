@@ -2,29 +2,11 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-debug-and-fix-the-youtube-channel-connection-flow-in-the-channelconnection-component-frontend-src-components-channelconnection-tsx-to-identify-why-the-oauth-connection-process-is-not-working-as-expected-ensuring-users-can-successfully-connect-their-youtube-channels",
-      "featureTitle": "Debug and fix the YouTube channel connection flow in the ChannelConnection component (frontend/src/components/ChannelConnection.tsx) to identify why the OAuth connection process is not working as expected, ensuring users can successfully connect their YouTube channels",
+      "featureId": "feature-modify-the-existing-channelconnection-component-to-use-google-oauth-instead-of-the-current-mock-implementation-displaying-the-connected-google-account-and-youtube-channel-information",
+      "featureTitle": "Modify the existing ChannelConnection component to use Google OAuth instead of the current mock implementation, displaying the connected Google account and YouTube channel information",
       "files": [
-        "frontend/src/components/ChannelConnection.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-184"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-verify-and-fix-the-useyoutubechannel-hook-frontend-src-hooks-useyoutubechannel-ts-to-ensure-it-correctly-handles-the-youtube-oauth-flow-manages-connection-state-and-communicates-with-the-backend-channel-connection-methods",
-      "featureTitle": "Verify and fix the useYouTubeChannel hook (frontend/src/hooks/useYouTubeChannel.ts) to ensure it correctly handles the YouTube OAuth flow, manages connection state, and communicates with the backend channel connection methods",
-      "files": [
+        "frontend/src/components/ChannelConnection.tsx",
+        "frontend/src/hooks/useQueries.ts",
         "frontend/src/hooks/useYouTubeChannel.ts"
       ],
       "components": [
@@ -37,17 +19,16 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-185"
+        "REQ-2"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-comprehensive-error-logging-throughout-the-youtube-connection-flow-in-both-frontend-channelconnection-component-and-useyoutubechannel-hook-and-backend-oauth-storage-method-to-output-detailed-debugging-information-including-oauth-callback-responses-credential-storage-results-and-any-failure-points",
-      "featureTitle": "Add comprehensive error logging throughout the YouTube connection flow in both frontend (ChannelConnection component and useYouTubeChannel hook) and backend (OAuth storage method) to output detailed debugging information including OAuth callback responses, credential storage results, and any failure points",
+      "featureId": "feature-update-the-clipcard-component-to-disable-the-youtube-post-button-and-show-a-helpful-message-when-the-user-has-not-connected-their-google-account",
+      "featureTitle": "Update the ClipCard component to disable the YouTube post button and show a helpful message when the user has not connected their Google account",
       "files": [
-        "frontend/src/components/ChannelConnection.tsx",
-        "frontend/src/hooks/useYouTubeChannel.ts",
-        "frontend/src/utils/youtubeOAuthDebug.ts"
+        "frontend/src/components/ClipCard.tsx",
+        "frontend/src/hooks/usePostToYouTube.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -59,7 +40,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-187"
+        "REQ-5"
       ],
       "confidence": "high"
     }

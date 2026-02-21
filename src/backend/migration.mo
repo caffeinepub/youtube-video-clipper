@@ -1,9 +1,30 @@
 import Map "mo:core/Map";
+import Text "mo:core/Text";
+import Float "mo:core/Float";
 import Time "mo:core/Time";
 import Principal "mo:core/Principal";
 
 module {
-  type VideoClip = {
+  type OldYouTubeChannelAuth = {
+    accessToken : Text;
+    refreshToken : Text;
+    channelId : Text;
+    channelName : Text;
+    expiresAt : Time.Time;
+  };
+
+  type OldUserProfile = {
+    name : Text;
+    youtubeAuth : ?OldYouTubeChannelAuth;
+  };
+
+  type OldActor = {
+    videoClips : Map.Map<Text, OldVideoClip>;
+    userProfiles : Map.Map<Principal, OldUserProfile>;
+    adminPrincipals : Map.Map<Principal, ()>;
+  };
+
+  type OldVideoClip = {
     id : Text;
     title : Text;
     videoUrl : Text;
@@ -14,30 +35,41 @@ module {
     score : Float;
   };
 
-  type YouTubeChannelAuth = {
+  type GoogleOAuthCredentials = {
     accessToken : Text;
     refreshToken : Text;
-    channelId : Text;
-    channelName : Text;
     expiresAt : Time.Time;
+    tokenType : Text;
+    idToken : Text;
+    scope : Text;
   };
 
-  type UserProfile = {
+  type NewYouTubeChannelAuth = OldYouTubeChannelAuth;
+
+  type NewUserProfile = {
     name : Text;
-    youtubeAuth : ?YouTubeChannelAuth;
-  };
-
-  type OldActor = {
-    videoClips : Map.Map<Text, VideoClip>;
-    userProfiles : Map.Map<Principal, UserProfile>;
+    youtubeAuth : ?NewYouTubeChannelAuth;
+    googleOAuthCredentials : ?GoogleOAuthCredentials;
   };
 
   type NewActor = {
-    videoClips : Map.Map<Text, VideoClip>;
-    userProfiles : Map.Map<Principal, UserProfile>;
+    videoClips : Map.Map<Text, OldVideoClip>;
+    userProfiles : Map.Map<Principal, NewUserProfile>;
+    adminPrincipals : Map.Map<Principal, ()>;
   };
 
   public func run(old : OldActor) : NewActor {
-    { videoClips = old.videoClips; userProfiles = old.userProfiles };
+    // Migrate user profiles to include googleOAuthCredentials field
+    let newUserProfiles = old.userProfiles.map<Principal, OldUserProfile, NewUserProfile>(
+      func(_p, oldProfile) {
+        { oldProfile with googleOAuthCredentials = null };
+      }
+    );
+
+    {
+      videoClips = old.videoClips;
+      userProfiles = newUserProfiles;
+      adminPrincipals = old.adminPrincipals;
+    };
   };
 };

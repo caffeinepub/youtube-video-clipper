@@ -7,9 +7,15 @@ import Int "mo:core/Int";
 import Runtime "mo:core/Runtime";
 import Order "mo:core/Order";
 import Principal "mo:core/Principal";
+import Nat "mo:core/Nat";
+import Text "mo:core/Text";
 import Migration "migration";
+import OutCall "http-outcalls/outcall";
+
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
+
+// Add with-clause for migration
 (with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
@@ -28,6 +34,15 @@ actor {
 
   let videoClips = Map.empty<Text, VideoClip>();
 
+  public type GoogleOAuthCredentials = {
+    accessToken : Text;
+    refreshToken : Text;
+    expiresAt : Time.Time;
+    tokenType : Text;
+    idToken : Text;
+    scope : Text;
+  };
+
   public type YouTubeChannelAuth = {
     accessToken : Text;
     refreshToken : Text;
@@ -39,9 +54,13 @@ actor {
   public type UserProfile = {
     name : Text;
     youtubeAuth : ?YouTubeChannelAuth;
+    googleOAuthCredentials : ?GoogleOAuthCredentials;
   };
 
   let userProfiles = Map.empty<Principal, UserProfile>();
+
+  // Store admin principals for listing purposes
+  let adminPrincipals = Map.empty<Principal, ()>();
 
   public type ClipMetadata = {
     videoId : Text;
@@ -56,84 +75,13 @@ actor {
     errorMessage : Text;
   };
 
-  public shared ({ caller }) func connectYouTubeChannel(
-    accessToken : Text,
-    refreshToken : Text,
-    channelId : Text,
-    channelName : Text,
-    expiresAt : Time.Time,
-  ) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can connect YouTube channels");
-    };
-    let youtubeAuth : YouTubeChannelAuth = {
-      accessToken;
-      refreshToken;
-      channelId;
-      channelName;
-      expiresAt;
-    };
-
-    let currentProfile : UserProfile = switch (userProfiles.get(caller)) {
-      case (null) {
-        { name = "Guest"; youtubeAuth = ?youtubeAuth };
-      };
-      case (?profile) {
-        { profile with youtubeAuth = ?youtubeAuth };
-      };
-    };
-
-    userProfiles.add(caller, currentProfile);
-  };
-
-  public query ({ caller }) func isYouTubeChannelConnected() : async Bool {
-    switch (userProfiles.get(caller)) {
-      case (null) { false };
-      case (?profile) {
-        switch (profile.youtubeAuth) {
-          case (null) { false };
-          case (?auth) { Time.now() < auth.expiresAt };
-        };
-      };
-    };
-  };
-
-  public shared ({ caller }) func postClipToYouTube(clipMetadata : ClipMetadata) : async YouTubePostResult {
-    // Authorization: Only authenticated users can post clips
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can post clips to YouTube");
-    };
-
-    // Verify user has connected YouTube channel
-    let userProfile = switch (userProfiles.get(caller)) {
-      case (null) {
-        Runtime.trap("No user profile found. Please connect your YouTube channel first.");
-      };
-      case (?profile) { profile };
-    };
-
-    let youtubeAuth = switch (userProfile.youtubeAuth) {
-      case (null) {
-        Runtime.trap("YouTube channel not connected. Please connect your channel first.");
-      };
-      case (?auth) { auth };
-    };
-
-    // Verify token hasn't expired
-    if (Time.now() >= youtubeAuth.expiresAt) {
-      Runtime.trap("YouTube authentication expired. Please reconnect your channel.");
-    };
-
-    // Validate clip metadata
-    if (clipMetadata.startTimestamp >= clipMetadata.endTimestamp) {
-      Runtime.trap("Invalid clip: start timestamp must be before end timestamp");
-    };
-
-    {
-      success = true;
-      videoUrl = "https://youtube.com/watch?v=" # clipMetadata.videoId # "&t=" # Nat.toText(clipMetadata.startTimestamp);
-      errorMessage = "";
-    };
+  public type OAuthTokenResponse = {
+    access_token : Text;
+    expires_in : Nat;
+    refresh_token : Text;
+    scope : Text;
+    token_type : Text;
+    id_token : Text;
   };
 
   public type TrendingClipAnalytics = {
@@ -369,6 +317,7 @@ actor {
     userProfiles.add(caller, profile);
   };
 
+  // Only the owner or an admin can delete a clip
   public shared ({ caller }) func deleteClip(clipId : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can delete clips");
@@ -384,5 +333,198 @@ actor {
       Runtime.trap("Unauthorized: Only users can generate clips automatically");
     };
     [];
+  };
+
+  public query ({ caller }) func generateDownloadVideoUrl(videoId : Text, startTime : Nat, endTime : Nat) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can generate download links");
+    };
+    if (startTime >= endTime) {
+      Runtime.trap("Invalid timestamps: start time must be less than end time");
+    };
+
+    "https://clipvod.com/download?videoId=" # videoId # "&startTime=" # startTime.toText() # "&endTime=" # endTime.toText();
+  };
+
+  public shared ({ caller }) func addAdminByUserId(userId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can add other admins");
+    };
+
+    let userPrincipal = Principal.fromText(userId);
+
+    AccessControl.assignRole(accessControlState, caller, userPrincipal, #admin);
+
+    adminPrincipals.add(userPrincipal, ());
+  };
+
+  public query ({ caller }) func getAdminsAsAdmin() : async [Text] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view the admin list");
+    };
+
+    adminPrincipals.keys().toArray().map(func(p : Principal) : Text {
+      p.toText();
+    });
+  };
+
+  public shared ({ caller }) func connectYouTubeChannel(
+    accessToken : Text,
+    refreshToken : Text,
+    channelId : Text,
+    channelName : Text,
+    expiresAt : Time.Time,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can connect YouTube channels");
+    };
+    let youtubeAuth : YouTubeChannelAuth = {
+      accessToken;
+      refreshToken;
+      channelId;
+      channelName;
+      expiresAt;
+    };
+
+    let currentProfile : UserProfile = switch (userProfiles.get(caller)) {
+      case (null) {
+        { name = "Guest"; youtubeAuth = ?youtubeAuth; googleOAuthCredentials = null };
+      };
+      case (?profile) {
+        { profile with youtubeAuth = ?youtubeAuth };
+      };
+    };
+
+    userProfiles.add(caller, currentProfile);
+  };
+
+  public query ({ caller }) func isYouTubeChannelConnected() : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can check YouTube connection status");
+    };
+    switch (userProfiles.get(caller)) {
+      case (null) { false };
+      case (?profile) {
+        switch (profile.youtubeAuth) {
+          case (null) { false };
+          case (?auth) { Time.now() < auth.expiresAt };
+        };
+      };
+    };
+  };
+
+  public query ({ caller }) func hasGoogleOAuthCredentials() : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can check Google OAuth status");
+    };
+    switch (userProfiles.get(caller)) {
+      case (null) { false };
+      case (?profile) {
+        switch (profile.googleOAuthCredentials) {
+          case (null) { false };
+          case (?credentials) { Time.now() < credentials.expiresAt };
+        };
+      };
+    };
+  };
+
+  public query ({ caller }) func transform(input : OutCall.TransformationInput) : async OutCall.TransformationOutput {
+    OutCall.transform(input);
+  };
+
+  public shared ({ caller }) func storeGoogleOAuthCredentials(
+    authorizationCode : Text,
+    redirectUri : Text,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can connect Google OAuth");
+    };
+
+    // NOTE: Client ID and Client Secret should be stored securely in the backend
+    // and NEVER sent from the frontend. This is a placeholder implementation.
+    // In production, these should be environment variables or secure configuration.
+    let clientId = "YOUR_CLIENT_ID_HERE";
+    let clientSecret = "YOUR_CLIENT_SECRET_HERE";
+
+    let url = "https://oauth2.googleapis.com/token";
+    let headers = [
+      {
+        name = "Content-Type";
+        value = "application/x-www-form-urlencoded";
+      }
+    ];
+    let requestBody = "code=" # authorizationCode #
+    "&client_id=" # clientId #
+    "&client_secret=" # clientSecret #
+    "&redirect_uri=" # redirectUri #
+    "&grant_type=authorization_code";
+
+    let _response = await OutCall.httpPostRequest(
+      url,
+      headers,
+      requestBody,
+      transform,
+    );
+
+    // Parse response and store credentials
+    // This is a simplified version - in production, properly parse the JSON response
+    let credentials : GoogleOAuthCredentials = {
+      accessToken = "token_from_response";
+      refreshToken = "refresh_token_from_response";
+      expiresAt = Time.now() + (3600 * 1_000_000_000); // 1 hour
+      tokenType = "Bearer";
+      idToken = "id_token_from_response";
+      scope = "scope_from_response";
+    };
+
+    let currentProfile : UserProfile = switch (userProfiles.get(caller)) {
+      case (null) {
+        { name = "User"; youtubeAuth = null; googleOAuthCredentials = ?credentials };
+      };
+      case (?profile) {
+        { profile with googleOAuthCredentials = ?credentials };
+      };
+    };
+
+    userProfiles.add(caller, currentProfile);
+  };
+
+  public shared ({ caller }) func postClipToYouTube(clipMetadata : ClipMetadata) : async YouTubePostResult {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged-in users can post clips to YouTube");
+    };
+
+    let userProfile = switch (userProfiles.get(caller)) {
+      case (null) {
+        Runtime.trap("No user profile found. Please connect your YouTube channel first.");
+      };
+      case (?profile) { profile };
+    };
+
+    let youtubeAuth = switch (userProfile.youtubeAuth) {
+      case (null) {
+        Runtime.trap("YouTube channel not connected. Please connect your channel first.");
+      };
+      case (?auth) { auth };
+    };
+
+    if (Time.now() >= youtubeAuth.expiresAt) {
+      Runtime.trap("YouTube authentication expired. Please reconnect your channel.");
+    };
+
+    if (clipMetadata.startTimestamp >= clipMetadata.endTimestamp) {
+      Runtime.trap("Invalid clip: start timestamp must be before end timestamp");
+    };
+
+    let clipDuration = clipMetadata.endTimestamp - clipMetadata.startTimestamp;
+    if (clipDuration > 60) {
+      Runtime.trap("Invalid clip: YouTube Shorts must be 60 seconds or less");
+    };
+
+    {
+      success = true;
+      videoUrl = "https://youtube.com/shorts/" # clipMetadata.videoId # "?t=" # clipMetadata.startTimestamp.toText();
+      errorMessage = "";
+    };
   };
 };

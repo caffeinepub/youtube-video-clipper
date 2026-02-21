@@ -1,57 +1,62 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T04:19:15.742Z",
+  "generatedAt": "2026-02-21T22:39:15.129Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 3,
+    "total": 5,
+    "implemented": 2,
     "items": [
       {
-        "id": "REQ-184",
-        "summary": "Debug and fix the YouTube channel connection flow in the ChannelConnection component (frontend/src/components/ChannelConnection.tsx) to identify why the OAuth connection process is not working as expected, ensuring users can successfully connect their YouTube channels",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/ChannelConnection.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/ChannelConnection.tsx"
-        ]
-      },
-      {
-        "id": "REQ-185",
-        "summary": "Verify and fix the useYouTubeChannel hook (frontend/src/hooks/useYouTubeChannel.ts) to ensure it correctly handles the YouTube OAuth flow, manages connection state, and communicates with the backend channel connection methods",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useYouTubeChannel.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useYouTubeChannel.ts"
-        ]
-      },
-      {
-        "id": "REQ-186",
-        "summary": "Review and fix the backend YouTube channel OAuth storage method in backend/main.mo to ensure it correctly stores and retrieves channel credentials associated with user profiles",
+        "id": "REQ-1",
+        "summary": "Implement Google OAuth 2.0 authentication flow in the backend to allow users to connect their Google accounts and authorize the app to post videos to their YouTube channels",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-187",
-        "summary": "Add comprehensive error logging throughout the YouTube connection flow in both frontend (ChannelConnection component and useYouTubeChannel hook) and backend (OAuth storage method) to output detailed debugging information including OAuth callback responses, credential storage results, and any failure points",
+        "id": "REQ-2",
+        "summary": "Modify the existing ChannelConnection component to use Google OAuth instead of the current mock implementation, displaying the connected Google account and YouTube channel information",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/ChannelConnection.tsx",
           "frontend/src/hooks/useYouTubeChannel.ts",
-          "frontend/src/utils/youtubeOAuthDebug.ts"
+          "frontend/src/hooks/useQueries.ts"
         ],
         "matchedFiles": [
           "frontend/src/components/ChannelConnection.tsx",
           "frontend/src/hooks/useYouTubeChannel.ts",
-          "frontend/src/utils/youtubeOAuthDebug.ts"
+          "frontend/src/hooks/useQueries.ts"
+        ]
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Update the existing postToYouTube backend method to use the stored Google OAuth credentials to automatically post clips to the user's connected YouTube channel without requiring manual interaction",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Add backend validation to ensure users have connected their Google account before allowing them to post clips to YouTube",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Update the ClipCard component to disable the YouTube post button and show a helpful message when the user has not connected their Google account",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/ClipCard.tsx",
+          "frontend/src/hooks/usePostToYouTube.ts"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/ClipCard.tsx",
+          "frontend/src/hooks/usePostToYouTube.ts"
         ]
       }
     ]
@@ -63,9 +68,17 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
     "frontend/src/components/ChannelConnection.tsx",
+    "frontend/src/components/ClipCard.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/usePostToYouTube.ts",
+    "frontend/src/hooks/useQueries.ts",
     "frontend/src/hooks/useYouTubeChannel.ts",
-    "frontend/src/utils/youtubeOAuthDebug.ts",
+    "frontend/src/pages/OAuthCallback.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
