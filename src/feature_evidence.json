@@ -1,4 +1,43 @@
 {
   "kind": "feature_evidence_report",
-  "features": []
+  "features": [
+    {
+      "featureId": "feature-verify-the-frontend-admin-route-protection-in-app-tsx-correctly-processes-the-iscalleradmin-response-and-displays-the-adminpanel-component-when-the-backend-returns-true-for-the-authenticated-owner",
+      "featureTitle": "Verify the frontend admin route protection in App.tsx correctly processes the isCallerAdmin response and displays the AdminPanel component when the backend returns true for the authenticated owner",
+      "files": [
+        "frontend/src/App.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-105"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-verify-the-useisowner-hook-in-frontend-src-hooks-useisowner-ts-correctly-calls-the-backend-iscalleradmin-method-and-processes-the-boolean-response-without-type-coercion-errors-ensuring-true-values-remain-true",
+      "featureTitle": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly calls the backend isCallerAdmin method and processes the boolean response without type coercion errors, ensuring true values remain true",
+      "files": [
+        "frontend/src/hooks/useIsOwner.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0"
+      ],
+      "testIds": [
+        "REQ-106"
+      ],
+      "confidence": "high"
+    }
+  ]
 }

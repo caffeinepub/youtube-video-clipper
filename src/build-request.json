@@ -1,91 +1,112 @@
 {
   "kind": "build_request",
-  "title": "Fix admin panel to properly display user identity section and system statistics",
+  "title": "Fix admin panel access and functionality",
   "projectName": "Beast Clipping",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-93",
-      "text": "Fix the AdminPanel component in frontend/src/components/AdminPanel.tsx to ensure the user identity section containing the principal ID displays correctly above the system statistics, replacing the current 'Debug Info' card that shows only principal and isOwner values",
-      "target": "frontend",
+      "id": "REQ-102",
+      "text": "Debug and fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae', ensuring it returns true when this principal makes an admin check call",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-latest"
         ],
         "quotes": [
-          "This is what it is showing me and no it is not showing me a user Id"
+          "The admin panel isn't working",
+          "my user id is 7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae"
         ]
       },
       "acceptanceCriteria": [
-        "AdminPanel component renders a clearly labeled 'Your Identity' or 'User ID' section at the top of the dashboard",
-        "The section displays the authenticated user's full principal ID retrieved from the useInternetIdentity hook",
-        "The principal ID is displayed in a readable format with proper text styling and layout",
-        "A copy-to-clipboard button is present next to the principal ID",
-        "The user identity section is visually distinct from the debug information and system statistics"
+        "The isCallerAdmin method returns true when called by principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae'",
+        "The admin HashMap is correctly initialized with the owner principal",
+        "Backend logs confirm successful principal comparison"
       ]
     },
     {
-      "id": "REQ-94",
-      "text": "Fix the AdminPanel component in frontend/src/components/AdminPanel.tsx to ensure system statistics (total clips count and trending clips table) render below the user identity section instead of showing only debug information",
-      "target": "frontend",
+      "id": "REQ-103",
+      "text": "Verify the admin principals HashMap initialization in backend/main.mo correctly stores the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae' during actor initialization, using the correct Principal format for HashMap storage and retrieval",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-latest"
         ],
         "quotes": [
-          "This is what it is showing me and no it is not showing me a user Id"
+          "The admin panel isn't working"
         ]
       },
       "acceptanceCriteria": [
-        "System statistics section displays total clips count fetched from useAdminStats hook",
-        "Trending clips table renders with columns for title, viral score, and view count",
-        "Statistics section only renders after user identity section",
-        "Loading states are handled gracefully with skeleton loaders or loading messages",
-        "Error states display appropriate error messages without crashing the component"
+        "The adminPrincipals HashMap contains the owner principal after initialization",
+        "HashMap.get() correctly retrieves the stored owner principal",
+        "Principal comparison logic uses the correct equality check"
       ]
     },
     {
-      "id": "REQ-95",
-      "text": "Remove or relocate the 'Debug Info' card in AdminPanel component that currently displays raw principal and isOwner boolean values, as this technical debug information should not be the primary content of the admin dashboard",
-      "target": "frontend",
+      "id": "REQ-104",
+      "text": "Add comprehensive backend logging in the isCallerAdmin method to output the caller's principal in text format using Principal.toText(), the HashMap lookup result, and whether the principal exists in the admin set, helping diagnose why authentication is failing",
+      "target": "backend",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-latest"
+        ],
+        "quotes": [
+          "The admin panel isn't working"
         ]
       },
       "acceptanceCriteria": [
-        "Debug Info card displaying 'Principal:', 'isOwner value:', 'isOwner type:', and 'Check browser console' is removed from the main admin panel view",
-        "Debug information is either moved to browser console logging only or placed in a collapsible debug section",
-        "User-facing admin panel displays only production-ready UI elements (user identity, statistics, trending clips)"
+        "Logs display caller principal as text",
+        "Logs show HashMap.get() lookup result",
+        "Logs indicate whether admin check passed or failed with reason"
       ]
     },
     {
-      "id": "REQ-96",
-      "text": "Verify the useAdminStats hook in frontend/src/hooks/useAdminStats.ts is correctly fetching data from the backend and returning valid statistics without errors that would prevent the admin panel from rendering properly",
+      "id": "REQ-105",
+      "text": "Verify the frontend admin route protection in App.tsx correctly processes the isCallerAdmin response and displays the AdminPanel component when the backend returns true for the authenticated owner",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-user-latest"
+          "msg-latest"
+        ],
+        "quotes": [
+          "The admin panel isn't working"
         ]
       },
       "acceptanceCriteria": [
-        "useAdminStats hook successfully calls backend methods getTotalClipsCount and getTrendingClipsAnalytics",
-        "Hook returns loading state that resolves to data or error state",
-        "React Query configuration prevents infinite loading or hanging states",
-        "Error handling logs issues to console and returns error state to component"
+        "Admin route displays AdminPanel when isOwner is true",
+        "No infinite loading states occur during permission check",
+        "Access denied message only shows when backend explicitly returns false"
+      ]
+    },
+    {
+      "id": "REQ-106",
+      "text": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly calls the backend isCallerAdmin method and processes the boolean response without type coercion errors, ensuring true values remain true",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "The admin panel isn't working"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Hook correctly invokes actor.isCallerAdmin()",
+        "Boolean response is not converted or misinterpreted",
+        "Console logs show exact boolean value and type from backend"
       ]
     }
   ],
   "constraints": [
+    "The owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae' must be hardcoded in the backend for admin authentication",
     "Do not modify frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts",
-    "Maintain existing authentication and authorization logic",
-    "Keep all Motoko backend logic in the single main actor file"
+    "Maintain single-actor architecture in backend/main.mo",
+    "Use the existing adminPrincipals HashMap for admin storage"
   ],
   "nonGoals": [
-    "Changing the backend admin authentication logic or principal comparison",
-    "Modifying the useIsOwner hook or admin route protection",
-    "Adding new admin statistics or analytics features",
-    "Changing the visual theme or color scheme of the admin panel"
+    "Creating a new admin management system with multiple admins",
+    "Implementing dynamic admin role assignment",
+    "Adding new admin panel features beyond fixing authentication",
+    "Modifying the Internet Identity authentication flow"
   ],
   "imageRequirements": {
     "required": [],

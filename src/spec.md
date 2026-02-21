@@ -1,12 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the admin panel to properly display user identity and system statistics instead of showing only debug information.
+**Goal:** Fix admin panel authentication so the owner can access and use the admin panel.
 
 **Planned changes:**
-- Replace the "Debug Info" card with a user-friendly "Your Identity" or "User ID" section at the top of the admin panel that displays the authenticated user's principal ID with a copy-to-clipboard button
-- Ensure system statistics (total clips count and trending clips table) render below the user identity section
-- Remove or relocate the raw debug information (principal, isOwner boolean) to browser console or a collapsible debug section
-- Verify the useAdminStats hook correctly fetches and returns data without errors
+- Debug and fix the isCallerAdmin method in backend to correctly authenticate the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae'
+- Verify adminPrincipals HashMap initialization correctly stores the owner principal
+- Add comprehensive backend logging to diagnose authentication failures
+- Verify frontend admin route protection correctly processes the isCallerAdmin response
+- Verify useIsOwner hook correctly calls backend and processes the boolean response without type errors
 
-**User-visible outcome:** Admin users will see a properly structured admin dashboard with their user identity displayed prominently at the top, followed by meaningful system statistics including total clips count and a trending clips table, instead of raw debug information.
+**User-visible outcome:** The owner can successfully access and view the admin panel when logged in with their principal ID.

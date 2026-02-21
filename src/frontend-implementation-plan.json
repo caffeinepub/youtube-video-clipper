@@ -1,74 +1,37 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix admin panel to properly display user identity section and system statistics",
+  "title": "Fix Admin Panel Access and Functionality - Frontend",
   "requirements": [
     {
-      "id": "REQ-93",
-      "summary": "Fix AdminPanel component to display user identity section with principal ID above system statistics",
+      "id": "REQ-105",
+      "summary": "Verify admin route protection correctly processes isCallerAdmin response and displays AdminPanel when authenticated",
       "acceptanceCriteria": [
-        "AdminPanel component renders a clearly labeled 'Your Identity' or 'User ID' section at the top of the dashboard",
-        "The section displays the authenticated user's full principal ID retrieved from the useInternetIdentity hook",
-        "The principal ID is displayed in a readable format with proper text styling and layout",
-        "A copy-to-clipboard button is present next to the principal ID",
-        "The user identity section is visually distinct from the debug information and system statistics"
+        "Admin route displays AdminPanel when isOwner is true",
+        "No infinite loading states occur during permission check",
+        "Access denied message only shows when backend explicitly returns false"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/AdminPanel.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Restructure the AdminPanel component to display a proper 'Your Identity' section at the top. Retrieve the principal ID from the useInternetIdentity hook's identity object using identity.getPrincipal().toString(). Create a Card component containing a CardHeader with 'Your Identity' title, CardContent displaying the full principal ID in a monospace font with word-break for readability, and a copy-to-clipboard button next to the principal ID. Position this section above all other content including debug info and statistics sections."
+          "description": "Review and verify the admin route protection logic that checks isOwner state from useIsOwner hook. Ensure the conditional rendering correctly displays AdminPanel when isOwner is true, shows loading state appropriately without infinite loops, and displays access denied only when isOwner is explicitly false. Verify the debug logging captures the complete authentication flow including timing and state transitions."
         }
       ]
     },
     {
-      "id": "REQ-94",
-      "summary": "Fix AdminPanel component to render system statistics below user identity section",
+      "id": "REQ-106",
+      "summary": "Verify useIsOwner hook correctly calls isCallerAdmin and processes boolean response without type coercion errors",
       "acceptanceCriteria": [
-        "System statistics section displays total clips count fetched from useAdminStats hook",
-        "Trending clips table renders with columns for title, viral score, and view count",
-        "Statistics section only renders after user identity section",
-        "Loading states are handled gracefully with skeleton loaders or loading messages",
-        "Error states display appropriate error messages without crashing the component"
+        "Hook correctly invokes actor.isCallerAdmin()",
+        "Boolean response is not converted or misinterpreted",
+        "Console logs show exact boolean value and type from backend"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/AdminPanel.tsx",
+          "path": "frontend/src/hooks/useIsOwner.ts",
           "operation": "modify",
-          "description": "Reorganize the AdminPanel component layout to render system statistics section below the user identity section. Ensure the useAdminStats hook data (totalClipsCount and trendingClipsAnalytics) is displayed in a dedicated 'System Statistics' Card section. Create a proper table using shadcn/ui Table components to display trending clips with columns for Title, Viral Score, and Score Metrics. Add conditional rendering to show loading skeleton or spinner when statsLoading is true. Add error message display when statsError exists. Verify the section order: User Identity first, then System Statistics, then any other sections."
-        }
-      ]
-    },
-    {
-      "id": "REQ-95",
-      "summary": "Remove or relocate the Debug Info card from main admin panel view",
-      "acceptanceCriteria": [
-        "Debug Info card displaying 'Principal:', 'isOwner value:', 'isOwner type:', and 'Check browser console' is removed from the main admin panel view",
-        "Debug information is either moved to browser console logging only or placed in a collapsible debug section",
-        "User-facing admin panel displays only production-ready UI elements (user identity, statistics, trending clips)"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/AdminPanel.tsx",
-          "operation": "modify",
-          "description": "Remove the 'Debug Info' Card component that currently displays raw principal, isOwner value, and isOwner type. Move debug logging to console.log statements only, or wrap it in a collapsible Collapsible component from shadcn/ui with a 'Developer Debug Info' trigger that is collapsed by default. Ensure the main admin panel view shows only production-ready sections: User Identity, System Statistics, and Trending Clips table."
-        }
-      ]
-    },
-    {
-      "id": "REQ-96",
-      "summary": "Verify useAdminStats hook correctly fetches data and handles errors",
-      "acceptanceCriteria": [
-        "useAdminStats hook successfully calls backend methods getTotalClipsCount and getTrendingClipsAnalytics",
-        "Hook returns loading state that resolves to data or error state",
-        "React Query configuration prevents infinite loading or hanging states",
-        "Error handling logs issues to console and returns error state to component"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useAdminStats.ts",
-          "operation": "modify",
-          "description": "Review and verify the useAdminStats hook implementation. Ensure both useQuery calls for getTotalClipsCount and getTrendingClipsAnalytics have proper enabled conditions (enabled: !!actor && !isFetching). Add staleTime and gcTime configurations to prevent unnecessary refetches. Verify error handling includes console.error logging for debugging. Ensure the hook returns properly typed loading, error, and data states. Add retry: 1 or retry: false to prevent infinite retry loops. Confirm queryKey uniqueness (['adminStats', 'totalClips'] and ['adminStats', 'trendingAnalytics'])."
+          "description": "Review and verify the useIsOwner hook implementation that calls actor.isCallerAdmin(). Ensure the response handling preserves the boolean type without any coercion or conversion that could change true to false. Add or verify console logging that outputs the exact boolean value and its JavaScript type using typeof. Check the query configuration including enabled conditions, retry logic, and staleTime settings to ensure proper behavior. Verify the timeout fallback logic doesn't interfere with legitimate true responses."
         }
       ]
     }
