@@ -1,68 +1,76 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T01:18:06.687Z",
+  "generatedAt": "2026-02-21T01:43:27.957Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 2,
+    "total": 4,
+    "implemented": 3,
     "items": [
       {
-        "id": "REQ-102",
-        "summary": "Debug and fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae', ensuring it returns true when this principal makes an admin check call",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-103",
-        "summary": "Verify the admin principals HashMap initialization in backend/main.mo correctly stores the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae' during actor initialization, using the correct Principal format for HashMap storage and retrieval",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-104",
-        "summary": "Add comprehensive backend logging in the isCallerAdmin method to output the caller's principal in text format using Principal.toText(), the HashMap lookup result, and whether the principal exists in the admin set, helping diagnose why authentication is failing",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-105",
-        "summary": "Verify the frontend admin route protection in App.tsx correctly processes the isCallerAdmin response and displays the AdminPanel component when the backend returns true for the authenticated owner",
+        "id": "REQ-118",
+        "summary": "Debug and resolve the error occurring in the admin panel that prevents the authenticated owner from accessing the admin dashboard, as indicated by the user's error report following Version 30 deployment",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/hooks/useIsOwner.ts",
+          "frontend/src/components/AdminPanel.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/hooks/useIsOwner.ts",
+          "frontend/src/components/AdminPanel.tsx"
+        ]
+      },
+      {
+        "id": "REQ-119",
+        "summary": "Review and fix the AdminPanel component (frontend/src/components/AdminPanel.tsx) to handle any rendering errors that may cause the component to fail or display incorrectly",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/AdminPanel.tsx",
+          "frontend/src/hooks/useAdminStats.ts",
+          "frontend/src/components/AdminErrorBoundary.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/AdminPanel.tsx",
+          "frontend/src/hooks/useAdminStats.ts",
+          "frontend/src/components/AdminErrorBoundary.tsx"
+        ]
+      },
+      {
+        "id": "REQ-120",
+        "summary": "Verify the admin route protection logic in frontend/src/App.tsx correctly evaluates the isCallerAdmin check and grants access to the AdminPanel when the backend returns true",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/App.tsx",
+          "frontend/src/hooks/useActor.ts"
         ],
         "matchedFiles": [
           "frontend/src/App.tsx"
         ]
       },
       {
-        "id": "REQ-106",
-        "summary": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly calls the backend isCallerAdmin method and processes the boolean response without type coercion errors, ensuring true values remain true",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useIsOwner.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useIsOwner.ts"
-        ]
+        "id": "REQ-121",
+        "summary": "Fix the backend isCallerAdmin method in backend/main.mo to ensure it correctly authenticates the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and returns true, resolving any HashMap lookup or principal comparison issues",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
+    "frontend/src/components/AdminErrorBoundary.tsx",
+    "frontend/src/components/AdminPanel.tsx",
+    "frontend/src/hooks/useAdminStats.ts",
     "frontend/src/hooks/useIsOwner.ts",
     "project_state.json",
     "scratch/component-selection.json",

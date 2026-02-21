@@ -40,11 +40,13 @@ export default function AdminPanel() {
           <Skeleton className="h-10 w-64 mb-2" />
           <Skeleton className="h-5 w-96" />
         </div>
-        <Skeleton className="h-32" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <Skeleton className="h-40" />
-          <Skeleton className="h-40" />
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
+          <Skeleton className="h-32" />
         </div>
+
         <Skeleton className="h-96" />
       </div>
     );
@@ -55,10 +57,11 @@ export default function AdminPanel() {
       <div className="container mx-auto px-4 py-8">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error Loading Admin Statistics</AlertTitle>
-          <AlertDescription className="mt-2 space-y-3">
-            <p>Failed to load admin panel data. Please try again.</p>
-            <Button onClick={handleRetry} variant="outline" size="sm">
+          <AlertTitle>Error Loading Admin Panel</AlertTitle>
+          <AlertDescription className="mt-2 space-y-2">
+            <p>Failed to load admin statistics. Please try again.</p>
+            <p className="text-xs font-mono">{error instanceof Error ? error.message : String(error)}</p>
+            <Button onClick={handleRetry} variant="outline" size="sm" className="mt-2">
               <RefreshCw className="w-4 h-4 mr-2" />
               Retry
             </Button>
@@ -70,43 +73,37 @@ export default function AdminPanel() {
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-6">
+      {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-          <BarChart3 className="w-8 h-8 text-primary" />
-          Admin Dashboard
-        </h1>
-        <p className="text-muted-foreground mt-2">
-          System statistics and trending clips analytics
-        </p>
+        <h1 className="text-3xl font-bold text-foreground mb-2">Admin Panel</h1>
+        <p className="text-muted-foreground">Manage and monitor your Beast Clipping platform</p>
       </div>
 
       {/* User Identity Card */}
-      <Card className="border-primary/20 bg-primary/5">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base font-medium flex items-center gap-2">
-            <User className="h-4 w-4" />
-            Your User ID
-          </CardTitle>
-          <CardDescription>
-            Authenticated principal for admin verification
-          </CardDescription>
+      <Card>
+        <CardHeader>
+          <div className="flex items-center gap-2">
+            <User className="w-5 h-5 text-primary" />
+            <CardTitle>Your Identity</CardTitle>
+          </div>
+          <CardDescription>Your authenticated principal ID</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex items-center gap-2">
-            <code className="flex-1 px-3 py-2 bg-muted rounded-md text-sm font-mono break-all">
-              {principalId || 'Loading identity...'}
+            <code className="flex-1 text-xs bg-muted p-3 rounded font-mono break-all">
+              {principalId || 'Not available'}
             </code>
             <Button
               onClick={handleCopyPrincipal}
               variant="outline"
               size="sm"
-              disabled={!principalId}
               className="shrink-0"
+              disabled={!principalId}
             >
               {copied ? (
                 <>
                   <Check className="w-4 h-4 mr-2" />
-                  Copied!
+                  Copied
                 </>
               ) : (
                 <>
@@ -120,17 +117,15 @@ export default function AdminPanel() {
       </Card>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Clips</CardTitle>
             <Video className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{totalClips?.toString() || '0'}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              All clips created in the system
-            </p>
+            <div className="text-2xl font-bold">{totalClips ? Number(totalClips) : 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">All saved video clips</p>
           </CardContent>
         </Card>
 
@@ -140,10 +135,19 @@ export default function AdminPanel() {
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-3xl font-bold">{trendingAnalytics?.length || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Top performing clips by engagement
-            </p>
+            <div className="text-2xl font-bold">{trendingAnalytics?.length || 0}</div>
+            <p className="text-xs text-muted-foreground mt-1">Top performing clips</p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Analytics</CardTitle>
+            <BarChart3 className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">Active</div>
+            <p className="text-xs text-muted-foreground mt-1">System status</p>
           </CardContent>
         </Card>
       </div>
@@ -152,24 +156,23 @@ export default function AdminPanel() {
       <Card>
         <CardHeader>
           <CardTitle>Trending Clips Analytics</CardTitle>
-          <CardDescription>
-            Detailed metrics for top trending clips sorted by engagement score
-          </CardDescription>
+          <CardDescription>Top performing clips ranked by engagement score</CardDescription>
         </CardHeader>
         <CardContent>
           {!trendingAnalytics || trendingAnalytics.length === 0 ? (
-            <div className="text-center py-12 text-muted-foreground">
-              <TrendingUp className="w-12 h-12 mx-auto mb-4 opacity-50" />
-              <p>No trending clips data available yet</p>
+            <div className="text-center py-8 text-muted-foreground">
+              <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-50" />
+              <p>No trending clips data available yet.</p>
+              <p className="text-sm mt-1">Create some clips to see analytics here.</p>
             </div>
           ) : (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[50px]">#</TableHead>
+                    <TableHead className="w-12">#</TableHead>
                     <TableHead>Title</TableHead>
-                    <TableHead className="text-right">Viral Score</TableHead>
+                    <TableHead className="text-right">Score Metrics</TableHead>
                     <TableHead className="text-right">Trending Score</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -178,15 +181,9 @@ export default function AdminPanel() {
                     <TableRow key={clip.id}>
                       <TableCell className="font-medium">{index + 1}</TableCell>
                       <TableCell className="font-medium">{clip.title}</TableCell>
-                      <TableCell className="text-right">
-                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-primary/10 text-primary">
-                          {clip.scoreMetrics.toFixed(1)}
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <span className="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold bg-accent/10 text-accent-foreground">
-                          {clip.trendingScore.toFixed(1)}
-                        </span>
+                      <TableCell className="text-right">{clip.scoreMetrics.toFixed(2)}</TableCell>
+                      <TableCell className="text-right font-bold text-primary">
+                        {clip.trendingScore.toFixed(2)}
                       </TableCell>
                     </TableRow>
                   ))}

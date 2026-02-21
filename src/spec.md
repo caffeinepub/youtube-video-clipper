@@ -1,13 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Fix admin panel authentication so the owner can access and use the admin panel.
+**Goal:** Fix the admin panel error that prevents the authenticated owner from accessing the admin dashboard.
 
 **Planned changes:**
-- Debug and fix the isCallerAdmin method in backend to correctly authenticate the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae'
-- Verify adminPrincipals HashMap initialization correctly stores the owner principal
-- Add comprehensive backend logging to diagnose authentication failures
-- Verify frontend admin route protection correctly processes the isCallerAdmin response
-- Verify useIsOwner hook correctly calls backend and processes the boolean response without type errors
+- Debug and resolve errors in the AdminPanel component that prevent rendering
+- Fix the admin route protection logic to properly handle isCallerAdmin checks
+- Correct the backend isCallerAdmin method to successfully authenticate the owner principal
+- Ensure the adminPrincipals HashMap correctly stores and retrieves the owner principal
+- Add proper error handling and loading states throughout the admin access flow
 
-**User-visible outcome:** The owner can successfully access and view the admin panel when logged in with their principal ID.
+**User-visible outcome:** The authenticated owner can successfully access and view the admin dashboard at /admin without errors.

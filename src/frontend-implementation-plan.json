@@ -1,37 +1,81 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Admin Panel Access and Functionality - Frontend",
+  "title": "Fix admin panel error preventing access",
   "requirements": [
     {
-      "id": "REQ-105",
-      "summary": "Verify admin route protection correctly processes isCallerAdmin response and displays AdminPanel when authenticated",
+      "id": "REQ-118",
+      "summary": "Debug and resolve the admin panel access error preventing the authenticated owner from viewing the dashboard",
       "acceptanceCriteria": [
-        "Admin route displays AdminPanel when isOwner is true",
-        "No infinite loading states occur during permission check",
-        "Access denied message only shows when backend explicitly returns false"
+        "The admin panel loads successfully when the authenticated owner navigates to /admin",
+        "No JavaScript errors occur in the browser console when accessing the admin panel",
+        "The AdminPanel component renders all sections including user identity, system statistics, and trending clips",
+        "The isCallerAdmin backend method returns true for the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'"
       ],
       "file_operations": [
         {
           "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Review and verify the admin route protection logic that checks isOwner state from useIsOwner hook. Ensure the conditional rendering correctly displays AdminPanel when isOwner is true, shows loading state appropriately without infinite loops, and displays access denied only when isOwner is explicitly false. Verify the debug logging captures the complete authentication flow including timing and state transitions."
+          "description": "Review and fix the admin route protection logic to properly handle the isCallerAdmin check. Ensure the route correctly evaluates authentication state, doesn't get stuck in loading states, and properly displays error states. Add improved error handling and console logging for the authentication flow to diagnose any routing or state management issues."
+        },
+        {
+          "path": "frontend/src/hooks/useIsOwner.ts",
+          "operation": "modify",
+          "description": "Fix the useIsOwner hook to ensure it correctly fetches and returns the admin status from the backend. Review the debug logging, error handling, and React Query configuration to ensure the hook properly handles loading states, errors, and successful authentication checks without getting stuck or throwing errors."
+        },
+        {
+          "path": "frontend/src/components/AdminPanel.tsx",
+          "operation": "modify",
+          "description": "Review and fix the AdminPanel component to handle rendering errors gracefully. Ensure all data fetching operations (user identity, system statistics, trending clips) handle loading and error states properly, and that the component doesn't fail when backend data is unavailable. Add proper null checks and fallback UI for error scenarios."
         }
       ]
     },
     {
-      "id": "REQ-106",
-      "summary": "Verify useIsOwner hook correctly calls isCallerAdmin and processes boolean response without type coercion errors",
+      "id": "REQ-119",
+      "summary": "Fix rendering errors in the AdminPanel component to ensure all subsections display correctly",
       "acceptanceCriteria": [
-        "Hook correctly invokes actor.isCallerAdmin()",
-        "Boolean response is not converted or misinterpreted",
-        "Console logs show exact boolean value and type from backend"
+        "The AdminPanel component renders without throwing errors",
+        "All subsections (user identity, statistics, trending clips) display correctly",
+        "Loading and error states are handled gracefully",
+        "The component properly handles cases where backend data may be unavailable"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useIsOwner.ts",
+          "path": "frontend/src/components/AdminPanel.tsx",
           "operation": "modify",
-          "description": "Review and verify the useIsOwner hook implementation that calls actor.isCallerAdmin(). Ensure the response handling preserves the boolean type without any coercion or conversion that could change true to false. Add or verify console logging that outputs the exact boolean value and its JavaScript type using typeof. Check the query configuration including enabled conditions, retry logic, and staleTime settings to ensure proper behavior. Verify the timeout fallback logic doesn't interfere with legitimate true responses."
+          "description": "Fix all rendering logic in AdminPanel to handle edge cases. Ensure the user identity section displays the principal correctly with working copy functionality. Fix the system statistics section to properly display total clips count. Fix the trending clips analytics section to handle empty arrays and render the table correctly with all score metrics. Add proper TypeScript type guards and null safety checks throughout."
+        },
+        {
+          "path": "frontend/src/hooks/useAdminStats.ts",
+          "operation": "modify",
+          "description": "Review and fix the useAdminStats hook to ensure it properly fetches admin statistics and trending analytics. Fix any issues with data transformation, error handling, or loading states that might cause the AdminPanel to fail. Ensure the hook returns properly typed data that matches what AdminPanel expects."
+        },
+        {
+          "path": "frontend/src/components/AdminErrorBoundary.tsx",
+          "operation": "modify",
+          "description": "Enhance the AdminErrorBoundary to provide more detailed error information for debugging. Ensure it properly catches errors from AdminPanel and displays helpful error messages. Add console logging of error details to help diagnose the root cause of rendering failures."
+        }
+      ]
+    },
+    {
+      "id": "REQ-120",
+      "summary": "Verify and fix the admin route protection logic in App.tsx to correctly grant access when authenticated",
+      "acceptanceCriteria": [
+        "The admin route displays the AdminPanel component when isOwner is true",
+        "The admin route does not get stuck in a loading state",
+        "Error states are properly handled and displayed to the user",
+        "Console logs clearly show the authentication flow and access decision"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Fix the admin route component logic to properly evaluate the useIsOwner hook results. Ensure loading states transition correctly to either the AdminPanel or an access denied message. Fix any conditional rendering logic that might prevent AdminPanel from displaying even when isOwner is true. Verify the route doesn't create infinite loading loops or fail to update when authentication state changes."
+        },
+        {
+          "path": "frontend/src/hooks/useActor.ts",
+          "operation": "modify",
+          "description": "Review the actor initialization and authentication flow to ensure it properly creates an authenticated actor when the user logs in. Verify that the actor instance is available before admin checks are performed. Fix any timing issues between actor creation and the isCallerAdmin query execution. Use the authorization component's authentication patterns to ensure proper actor setup."
         }
       ]
     }

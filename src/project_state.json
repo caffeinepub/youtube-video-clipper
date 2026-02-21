@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 55,
+  "projectStateVersion": 63,
   "summary": "YouTube video clipping application",
   "architectural_notes": [
     "Admin panel authentication switched from principal-based to user ID-based access control",
@@ -477,6 +477,46 @@
         "REQ-106"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-admin-route-in-app-tsx-to-display-more-detailed-error-information-when-access-is-denied-including-the-exact-isowner-hook-return-value-whether-the-backend-call-succeeded-or-failed-and-any-error-messages-from-the-backend-call",
+      "title": "Update the frontend admin route in App.tsx to display more detailed error information when access is denied, including the exact isOwner hook return value, whether the backend call succeeded or failed, and any error messages from the backend call",
+      "reqIds": [
+        "REQ-110"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-frontend-console-logging-in-the-app-tsx-admin-route-component-to-output-detailed-authentication-flow-information-when-the-admin-panel-is-accessed-including-1-confirmation-that-the-admin-route-component-mounted-2-the-isowner-hook-return-value-and-its-type-3-the-loading-state-4-the-error-state-if-present-5-the-final-access-decision-with-explanation-of-which-condition-triggered-the-access-denied-message",
+      "title": "Add frontend console logging in the App.tsx admin route component to output detailed authentication flow information when the admin panel is accessed, including: 1) confirmation that the admin route component mounted, 2) the isOwner hook return value and its type, 3) the loading state, 4) the error state if present, 5) the final access decision with explanation of which condition triggered the 'Access Denied' message",
+      "reqIds": [
+        "REQ-117"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-debug-and-resolve-the-error-occurring-in-the-admin-panel-that-prevents-the-authenticated-owner-from-accessing-the-admin-dashboard-as-indicated-by-the-user-s-error-report-following-version-30-deployment",
+      "title": "Debug and resolve the error occurring in the admin panel that prevents the authenticated owner from accessing the admin dashboard, as indicated by the user's error report following Version 30 deployment",
+      "reqIds": [
+        "REQ-118"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-review-and-fix-the-adminpanel-component-frontend-src-components-adminpanel-tsx-to-handle-any-rendering-errors-that-may-cause-the-component-to-fail-or-display-incorrectly",
+      "title": "Review and fix the AdminPanel component (frontend/src/components/AdminPanel.tsx) to handle any rendering errors that may cause the component to fail or display incorrectly",
+      "reqIds": [
+        "REQ-119"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-the-admin-route-protection-logic-in-frontend-src-app-tsx-correctly-evaluates-the-iscalleradmin-check-and-grants-access-to-the-adminpanel-when-the-backend-returns-true",
+      "title": "Verify the admin route protection logic in frontend/src/App.tsx correctly evaluates the isCallerAdmin check and grants access to the AdminPanel when the backend returns true",
+      "reqIds": [
+        "REQ-120"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -921,6 +961,86 @@
       "summary": "Add comprehensive backend logging in the isCallerAdmin method to output the caller's principal in text format using Principal.toText(), the HashMap lookup result, and whether the principal exists in the admin set, helping diagnose why authentication is failing",
       "reqIds": [
         "REQ-104"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-73",
+      "summary": "Fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and return true instead of false, resolving the 'Access Denied' error shown in the uploaded screenshot",
+      "reqIds": [
+        "REQ-107"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-74",
+      "summary": "Verify the admin principals HashMap initialization in backend/main.mo correctly stores the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' during actor initialization, ensuring the principal is properly formatted and stored for HashMap lookup",
+      "reqIds": [
+        "REQ-108"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-75",
+      "summary": "Add comprehensive backend logging in the isCallerAdmin method to output: 1) the caller's principal using Principal.toText(), 2) whether the principal exists in the adminPrincipals HashMap, 3) the HashMap size, 4) the exact boolean return value, helping diagnose why the authentication check is failing",
+      "reqIds": [
+        "REQ-109"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-76",
+      "summary": "Fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and return true instead of false, resolving the 'Access Denied' error shown when the authenticated owner attempts to access the admin panel",
+      "reqIds": [
+        "REQ-111"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-77",
+      "summary": "Verify the adminPrincipals HashMap initialization in backend/main.mo correctly stores the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' during actor initialization, ensuring the principal format matches exactly and the HashMap lookup succeeds during authentication checks",
+      "reqIds": [
+        "REQ-112"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-78",
+      "summary": "Add comprehensive backend logging in the isCallerAdmin method to output: 1) the caller's principal using Principal.toText(), 2) the result of the adminPrincipals HashMap lookup, 3) the current size of the adminPrincipals HashMap, 4) all principals stored in the HashMap for comparison, 5) the final boolean return value, enabling diagnosis of why authentication is failing for the authenticated owner",
+      "reqIds": [
+        "REQ-113"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-79",
+      "summary": "Fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and return true instead of false, resolving the 'Access Denied' error shown in the uploaded screenshots where the Debug Information section displays 'isOwner (hook): false' and 'Raw Data: false'",
+      "reqIds": [
+        "REQ-114"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-80",
+      "summary": "Verify the adminPrincipals HashMap initialization in backend/main.mo correctly stores the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' during actor initialization, ensuring the principal format matches exactly (including all hyphens and character sequences) and the HashMap lookup succeeds during authentication checks",
+      "reqIds": [
+        "REQ-115"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-81",
+      "summary": "Add comprehensive backend logging in the isCallerAdmin method to output: 1) the caller's principal using Principal.toText(), 2) the result of the adminPrincipals HashMap lookup (whether the principal exists), 3) the current size of the adminPrincipals HashMap, 4) all principals stored in the HashMap by iterating through entries for comparison, 5) the final boolean return value, enabling diagnosis of why authentication is failing for the authenticated owner principal",
+      "reqIds": [
+        "REQ-116"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-85",
+      "summary": "Fix the backend isCallerAdmin method in backend/main.mo to ensure it correctly authenticates the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and returns true, resolving any HashMap lookup or principal comparison issues",
+      "reqIds": [
+        "REQ-121"
       ],
       "status": "pending"
     }

@@ -11,20 +11,29 @@ interface Props {
 interface State {
   hasError: boolean;
   error: Error | null;
+  errorInfo: React.ErrorInfo | null;
 }
 
 export default class AdminErrorBoundary extends Component<Props, State> {
   constructor(props: Props) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: null };
   }
 
-  static getDerivedStateFromError(error: Error): State {
+  static getDerivedStateFromError(error: Error): Partial<State> {
     return { hasError: true, error };
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('Admin panel error:', error, errorInfo);
+    console.error('═══════════════════════════════════════════════════════');
+    console.error('[AdminErrorBoundary] Caught error in admin panel:');
+    console.error('[AdminErrorBoundary] Error:', error);
+    console.error('[AdminErrorBoundary] Error message:', error.message);
+    console.error('[AdminErrorBoundary] Error stack:', error.stack);
+    console.error('[AdminErrorBoundary] Component stack:', errorInfo.componentStack);
+    console.error('═══════════════════════════════════════════════════════');
+    
+    this.setState({ errorInfo });
   }
 
   render() {
@@ -42,14 +51,34 @@ export default class AdminErrorBoundary extends Component<Props, State> {
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="rounded-lg bg-muted p-4">
-                <p className="text-sm font-mono text-muted-foreground break-all">
+              <div className="rounded-lg bg-muted p-4 space-y-2">
+                <p className="text-sm font-semibold text-foreground">Error Message:</p>
+                <p className="text-sm font-mono text-destructive break-all">
                   {this.state.error?.message || 'Unknown error occurred'}
                 </p>
               </div>
+              
+              {this.state.error?.stack && (
+                <div className="rounded-lg bg-muted p-4 space-y-2">
+                  <p className="text-sm font-semibold text-foreground">Stack Trace:</p>
+                  <pre className="text-xs font-mono text-muted-foreground overflow-auto max-h-48">
+                    {this.state.error.stack}
+                  </pre>
+                </div>
+              )}
+              
+              {this.state.errorInfo?.componentStack && (
+                <div className="rounded-lg bg-muted p-4 space-y-2">
+                  <p className="text-sm font-semibold text-foreground">Component Stack:</p>
+                  <pre className="text-xs font-mono text-muted-foreground overflow-auto max-h-48">
+                    {this.state.errorInfo.componentStack}
+                  </pre>
+                </div>
+              )}
+              
               <div className="flex gap-3">
                 <Button
-                  onClick={() => this.setState({ hasError: false, error: null })}
+                  onClick={() => this.setState({ hasError: false, error: null, errorInfo: null })}
                   variant="default"
                 >
                   Try Again

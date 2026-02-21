@@ -1,112 +1,87 @@
 {
   "kind": "build_request",
-  "title": "Fix admin panel access and functionality",
+  "title": "Fix admin panel error preventing access",
   "projectName": "Beast Clipping",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-102",
-      "text": "Debug and fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae', ensuring it returns true when this principal makes an admin check call",
-      "target": "backend",
+      "id": "REQ-118",
+      "text": "Debug and resolve the error occurring in the admin panel that prevents the authenticated owner from accessing the admin dashboard, as indicated by the user's error report following Version 30 deployment",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-user-latest"
         ],
         "quotes": [
-          "The admin panel isn't working",
-          "my user id is 7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae"
+          "It is the error please fix it"
         ]
       },
       "acceptanceCriteria": [
-        "The isCallerAdmin method returns true when called by principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae'",
-        "The admin HashMap is correctly initialized with the owner principal",
-        "Backend logs confirm successful principal comparison"
+        "The admin panel loads successfully when the authenticated owner navigates to /admin",
+        "No JavaScript errors occur in the browser console when accessing the admin panel",
+        "The AdminPanel component renders all sections including user identity, system statistics, and trending clips",
+        "The isCallerAdmin backend method returns true for the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'"
       ]
     },
     {
-      "id": "REQ-103",
-      "text": "Verify the admin principals HashMap initialization in backend/main.mo correctly stores the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae' during actor initialization, using the correct Principal format for HashMap storage and retrieval",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "The admin panel isn't working"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The adminPrincipals HashMap contains the owner principal after initialization",
-        "HashMap.get() correctly retrieves the stored owner principal",
-        "Principal comparison logic uses the correct equality check"
-      ]
-    },
-    {
-      "id": "REQ-104",
-      "text": "Add comprehensive backend logging in the isCallerAdmin method to output the caller's principal in text format using Principal.toText(), the HashMap lookup result, and whether the principal exists in the admin set, helping diagnose why authentication is failing",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "The admin panel isn't working"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Logs display caller principal as text",
-        "Logs show HashMap.get() lookup result",
-        "Logs indicate whether admin check passed or failed with reason"
-      ]
-    },
-    {
-      "id": "REQ-105",
-      "text": "Verify the frontend admin route protection in App.tsx correctly processes the isCallerAdmin response and displays the AdminPanel component when the backend returns true for the authenticated owner",
+      "id": "REQ-119",
+      "text": "Review and fix the AdminPanel component (frontend/src/components/AdminPanel.tsx) to handle any rendering errors that may cause the component to fail or display incorrectly",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "The admin panel isn't working"
+          "msg-user-latest"
         ]
       },
       "acceptanceCriteria": [
-        "Admin route displays AdminPanel when isOwner is true",
-        "No infinite loading states occur during permission check",
-        "Access denied message only shows when backend explicitly returns false"
+        "The AdminPanel component renders without throwing errors",
+        "All subsections (user identity, statistics, trending clips) display correctly",
+        "Loading and error states are handled gracefully",
+        "The component properly handles cases where backend data may be unavailable"
       ]
     },
     {
-      "id": "REQ-106",
-      "text": "Verify the useIsOwner hook in frontend/src/hooks/useIsOwner.ts correctly calls the backend isCallerAdmin method and processes the boolean response without type coercion errors, ensuring true values remain true",
+      "id": "REQ-120",
+      "text": "Verify the admin route protection logic in frontend/src/App.tsx correctly evaluates the isCallerAdmin check and grants access to the AdminPanel when the backend returns true",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "The admin panel isn't working"
+          "msg-user-latest"
         ]
       },
       "acceptanceCriteria": [
-        "Hook correctly invokes actor.isCallerAdmin()",
-        "Boolean response is not converted or misinterpreted",
-        "Console logs show exact boolean value and type from backend"
+        "The admin route displays the AdminPanel component when isOwner is true",
+        "The admin route does not get stuck in a loading state",
+        "Error states are properly handled and displayed to the user",
+        "Console logs clearly show the authentication flow and access decision"
+      ]
+    },
+    {
+      "id": "REQ-121",
+      "text": "Fix the backend isCallerAdmin method in backend/main.mo to ensure it correctly authenticates the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and returns true, resolving any HashMap lookup or principal comparison issues",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-user-latest"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The isCallerAdmin method returns true when called by the owner principal",
+        "The adminPrincipals HashMap correctly stores and retrieves the owner principal",
+        "Backend logs confirm successful principal matching",
+        "No principal format mismatches or encoding issues occur"
       ]
     }
   ],
   "constraints": [
-    "The owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-547l3-aae' must be hardcoded in the backend for admin authentication",
-    "Do not modify frontend/src/hooks/useInternetIdentity.ts or frontend/src/hooks/useActor.ts",
-    "Maintain single-actor architecture in backend/main.mo",
-    "Use the existing adminPrincipals HashMap for admin storage"
+    "Maintain the single-actor backend architecture",
+    "Do not modify files in frontend/src/hooks/useInternetIdentity.ts or frontend/src/components/ui",
+    "Preserve existing authentication flow using Internet Identity",
+    "Keep the admin principals HashMap-based storage system"
   ],
   "nonGoals": [
-    "Creating a new admin management system with multiple admins",
-    "Implementing dynamic admin role assignment",
-    "Adding new admin panel features beyond fixing authentication",
-    "Modifying the Internet Identity authentication flow"
+    "Changing the admin authentication mechanism from principal-based to user ID-based",
+    "Adding new admin panel features beyond fixing the current error",
+    "Modifying the visual design or layout of the admin panel"
   ],
   "imageRequirements": {
     "required": [],
