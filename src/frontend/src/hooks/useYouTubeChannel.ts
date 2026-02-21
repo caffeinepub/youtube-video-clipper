@@ -109,5 +109,6 @@ export function useYouTubeChannel() {
     error: connectMutation.error?.message || disconnectMutation.error?.message,
     connectChannel: connectMutation.mutateAsync,
     disconnectChannel: disconnectMutation.mutateAsync,
+    isConfigured: !!GOOGLE_CLIENT_ID,
   };
 }

@@ -9,14 +9,12 @@ import Order "mo:core/Order";
 import Principal "mo:core/Principal";
 import Nat "mo:core/Nat";
 import Text "mo:core/Text";
-import Migration "migration";
+
 import OutCall "http-outcalls/outcall";
 
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
-// Add with-clause for migration
-(with migration = Migration.run)
 actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
@@ -440,9 +438,7 @@ actor {
       Runtime.trap("Unauthorized: Only logged-in users can connect Google OAuth");
     };
 
-    // NOTE: Client ID and Client Secret should be stored securely in the backend
-    // and NEVER sent from the frontend. This is a placeholder implementation.
-    // In production, these should be environment variables or secure configuration.
+    // Client ID and Client Secret should be stored securely in configuration
     let clientId = "YOUR_CLIENT_ID_HERE";
     let clientSecret = "YOUR_CLIENT_SECRET_HERE";
 
@@ -528,3 +524,4 @@ actor {
     };
   };
 };
+

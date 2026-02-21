@@ -1,103 +1,68 @@
 {
   "kind": "build_request",
-  "title": "Enable Google account connection for automatic YouTube channel posting",
-  "priority": "normal",
+  "title": "Fix Google OAuth configuration error",
+  "projectName": "Beast Clipping",
+  "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Implement Google OAuth 2.0 authentication flow in the backend to allow users to connect their Google accounts and authorize the app to post videos to their YouTube channels",
-      "target": "backend",
+      "text": "Configure VITE_GOOGLE_CLIENT_ID environment variable in the frontend build configuration to enable Google OAuth authentication",
+      "target": "frontend",
       "source": {
         "messageIds": [
           "msg-latest"
         ],
         "quotes": [
-          "Can you make it so they can connect their google account so the app auto posts it to their channel"
+          "Google Client ID not configured. Please set VITE_GOOGLE_CLIENT_ID environment variable."
         ]
       },
       "acceptanceCriteria": [
-        "Backend stores Google OAuth tokens securely for each user",
-        "Users can authorize YouTube channel access through Google OAuth",
-        "Backend can refresh expired OAuth tokens automatically"
+        "VITE_GOOGLE_CLIENT_ID environment variable is set in the frontend configuration",
+        "The error message 'Google Client ID not configured' no longer appears",
+        "The 'Connect Google Account' button initiates OAuth flow successfully"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Modify the existing ChannelConnection component to use Google OAuth instead of the current mock implementation, displaying the connected Google account and YouTube channel information",
-      "target": "frontend",
+      "text": "Verify Google OAuth credentials are correctly configured in the backend for the OAuth callback flow",
+      "target": "backend",
       "source": {
         "messageIds": [
           "msg-latest"
-        ],
-        "quotes": [
-          "Can you make it so they can connect their google account so the app auto posts it to their channel"
         ]
       },
       "acceptanceCriteria": [
-        "Connect button initiates real Google OAuth flow",
-        "Connected state shows the user's Google account email and YouTube channel name",
-        "Disconnect button revokes access and clears stored tokens"
+        "Backend can successfully process OAuth callback requests",
+        "OAuth state validation passes correctly",
+        "User credentials are stored successfully after OAuth authorization"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Update the existing postToYouTube backend method to use the stored Google OAuth credentials to automatically post clips to the user's connected YouTube channel without requiring manual interaction",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "so the app auto posts it to their channel"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Clips are posted directly to the user's YouTube channel using their OAuth credentials",
-        "Posting happens automatically when the user clicks the post button",
-        "Error handling for expired or invalid OAuth tokens with user feedback"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "text": "Add backend validation to ensure users have connected their Google account before allowing them to post clips to YouTube",
-      "target": "backend",
+      "text": "Test the complete Google account connection flow from button click through OAuth callback to successful connection status display",
+      "target": "both",
       "source": {
         "messageIds": [
           "msg-latest"
         ]
       },
       "acceptanceCriteria": [
-        "postToYouTube method returns an error if no Google account is connected",
-        "Backend checks for valid OAuth tokens before attempting to post"
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Update the ClipCard component to disable the YouTube post button and show a helpful message when the user has not connected their Google account",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Post to YouTube button is disabled when no Google account is connected",
-        "Tooltip or message directs users to connect their Google account first",
-        "Button becomes enabled once Google account is successfully connected"
+        "User can click 'Connect Google Account' button",
+        "OAuth flow completes without errors",
+        "ChannelConnection component displays connected status with channel information",
+        "User can successfully post clips to YouTube after connection"
       ]
     }
   ],
   "constraints": [
-    "Must use Google OAuth 2.0 for authentication (not custom authentication)",
-    "OAuth tokens must be stored securely per user in the backend",
-    "Must work within Internet Computer's single-actor architecture",
-    "Cannot use external databases or third-party backend services"
+    "Do not modify the existing OAuth flow logic in OAuthCallback.tsx or ChannelConnection.tsx",
+    "Preserve the existing backend OAuth credential storage mechanism",
+    "Maintain compatibility with Internet Identity authentication"
   ],
   "nonGoals": [
-    "Building a full video editing interface like creator.reka.ai",
-    "Advanced timeline editing or multi-track video features",
-    "Automatic clip generation without user interaction",
-    "Posting to social media platforms other than YouTube"
+    "Changing the OAuth provider from Google",
+    "Modifying the UI design of the connection components",
+    "Adding additional authentication methods"
   ],
   "imageRequirements": {
     "required": [],

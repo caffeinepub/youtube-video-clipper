@@ -7,7 +7,7 @@ import { Youtube, Loader2, CheckCircle2, AlertCircle, Link2 } from 'lucide-react
 import { useYouTubeChannel } from '../hooks/useYouTubeChannel';
 
 export default function ChannelConnection() {
-  const { channelStatus, isLoading, connectChannel, disconnectChannel, error } = useYouTubeChannel();
+  const { channelStatus, isLoading, connectChannel, disconnectChannel, error, isConfigured } = useYouTubeChannel();
   const [isConnecting, setIsConnecting] = useState(false);
 
   const handleConnect = async () => {
@@ -90,7 +90,7 @@ export default function ChannelConnection() {
             <Button
               className="w-full"
               onClick={handleConnect}
-              disabled={isConnecting}
+              disabled={isConnecting || !isConfigured}
             >
               {isConnecting ? (
                 <>
@@ -107,7 +107,16 @@ export default function ChannelConnection() {
           </div>
         )}
 
-        {error && (
+        {!isConfigured && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Google Client ID not configured. Please set VITE_GOOGLE_CLIENT_ID environment variable.
+            </AlertDescription>
+          </Alert>
+        )}
+
+        {error && isConfigured && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>{error}</AlertDescription>

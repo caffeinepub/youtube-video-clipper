@@ -1,123 +1,41 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "YouTube clip management app with Google account integration for auto-posting to YouTube channels",
-  "architectural_notes": [
-    "Google OAuth integration for YouTube channel access",
-    "Automatic posting to user's YouTube channel via YouTube Data API",
-    "YouTube clip management with timestamps and embedded player",
-    "Admin panel with moderation capabilities"
-  ],
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [
-    "Infinite loading spinner on main page (Version 54)",
-    "Build failures when adding multiple features simultaneously"
+    "Google account connection/posting clips not working in Version 55"
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-modify-the-existing-channelconnection-component-to-use-google-oauth-instead-of-the-current-mock-implementation-displaying-the-connected-google-account-and-youtube-channel-information",
-      "title": "Modify the existing ChannelConnection component to use Google OAuth instead of the current mock implementation, displaying the connected Google account and YouTube channel information",
+      "id": "feature-configure-vite-google-client-id-environment-variable-in-the-frontend-build-configuration-to-enable-google-oauth-authentication",
+      "title": "Configure VITE_GOOGLE_CLIENT_ID environment variable in the frontend build configuration to enable Google OAuth authentication",
       "reqIds": [
-        "REQ-2"
+        "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-clipcard-component-to-disable-the-youtube-post-button-and-show-a-helpful-message-when-the-user-has-not-connected-their-google-account",
-      "title": "Update the ClipCard component to disable the YouTube post button and show a helpful message when the user has not connected their Google account",
+      "id": "feature-test-the-complete-google-account-connection-flow-from-button-click-through-oauth-callback-to-successful-connection-status-display",
+      "title": "Test the complete Google account connection flow from button click through OAuth callback to successful connection status display",
       "reqIds": [
-        "REQ-5"
+        "REQ-3"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [
     {
-      "id": "AR-1",
-      "summary": "Google account connection for auto-posting clips to user's YouTube channel",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
       "id": "AR-2",
-      "summary": "Shut down server functionality in admin panel",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Clip viewer for admin panel",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "User messaging system",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Clip hider for admin panel",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Better clip preview interface",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Text overlay metadata for clips",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Batch clip operations",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "Enhanced clip organization",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-10",
-      "summary": "Improved admin moderation tools",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-11",
-      "summary": "Implement Google OAuth 2.0 authentication flow in the backend to allow users to connect their Google accounts and authorize the app to post videos to their YouTube channels",
+      "summary": "Verify Google OAuth credentials are correctly configured in the backend for the OAuth callback flow",
       "reqIds": [
-        "REQ-1"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-13",
-      "summary": "Update the existing postToYouTube backend method to use the stored Google OAuth credentials to automatically post clips to the user's connected YouTube channel without requiring manual interaction",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-14",
-      "summary": "Add backend validation to ensure users have connected their Google account before allowing them to post clips to YouTube",
-      "reqIds": [
-        "REQ-4"
+        "REQ-2"
       ],
       "status": "pending"
     }
   ],
-  "projectName": "Enable Google account connection for automatic YouTube channel posting",
+  "projectName": "Beast Clipping",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

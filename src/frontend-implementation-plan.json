@@ -1,52 +1,73 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Enable Google account connection for automatic YouTube channel posting",
+  "title": "Fix Google OAuth configuration error",
   "requirements": [
     {
-      "id": "REQ-2",
-      "summary": "Modify ChannelConnection component to use real Google OAuth flow instead of mock implementation",
+      "id": "REQ-1",
+      "summary": "Configure VITE_GOOGLE_CLIENT_ID environment variable in the frontend build configuration to enable Google OAuth authentication",
       "acceptanceCriteria": [
-        "Connect button initiates real Google OAuth flow",
-        "Connected state shows the user's Google account email and YouTube channel name",
-        "Disconnect button revokes access and clears stored tokens"
+        "VITE_GOOGLE_CLIENT_ID environment variable is set in the frontend configuration",
+        "The error message 'Google Client ID not configured' no longer appears",
+        "The 'Connect Google Account' button initiates OAuth flow successfully"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ChannelConnection.tsx",
+          "path": "frontend/.env.example",
+          "operation": "create",
+          "description": "Create example environment file documenting the VITE_GOOGLE_CLIENT_ID variable with placeholder value and instructions for obtaining a Google OAuth Client ID from Google Cloud Console"
+        },
+        {
+          "path": "frontend/.env",
+          "operation": "create",
+          "description": "Create local environment file with VITE_GOOGLE_CLIENT_ID set to the actual Google OAuth Client ID value (this file should be gitignored and not committed)"
+        },
+        {
+          "path": "frontend/.gitignore",
           "operation": "modify",
-          "description": "Replace the mock OAuth implementation with real Google OAuth 2.0 flow. Initiate OAuth by calling the backend hasGoogleOAuthCredentials() to check connection status, and storeGoogleOAuthCredentials() after receiving the authorization code from Google's OAuth redirect. Update the UI to display the connected Google account email and YouTube channel name from the backend UserProfile. Implement disconnect functionality that clears OAuth credentials by calling backend methods. Remove mock data and extensive debug logging once OAuth flow is working."
+          "description": "Add .env to .gitignore if not already present to prevent committing sensitive OAuth credentials"
         },
         {
           "path": "frontend/src/hooks/useYouTubeChannel.ts",
           "operation": "modify",
-          "description": "Replace mock OAuth implementation with real Google OAuth integration. Use the backend methods hasGoogleOAuthCredentials(), isYouTubeChannelConnected(), connectYouTubeChannel(), and storeGoogleOAuthCredentials() to manage the OAuth flow. Implement proper redirect handling for Google OAuth callback with authorization code exchange. Update connection status checks to use real backend data from UserProfile.youtubeAuth and UserProfile.googleOAuthCredentials. Remove mock OAuth logic and simplify debug logging."
+          "description": "Update the Google OAuth flow to read VITE_GOOGLE_CLIENT_ID from import.meta.env and ensure the error message displays correctly when the environment variable is missing"
         },
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/components/ChannelConnection.tsx",
           "operation": "modify",
-          "description": "Add queries for checking Google OAuth connection status using hasGoogleOAuthCredentials() and isYouTubeChannelConnected() backend methods. Include these in the existing query invalidation logic when profile updates occur. Ensure the useGetCallerUserProfile hook properly exposes googleOAuthCredentials and youtubeAuth fields from the UserProfile type."
+          "description": "Ensure the component properly displays the configuration error from useYouTubeChannel hook and that the 'Connect Google Account' button is disabled when VITE_GOOGLE_CLIENT_ID is not configured"
         }
       ]
     },
     {
-      "id": "REQ-5",
-      "summary": "Update ClipCard to disable YouTube post button when Google account is not connected",
+      "id": "REQ-3",
+      "summary": "Test the complete Google account connection flow from button click through OAuth callback to successful connection status display",
       "acceptanceCriteria": [
-        "Post to YouTube button is disabled when no Google account is connected",
-        "Tooltip or message directs users to connect their Google account first",
-        "Button becomes enabled once Google account is successfully connected"
+        "User can click 'Connect Google Account' button",
+        "OAuth flow completes without errors",
+        "ChannelConnection component displays connected status with channel information",
+        "User can successfully post clips to YouTube after connection"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/ClipCard.tsx",
+          "path": "frontend/src/pages/OAuthCallback.tsx",
           "operation": "modify",
-          "description": "Add connection status check using the useYouTubeChannel hook to determine if a Google account is connected before enabling the YouTube post button. Disable the button when hasGoogleOAuthCredentials() returns false. Display a tooltip or helper text that directs users to the channel connection page to connect their Google account first. Update the button state to become enabled once the OAuth connection is established."
+          "description": "Enhance error handling and user feedback during OAuth callback processing, ensuring all OAuth state validation and credential storage steps provide clear success or failure messages"
+        },
+        {
+          "path": "frontend/src/components/ChannelConnection.tsx",
+          "operation": "modify",
+          "description": "Verify the component correctly displays connected status with channel name and ID after successful OAuth flow, and ensure disconnect functionality works as expected"
+        },
+        {
+          "path": "frontend/src/hooks/useYouTubeChannel.ts",
+          "operation": "modify",
+          "description": "Add comprehensive error handling for the OAuth flow including redirect URI validation, state parameter verification, and clear error messages for common failure scenarios"
         },
         {
           "path": "frontend/src/hooks/usePostToYouTube.ts",
           "operation": "modify",
-          "description": "Add pre-flight validation to check if the user has connected their Google account before attempting to post. Use the hasGoogleOAuthCredentials() backend method to verify OAuth tokens exist. Display user-friendly error messages when posting fails due to missing or expired OAuth credentials, directing users to reconnect their Google account. Handle backend authorization errors gracefully with appropriate user feedback."
+          "description": "Ensure the YouTube posting functionality properly checks for valid OAuth credentials before attempting to post clips, and provides clear feedback when authentication is required"
         }
       ]
     }

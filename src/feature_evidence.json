@@ -2,11 +2,12 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-modify-the-existing-channelconnection-component-to-use-google-oauth-instead-of-the-current-mock-implementation-displaying-the-connected-google-account-and-youtube-channel-information",
-      "featureTitle": "Modify the existing ChannelConnection component to use Google OAuth instead of the current mock implementation, displaying the connected Google account and YouTube channel information",
+      "featureId": "feature-configure-vite-google-client-id-environment-variable-in-the-frontend-build-configuration-to-enable-google-oauth-authentication",
+      "featureTitle": "Configure VITE_GOOGLE_CLIENT_ID environment variable in the frontend build configuration to enable Google OAuth authentication",
       "files": [
+        "frontend/.env.example",
+        "frontend/.gitignore",
         "frontend/src/components/ChannelConnection.tsx",
-        "frontend/src/hooks/useQueries.ts",
         "frontend/src/hooks/useYouTubeChannel.ts"
       ],
       "components": [
@@ -19,16 +20,16 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-2"
+        "REQ-1"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-update-the-clipcard-component-to-disable-the-youtube-post-button-and-show-a-helpful-message-when-the-user-has-not-connected-their-google-account",
-      "featureTitle": "Update the ClipCard component to disable the YouTube post button and show a helpful message when the user has not connected their Google account",
+      "featureId": "feature-test-the-complete-google-account-connection-flow-from-button-click-through-oauth-callback-to-successful-connection-status-display",
+      "featureTitle": "Test the complete Google account connection flow from button click through OAuth callback to successful connection status display",
       "files": [
-        "frontend/src/components/ClipCard.tsx",
-        "frontend/src/hooks/usePostToYouTube.ts"
+        "frontend/src/components/ChannelConnection.tsx",
+        "frontend/src/hooks/useYouTubeChannel.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -40,7 +41,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-5"
+        "REQ-3"
       ],
       "confidence": "high"
     }
