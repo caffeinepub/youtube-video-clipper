@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 37,
+  "projectStateVersion": 39,
   "summary": "YouTube video clipping application",
   "architectural_notes": [],
   "known_issues": [
@@ -368,6 +368,14 @@
         "REQ-67"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-app-tsx-admin-route-to-display-more-detailed-debug-information-when-access-is-denied-including-the-raw-backend-response-any-error-messages-and-the-exact-boolean-comparison-result",
+      "title": "Update the frontend App.tsx admin route to display more detailed debug information when access is denied, including the raw backend response, any error messages, and the exact boolean comparison result",
+      "reqIds": [
+        "REQ-72"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -588,6 +596,30 @@
       "summary": "Review the backend actor initialization arguments and canister deployment configuration to verify the admin token containing principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' is being passed correctly during deployment",
       "reqIds": [
         "REQ-68"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-44",
+      "summary": "Fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and return true when this principal makes the admin check call",
+      "reqIds": [
+        "REQ-69"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-45",
+      "summary": "Add comprehensive backend logging in the isCallerAdmin method to output the exact principal comparison: log the caller principal as text, the stored owner principal as text, whether they are equal, and the data types being compared",
+      "reqIds": [
+        "REQ-70"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-46",
+      "summary": "Verify the owner principal initialization in backend/main.mo is correctly storing the admin token from initialization arguments and confirm the stored principal matches '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
+      "reqIds": [
+        "REQ-71"
       ],
       "status": "pending"
     }

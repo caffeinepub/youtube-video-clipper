@@ -98,7 +98,7 @@ function HomePage() {
 }
 
 function AdminPage() {
-  const { isOwner, isLoading } = useIsOwner();
+  const { isOwner, isLoading, debugInfo } = useIsOwner();
   const { identity } = useInternetIdentity();
 
   console.log('[AdminPage] ========== COMPONENT RENDER ==========');
@@ -112,6 +112,7 @@ function AdminPage() {
   console.log('[AdminPage] isLoading:', isLoading);
   console.log('[AdminPage] hasIdentity:', !!identity);
   console.log('[AdminPage] identityPrincipal:', identity?.getPrincipal().toString() || 'none');
+  console.log('[AdminPage] debugInfo:', debugInfo);
   
   // Explicit boolean checks
   if (isOwner === true) {
@@ -155,6 +156,7 @@ function AdminPage() {
     console.log('[AdminPage] isOwner type:', typeof isOwner);
     console.log('[AdminPage] isLoading:', isLoading);
     console.log('[AdminPage] identityPrincipal:', principalText);
+    console.log('[AdminPage] debugInfo:', debugInfo);
     console.log('[AdminPage] ==========================================');
     console.log('[AdminPage] 🚫 RENDERING: Access Denied screen');
     console.log('[AdminPage]');
@@ -166,6 +168,9 @@ function AdminPage() {
     console.log('[AdminPage] 4. Check if _initializeAccessControlWithSecret was called');
     console.log('[AdminPage] 5. Verify backend isCallerAdmin() response');
     console.log('[AdminPage] 6. Current principal:', principalText);
+    console.log('[AdminPage] 7. Backend raw response:', debugInfo?.rawResponse);
+    console.log('[AdminPage] 8. Backend response type:', debugInfo?.responseType);
+    console.log('[AdminPage] 9. Backend error:', debugInfo?.error);
     console.log('[AdminPage]');
     
     return (
@@ -199,6 +204,32 @@ function AdminPage() {
                   <span className="text-muted-foreground">isOwner type:</span>{' '}
                   <span className="text-foreground">{typeof isOwner}</span>
                 </p>
+                {debugInfo && (
+                  <>
+                    <p className="break-all">
+                      <span className="text-muted-foreground">Backend raw response:</span>{' '}
+                      <span className="text-foreground">{JSON.stringify(debugInfo.rawResponse)}</span>
+                    </p>
+                    <p className="break-all">
+                      <span className="text-muted-foreground">Backend response type:</span>{' '}
+                      <span className="text-foreground">{debugInfo.responseType}</span>
+                    </p>
+                    <p className="break-all">
+                      <span className="text-muted-foreground">Backend call duration:</span>{' '}
+                      <span className="text-foreground">{debugInfo.callDuration}ms</span>
+                    </p>
+                    {debugInfo.error && (
+                      <p className="break-all">
+                        <span className="text-muted-foreground">Backend error:</span>{' '}
+                        <span className="text-destructive">{debugInfo.error}</span>
+                      </p>
+                    )}
+                    <p className="break-all">
+                      <span className="text-muted-foreground">Check timestamp:</span>{' '}
+                      <span className="text-foreground">{debugInfo.timestamp}</span>
+                    </p>
+                  </>
+                )}
                 <p className="text-muted-foreground mt-2">
                   Check browser console for detailed logs
                 </p>
@@ -216,6 +247,7 @@ function AdminPage() {
   console.log('[AdminPage] isOwner:', isOwner);
   console.log('[AdminPage] isOwner type:', typeof isOwner);
   console.log('[AdminPage] identityPrincipal:', identity?.getPrincipal().toString() || 'none');
+  console.log('[AdminPage] debugInfo:', debugInfo);
   console.log('[AdminPage] ==========================================');
   console.log('[AdminPage] ✅ RENDERING: AdminPanel component');
   

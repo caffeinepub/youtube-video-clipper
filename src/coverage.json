@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T00:05:15.393Z",
+  "generatedAt": "2026-02-21T00:10:50.214Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -11,48 +11,49 @@
     "implemented": 1,
     "items": [
       {
-        "id": "REQ-65",
-        "summary": "Add extensive backend logging in the isCallerAdmin method in backend/main.mo to output: 1) the raw caller principal from Principal.toText(caller), 2) the raw owner principal from Principal.toText(ownerPrincipal), 3) the exact boolean result of the equality comparison, 4) any intermediate conversion or comparison steps",
+        "id": "REQ-69",
+        "summary": "Fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and return true when this principal makes the admin check call",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-66",
-        "summary": "Verify the owner principal initialization in backend/main.mo by adding logging during canister initialization that outputs: 1) whether an admin token was provided in init args, 2) the exact principal text extracted from the admin token, 3) confirmation that ownerPrincipal variable was set",
+        "id": "REQ-70",
+        "summary": "Add comprehensive backend logging in the isCallerAdmin method to output the exact principal comparison: log the caller principal as text, the stored owner principal as text, whether they are equal, and the data types being compared",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
-        "id": "REQ-67",
-        "summary": "Add frontend console logging in the App.tsx admin route that outputs: 1) the exact isAdmin boolean value returned from the backend call, 2) the type of the isAdmin value (typeof isAdmin), 3) the result of explicit boolean checks (isAdmin === true, isAdmin === false), 4) any error objects if the backend call fails",
+        "id": "REQ-71",
+        "summary": "Verify the owner principal initialization in backend/main.mo is correctly storing the admin token from initialization arguments and confirm the stored principal matches '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-72",
+        "summary": "Update the frontend App.tsx admin route to display more detailed debug information when access is denied, including the raw backend response, any error messages, and the exact boolean comparison result",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/App.tsx",
           "frontend/src/hooks/useIsOwner.ts"
         ],
         "matchedFiles": [
-          "frontend/src/App.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/hooks/useIsOwner.ts"
         ]
-      },
-      {
-        "id": "REQ-68",
-        "summary": "Review the backend actor initialization arguments and canister deployment configuration to verify the admin token containing principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' is being passed correctly during deployment",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/App.tsx",
+    "frontend/src/hooks/useIsOwner.ts",
     "frontend/src/utils/urlParams.ts",
     "project_state.json",
     "scratch/component-selection.json",

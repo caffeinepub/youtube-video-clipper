@@ -1,95 +1,87 @@
 {
   "kind": "build_request",
-  "title": "Debug and fix persistent admin access denial for authenticated owner",
+  "title": "Fix admin access control - isOwner returns false for authenticated owner",
+  "projectName": "Beast Clipping",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-65",
-      "text": "Add extensive backend logging in the isCallerAdmin method in backend/main.mo to output: 1) the raw caller principal from Principal.toText(caller), 2) the raw owner principal from Principal.toText(ownerPrincipal), 3) the exact boolean result of the equality comparison, 4) any intermediate conversion or comparison steps",
+      "id": "REQ-69",
+      "text": "Fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and return true when this principal makes the admin check call",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-last"
+          "msg-current"
         ],
         "quotes": [
-          "It is the same error"
+          "Principal: 7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae",
+          "isOwner value: false",
+          "isOwner type: boolean"
         ]
       },
       "acceptanceCriteria": [
-        "Backend isCallerAdmin method logs the caller principal as text",
-        "Backend isCallerAdmin method logs the owner principal as text",
-        "Backend logs the boolean result of principal equality comparison",
-        "Logs are visible in the deployment console output"
+        "The backend isCallerAdmin method returns true when called by principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
+        "The frontend debug info displays 'isOwner value: true' when the authenticated owner accesses the admin route",
+        "The admin panel is accessible to the authenticated owner without showing 'Access Denied'"
       ]
     },
     {
-      "id": "REQ-66",
-      "text": "Verify the owner principal initialization in backend/main.mo by adding logging during canister initialization that outputs: 1) whether an admin token was provided in init args, 2) the exact principal text extracted from the admin token, 3) confirmation that ownerPrincipal variable was set",
+      "id": "REQ-70",
+      "text": "Add comprehensive backend logging in the isCallerAdmin method to output the exact principal comparison: log the caller principal as text, the stored owner principal as text, whether they are equal, and the data types being compared",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-last"
-        ],
-        "quotes": [
-          "It is the same error"
+          "msg-current"
         ]
       },
       "acceptanceCriteria": [
-        "Canister initialization logs whether admin token was received",
-        "Initialization logs the extracted owner principal text if token was provided",
-        "Logs confirm ownerPrincipal variable was successfully assigned",
-        "Logs are visible during canister deployment"
+        "Backend logs show the exact caller principal text representation",
+        "Backend logs show the exact stored owner principal text representation",
+        "Backend logs show the boolean result of the principal equality comparison",
+        "Logs are visible in the canister console during admin access attempts"
       ]
     },
     {
-      "id": "REQ-67",
-      "text": "Add frontend console logging in the App.tsx admin route that outputs: 1) the exact isAdmin boolean value returned from the backend call, 2) the type of the isAdmin value (typeof isAdmin), 3) the result of explicit boolean checks (isAdmin === true, isAdmin === false), 4) any error objects if the backend call fails",
+      "id": "REQ-71",
+      "text": "Verify the owner principal initialization in backend/main.mo is correctly storing the admin token from initialization arguments and confirm the stored principal matches '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-current"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend initialization logs confirm the admin token was received from init args",
+        "Backend logs show the exact principal extracted from the admin token matches the expected value",
+        "The ownerPrincipal variable is correctly set during canister deployment"
+      ]
+    },
+    {
+      "id": "REQ-72",
+      "text": "Update the frontend App.tsx admin route to display more detailed debug information when access is denied, including the raw backend response, any error messages, and the exact boolean comparison result",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-last"
-        ],
-        "quotes": [
-          "It is the same error"
+          "msg-current"
         ]
       },
       "acceptanceCriteria": [
-        "Admin route logs the isAdmin value and its type",
-        "Admin route logs explicit boolean comparison results",
-        "Admin route logs any errors from the backend call",
-        "Logs appear in browser console when accessing /admin route"
-      ]
-    },
-    {
-      "id": "REQ-68",
-      "text": "Review the backend actor initialization arguments and canister deployment configuration to verify the admin token containing principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' is being passed correctly during deployment",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-last"
-        ],
-        "quotes": [
-          "It is the same error"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Deployment configuration includes admin token parameter",
-        "Admin token matches the authenticated user's principal",
-        "Canister receives the admin token during initialization",
-        "Owner principal is correctly set from the admin token"
+        "The access denied screen shows the raw backend isCallerAdmin response value",
+        "Any backend errors or exceptions are displayed in the debug info",
+        "The frontend console logs show the complete authentication flow and decision path"
       ]
     }
   ],
   "constraints": [
-    "Do not modify the single-actor backend architecture",
-    "Preserve all existing admin authentication logic while adding diagnostics",
-    "Maintain all existing frontend routing and authentication patterns"
+    "The owner principal must remain '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
+    "Do not modify the Internet Identity authentication flow",
+    "Preserve the existing admin panel UI and functionality",
+    "Maintain the single-actor backend architecture"
   ],
   "nonGoals": [
-    "Implementing new admin features",
-    "Changing the admin panel UI",
-    "Modifying Internet Identity authentication flow",
-    "Adding new backend methods beyond debugging enhancements"
+    "Adding multi-admin support",
+    "Implementing role-based access control beyond owner verification",
+    "Changing the admin panel statistics or analytics features",
+    "Modifying the frontend Layout component's admin button visibility logic"
   ],
   "imageRequirements": {
     "required": [],
