@@ -8,6 +8,7 @@ import YouTubePlayer from './components/YouTubePlayer';
 import ClipTimestampControls from './components/ClipTimestampControls';
 import ClipList from './components/ClipList';
 import ClipSuggestions from './components/ClipSuggestions';
+import ChannelConnection from './components/ChannelConnection';
 import AdminPanel from './components/AdminPanel';
 import AdminErrorBoundary from './components/AdminErrorBoundary';
 import ProfileSetup from './components/ProfileSetup';
@@ -93,6 +94,8 @@ function HomePage() {
             onSubmit={handleVideoSubmit}
             onClipsGenerated={handleClipsGenerated}
           />
+          
+          {isAuthenticated && <ChannelConnection />}
           
           {videoId && (
             <>

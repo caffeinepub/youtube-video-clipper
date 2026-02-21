@@ -12,8 +12,11 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Trash2, Clock, Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Trash2, Clock, Loader2, Youtube, CheckCircle2, ExternalLink } from 'lucide-react';
 import ViralScoreBadge from './ViralScoreBadge';
+import { useYouTubeChannel } from '../hooks/useYouTubeChannel';
+import { usePostToYouTube } from '../hooks/usePostToYouTube';
 import type { VideoClip } from '../backend';
 
 interface ClipCardProps {
@@ -26,6 +29,8 @@ interface ClipCardProps {
 
 export default function ClipCard({ clip, onClick, onDelete, isDeleting, isSelected }: ClipCardProps) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const { channelStatus } = useYouTubeChannel();
+  const { mutate: postToYouTube, isPending: isPosting, isSuccess, data: postResult, error } = usePostToYouTube();
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -40,6 +45,24 @@ export default function ClipCard({ clip, onClick, onDelete, isDeleting, isSelect
   const handleDelete = () => {
     onDelete();
     setIsDialogOpen(false);
+  };
+
+  const handlePostToYouTube = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    
+    // Extract video ID from URL
+    const videoIdMatch = clip.videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
+    if (!videoIdMatch) {
+      console.error('Could not extract video ID from URL');
+      return;
+    }
+
+    postToYouTube({
+      videoId: videoIdMatch[1],
+      startTimestamp: clip.startTime,
+      endTimestamp: clip.endTime,
+      title: clip.title,
+    });
   };
 
   return (
@@ -66,7 +89,7 @@ export default function ClipCard({ clip, onClick, onDelete, isDeleting, isSelect
         <CardHeader className="pb-3">
           <CardTitle className="text-base line-clamp-2">{clip.title}</CardTitle>
         </CardHeader>
-        <CardContent className="pt-0">
+        <CardContent className="pt-0 space-y-3">
           <div className="flex items-center justify-between text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
               <Clock className="w-3 h-3" />
@@ -103,6 +126,60 @@ export default function ClipCard({ clip, onClick, onDelete, isDeleting, isSelect
               </AlertDialogContent>
             </AlertDialog>
           </div>
+
+          {channelStatus?.isConnected && (
+            <div onClick={(e) => e.stopPropagation()} className="space-y-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="w-full"
+                onClick={handlePostToYouTube}
+                disabled={isPosting || isSuccess}
+              >
+                {isPosting ? (
+                  <>
+                    <Loader2 className="w-3 h-3 mr-2 animate-spin" />
+                    Posting...
+                  </>
+                ) : isSuccess ? (
+                  <>
+                    <CheckCircle2 className="w-3 h-3 mr-2 text-green-600" />
+                    Posted!
+                  </>
+                ) : (
+                  <>
+                    <Youtube className="w-3 h-3 mr-2" />
+                    Post to YouTube
+                  </>
+                )}
+              </Button>
+
+              {isSuccess && postResult && (
+                <Alert className="py-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <AlertDescription className="text-xs">
+                    <a 
+                      href={postResult.videoUrl} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1 text-primary hover:underline"
+                    >
+                      View on YouTube
+                      <ExternalLink className="w-3 h-3" />
+                    </a>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {error && (
+                <Alert variant="destructive" className="py-2">
+                  <AlertDescription className="text-xs">
+                    {error.message}
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+          )}
         </CardContent>
       </div>
     </Card>

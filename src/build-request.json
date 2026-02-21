@@ -1,38 +1,96 @@
 {
   "kind": "build_request",
-  "title": "Retry previous deployment",
+  "title": "Fix YouTube channel connection functionality",
   "priority": "high",
   "requirements": [
     {
-      "id": "REQ-176",
-      "text": "Retry the previous deployment that failed, using the exact same build configuration and code state from the last attempt",
-      "target": "both",
+      "id": "REQ-184",
+      "text": "Debug and fix the YouTube channel connection flow in the ChannelConnection component (frontend/src/components/ChannelConnection.tsx) to identify why the OAuth connection process is not working as expected, ensuring users can successfully connect their YouTube channels",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-recent"
         ],
         "quotes": [
-          "Retry"
+          "It isn't working"
         ]
       },
       "acceptanceCriteria": [
-        "The deployment completes successfully without errors",
-        "All backend canister methods are accessible after deployment",
-        "The frontend application loads correctly in the browser",
-        "Admin authentication functionality works as expected after deployment"
+        "The 'Connect YouTube Channel' button triggers the OAuth flow without errors",
+        "Users can successfully authenticate with YouTube",
+        "Connection status displays correctly after successful authentication",
+        "Error messages are shown clearly if connection fails"
+      ]
+    },
+    {
+      "id": "REQ-185",
+      "text": "Verify and fix the useYouTubeChannel hook (frontend/src/hooks/useYouTubeChannel.ts) to ensure it correctly handles the YouTube OAuth flow, manages connection state, and communicates with the backend channel connection methods",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "It isn't working"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The hook successfully initiates OAuth connection flow",
+        "Connection status is retrieved and updated correctly",
+        "Loading and error states are handled properly",
+        "React Query cache invalidation works after connection/disconnection"
+      ]
+    },
+    {
+      "id": "REQ-186",
+      "text": "Review and fix the backend YouTube channel OAuth storage method in backend/main.mo to ensure it correctly stores and retrieves channel credentials associated with user profiles",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "It isn't working"
+        ]
+      },
+      "acceptanceCriteria": [
+        "OAuth credentials are stored securely per user profile",
+        "Channel connection status can be queried successfully",
+        "Credentials persist across canister upgrades via migration",
+        "Error handling prevents data corruption"
+      ]
+    },
+    {
+      "id": "REQ-187",
+      "text": "Add comprehensive error logging throughout the YouTube connection flow in both frontend (ChannelConnection component and useYouTubeChannel hook) and backend (OAuth storage method) to output detailed debugging information including OAuth callback responses, credential storage results, and any failure points",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-recent"
+        ],
+        "quotes": [
+          "It isn't working"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Frontend logs show OAuth initiation, callback handling, and response data",
+        "Backend logs show credential storage attempts and results",
+        "Error messages are descriptive and actionable",
+        "Console logs help identify the exact failure point in the connection flow"
       ]
     }
   ],
   "constraints": [
-    "Do not modify any code or configuration files",
-    "Use the exact same build artifacts and deployment parameters as the previous attempt",
-    "Maintain all existing feature implementations without changes"
+    "Do not modify immutable frontend paths: frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useInternetIdentity.tsx, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, frontend/src/components/ui",
+    "Maintain single-actor backend architecture with all logic in backend/main.mo",
+    "Use React Query for all backend data fetching and mutations",
+    "Preserve existing YouTube OAuth integration patterns from Version 47"
   ],
   "nonGoals": [
-    "Adding new features or functionality",
-    "Modifying existing code or logic",
-    "Changing deployment configuration or parameters",
-    "Implementing bug fixes or improvements"
+    "Implementing features from Version 46 (admin panel enhancements) - will be addressed separately",
+    "Fixing clip isolation issues (clips showing on other accounts) - will be addressed separately",
+    "Adding new YouTube features beyond fixing the existing connection flow",
+    "Refactoring the OAuth implementation approach"
   ],
   "imageRequirements": {
     "required": [],

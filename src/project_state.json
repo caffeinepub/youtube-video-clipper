@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 93,
+  "projectStateVersion": 97,
   "summary": "YouTube video clipping application",
   "architectural_notes": [
     "Admin panel authentication switched from principal-based to user ID-based access control",
@@ -12,7 +12,9 @@
     "Admin panel user ID display feature not working - the user ID section is not rendering despite implementation",
     "Admin panel displaying 'Checking permissions...' message but not progressing to show admin dashboard content after user verification",
     "Admin panel navigation button not appearing in the header for authenticated users despite Internet Identity login",
-    "Admin panel navigation link not appearing/rendering after email-based authentication implementation in Version 43"
+    "Admin panel navigation link not appearing/rendering after email-based authentication implementation in Version 43",
+    "YouTube channel connection feature (Version 47) is not functioning correctly",
+    "Clips are showing up on other users' accounts instead of being properly isolated per user"
   ],
   "isFixRequest": true,
   "existing_features": [
@@ -735,6 +737,70 @@
         "REQ-174"
       ],
       "version": 1
+    },
+    {
+      "id": "feature-create-a-channelconnection-component-that-displays-youtube-channel-connection-status-and-provides-a-connect-youtube-channel-button-for-users-to-initiate-oauth-flow",
+      "title": "Create a ChannelConnection component that displays YouTube channel connection status and provides a 'Connect YouTube Channel' button for users to initiate OAuth flow",
+      "reqIds": [
+        "REQ-179"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-a-post-to-youtube-button-to-each-clip-in-the-clipcard-component-that-triggers-automatic-posting-of-the-clip-to-the-user-s-connected-youtube-channel",
+      "title": "Add a 'Post to YouTube' button to each clip in the ClipCard component that triggers automatic posting of the clip to the user's connected YouTube channel",
+      "reqIds": [
+        "REQ-180"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-react-hook-useyoutubechannel-that-manages-channel-connection-state-provides-methods-to-connect-disconnect-channel-and-check-connection-status-using-react-query",
+      "title": "Create a React hook useYouTubeChannel that manages channel connection state, provides methods to connect/disconnect channel, and check connection status using React Query",
+      "reqIds": [
+        "REQ-181"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-react-hook-useposttoyoutube-that-calls-the-backend-clip-posting-method-and-handles-the-posting-operation-with-loading-states-and-error-handling-using-react-query",
+      "title": "Create a React hook usePostToYouTube that calls the backend clip posting method and handles the posting operation with loading states and error handling using React Query",
+      "reqIds": [
+        "REQ-182"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-the-channelconnection-component-to-the-main-app-tsx-interface-displaying-it-prominently-near-the-videourlform-so-users-can-connect-their-channel-before-creating-clips",
+      "title": "Add the ChannelConnection component to the main App.tsx interface, displaying it prominently near the VideoUrlForm so users can connect their channel before creating clips",
+      "reqIds": [
+        "REQ-183"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-debug-and-fix-the-youtube-channel-connection-flow-in-the-channelconnection-component-frontend-src-components-channelconnection-tsx-to-identify-why-the-oauth-connection-process-is-not-working-as-expected-ensuring-users-can-successfully-connect-their-youtube-channels",
+      "title": "Debug and fix the YouTube channel connection flow in the ChannelConnection component (frontend/src/components/ChannelConnection.tsx) to identify why the OAuth connection process is not working as expected, ensuring users can successfully connect their YouTube channels",
+      "reqIds": [
+        "REQ-184"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-verify-and-fix-the-useyoutubechannel-hook-frontend-src-hooks-useyoutubechannel-ts-to-ensure-it-correctly-handles-the-youtube-oauth-flow-manages-connection-state-and-communicates-with-the-backend-channel-connection-methods",
+      "title": "Verify and fix the useYouTubeChannel hook (frontend/src/hooks/useYouTubeChannel.ts) to ensure it correctly handles the YouTube OAuth flow, manages connection state, and communicates with the backend channel connection methods",
+      "reqIds": [
+        "REQ-185"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-add-comprehensive-error-logging-throughout-the-youtube-connection-flow-in-both-frontend-channelconnection-component-and-useyoutubechannel-hook-and-backend-oauth-storage-method-to-output-detailed-debugging-information-including-oauth-callback-responses-credential-storage-results-and-any-failure-points",
+      "title": "Add comprehensive error logging throughout the YouTube connection flow in both frontend (ChannelConnection component and useYouTubeChannel hook) and backend (OAuth storage method) to output detailed debugging information including OAuth callback responses, credential storage results, and any failure points",
+      "reqIds": [
+        "REQ-187"
+      ],
+      "version": 1
     }
   ],
   "new_feature_requests": [
@@ -1433,6 +1499,36 @@
       "summary": "Retry the previous deployment that failed, using the exact same build configuration and code state from the last attempt",
       "reqIds": [
         "REQ-176"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-141",
+      "summary": "YouTube channel connection and automatic clip posting",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-142",
+      "summary": "Create a backend method to store YouTube channel OAuth credentials for authenticated users, associating channel connection status with user profiles",
+      "reqIds": [
+        "REQ-177"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-143",
+      "summary": "Create a backend method to post video clips to a connected YouTube channel, accepting clip metadata (video ID, start timestamp, end timestamp, title) and creating a YouTube video upload or clip link",
+      "reqIds": [
+        "REQ-178"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-146",
+      "summary": "Review and fix the backend YouTube channel OAuth storage method in backend/main.mo to ensure it correctly stores and retrieves channel credentials associated with user profiles",
+      "reqIds": [
+        "REQ-186"
       ],
       "status": "pending"
     }

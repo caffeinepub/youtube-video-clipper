@@ -1,26 +1,66 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Retry Previous Deployment - Frontend Verification",
+  "title": "Fix YouTube channel connection functionality",
   "requirements": [
     {
-      "id": "REQ-176",
-      "summary": "Verify frontend build configuration and deployment readiness for retry attempt without modifying any code or configuration files",
+      "id": "REQ-184",
+      "summary": "Debug and fix the YouTube channel connection flow in the ChannelConnection component to identify why the OAuth connection process is not working as expected",
       "acceptanceCriteria": [
-        "The deployment completes successfully without errors",
-        "The frontend application loads correctly in the browser",
-        "Admin authentication functionality works as expected after deployment"
+        "The 'Connect YouTube Channel' button triggers the OAuth flow without errors",
+        "Users can successfully authenticate with YouTube",
+        "Connection status displays correctly after successful authentication",
+        "Error messages are shown clearly if connection fails"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/main.tsx",
+          "path": "frontend/src/components/ChannelConnection.tsx",
           "operation": "modify",
-          "description": "Verify application entry point configuration is correct for deployment. No code changes required - this is a validation step to ensure the existing setup matches deployment requirements."
+          "description": "Add comprehensive debugging logs to track the OAuth connection flow. Log button click events, connection initiation, OAuth callback handling, success/failure responses, and state changes. Include detailed error logging with error types, messages, and stack traces. Add console.log statements for channel connection status changes, loading states, and API response data to help identify the exact failure point in the connection process."
+        }
+      ]
+    },
+    {
+      "id": "REQ-185",
+      "summary": "Verify and fix the useYouTubeChannel hook to ensure it correctly handles the YouTube OAuth flow, manages connection state, and communicates with backend channel connection methods",
+      "acceptanceCriteria": [
+        "The hook successfully initiates OAuth connection flow",
+        "Connection status is retrieved and updated correctly",
+        "Loading and error states are handled properly",
+        "React Query cache invalidation works after connection/disconnection"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useYouTubeChannel.ts",
+          "operation": "modify",
+          "description": "Add extensive debugging throughout the hook to track OAuth flow execution. Log the initiation of OAuth requests, OAuth callback URL parameters (access_token, refresh_token, channel_id, channel_name, expires_at), backend actor method calls (connectYouTubeChannel, isYouTubeChannelConnected), mutation states (idle, loading, success, error), and React Query cache invalidation events. Include error boundary logging for mutation failures with full error details. Verify that the mock OAuth flow correctly simulates the real YouTube OAuth response structure and that all required parameters are being passed to the backend method."
+        }
+      ]
+    },
+    {
+      "id": "REQ-187",
+      "summary": "Add comprehensive error logging throughout the YouTube connection flow in frontend components and hooks to output detailed debugging information",
+      "acceptanceCriteria": [
+        "Frontend logs show OAuth initiation, callback handling, and response data",
+        "Backend logs show credential storage attempts and results",
+        "Error messages are descriptive and actionable",
+        "Console logs help identify the exact failure point in the connection flow"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ChannelConnection.tsx",
+          "operation": "modify",
+          "description": "Enhance error logging to include OAuth callback URL parameters, connection mutation results, and user profile updates. Log the complete flow from button click through OAuth redirect, callback handling, backend response, and UI state update. Add timestamp logging for each step to measure timing issues. Include logging for edge cases like missing OAuth parameters, network failures, and backend errors."
         },
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/hooks/useYouTubeChannel.ts",
           "operation": "modify",
-          "description": "Verify routing and authentication flow configuration is correct. No code changes required - this is a validation step to ensure admin authentication and routing are properly configured for deployment."
+          "description": "Add structured logging for OAuth state management including initialization, token exchange, credential storage requests, and query invalidation. Log React Query mutation lifecycle events (onMutate, onSuccess, onError, onSettled) with complete context data. Include logging for connection status checks and disconnection flow. Add performance timing logs to identify bottlenecks in the OAuth flow."
+        },
+        {
+          "path": "frontend/src/utils/youtubeOAuthDebug.ts",
+          "operation": "create",
+          "description": "Create a dedicated debugging utility module for YouTube OAuth flow tracking. Export functions to log OAuth initiation, callback parameter parsing, token validation, and connection status changes. Provide a centralized logging format with timestamps, log levels (info, warn, error), and structured data output. Include helper functions to validate OAuth response structure and check for common OAuth error patterns."
         }
       ]
     }
