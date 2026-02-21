@@ -1,77 +1,32 @@
 {
   "kind": "build_request",
-  "title": "Fix admin panel access denial for authenticated owner principal",
-  "priority": "high",
+  "title": "Read backend code to display admin password",
+  "priority": "normal",
   "requirements": [
     {
-      "id": "REQ-122",
-      "text": "Fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and return true instead of false, resolving the 'Access Denied' error shown in the uploaded screenshot where the principal ID is displayed but access is denied",
+      "id": "REQ-138",
+      "text": "Read and display the contents of backend/main.mo file to show the user the hardcoded admin password value configured in the password-based authentication system",
       "target": "backend",
       "source": {
         "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Access Denied",
-          "You don't have permission to access the admin panel.",
-          "Your Principal ID: 7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae"
+          "msg-user-read-backend"
         ]
       },
       "acceptanceCriteria": [
-        "The backend isCallerAdmin method returns true when called by principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
-        "The authenticated owner can access the admin panel without seeing 'Access Denied' message",
-        "The admin panel displays its content (system statistics, user identity, trending clips) after successful authentication"
-      ]
-    },
-    {
-      "id": "REQ-123",
-      "text": "Verify the adminPrincipals HashMap initialization in backend/main.mo correctly stores the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' during actor initialization, ensuring the principal format matches exactly and the HashMap lookup succeeds during authentication checks",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ],
-        "quotes": [
-          "Your Principal ID: 7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae"
-        ]
-      },
-      "acceptanceCriteria": [
-        "The adminPrincipals HashMap contains the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' after actor initialization",
-        "The HashMap lookup for this principal returns true during authentication checks",
-        "The principal format stored in the HashMap matches exactly with the caller principal format"
-      ]
-    },
-    {
-      "id": "REQ-124",
-      "text": "Add comprehensive backend logging in the isCallerAdmin method to output: 1) the caller's principal using Principal.toText(), 2) the result of the adminPrincipals HashMap lookup (whether the principal exists), 3) the current size of the adminPrincipals HashMap, 4) all principals stored in the HashMap by iterating through entries for comparison, 5) the final boolean return value, enabling diagnosis of why authentication is failing for the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend logs display the caller's principal in text format when isCallerAdmin is called",
-        "Backend logs show the HashMap lookup result (true/false) for the caller principal",
-        "Backend logs display the current size and all stored principals in the adminPrincipals HashMap",
-        "Backend logs show the final boolean value being returned by isCallerAdmin",
-        "Logs provide sufficient detail to diagnose principal comparison or HashMap lookup failures"
+        "The backend/main.mo file contents are read successfully",
+        "The hardcoded admin password value is identified and displayed to the user",
+        "The password is shown in clear text so the user can use it for admin access"
       ]
     }
   ],
   "constraints": [
-    "Do not change the backend schema or add migration logic",
-    "Maintain the existing adminPrincipals HashMap structure in backend/main.mo",
-    "Preserve all existing authentication flow in the frontend",
-    "Do not modify the frontend admin route protection logic in App.tsx",
-    "Keep the existing useIsOwner hook implementation unchanged"
+    "Only read the file, do not modify any backend code",
+    "Display the exact password value without modifications"
   ],
   "nonGoals": [
-    "Changing the admin authentication system to use user IDs instead of principals",
-    "Adding new admin management features or multi-admin support",
-    "Modifying the AdminPanel UI or component structure",
-    "Updating the frontend error messaging or access denied display",
-    "Adding new backend methods or API endpoints for admin management"
+    "Changing the admin password",
+    "Implementing password hashing or encryption",
+    "Modifying the authentication system"
   ],
   "imageRequirements": {
     "required": [],

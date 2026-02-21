@@ -40,6 +40,7 @@ export interface VideoClip {
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'checkAdminPassword' : ActorMethod<[string], boolean>,
   'deleteClip' : ActorMethod<[string], undefined>,
   'findRelatedClips' : ActorMethod<[string], Array<string>>,
   'generateClipsAutomatically' : ActorMethod<
@@ -55,9 +56,6 @@ export interface _SERVICE {
   'getTrendingClipsAnalytics' : ActorMethod<[], Array<TrendingClipAnalytics>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'isCallerAdmin' : ActorMethod<[], boolean>,
-  'isPersistentAdmin' : ActorMethod<[], boolean>,
-  'migrateDefaultAdmins' : ActorMethod<[], undefined>,
-  'registerAdmin' : ActorMethod<[string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'saveClip' : ActorMethod<
     [string, string, string, bigint, bigint, number],

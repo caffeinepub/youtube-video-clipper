@@ -4,33 +4,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useAdminStats } from '../hooks/useAdminStats';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { BarChart3, TrendingUp, Video, AlertCircle, RefreshCw, User, Copy, Check } from 'lucide-react';
+import { BarChart3, TrendingUp, Video, AlertCircle, RefreshCw } from 'lucide-react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useState } from 'react';
 
 export default function AdminPanel() {
   const { totalClips, trendingAnalytics, isLoading, error } = useAdminStats();
-  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
-  const [copied, setCopied] = useState(false);
-
-  const principalId = identity?.getPrincipal().toString();
 
   const handleRetry = () => {
     queryClient.invalidateQueries({ queryKey: ['adminStats'] });
-  };
-
-  const handleCopyPrincipal = async () => {
-    if (principalId) {
-      try {
-        await navigator.clipboard.writeText(principalId);
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
-      } catch (err) {
-        console.error('Failed to copy principal ID:', err);
-      }
-    }
   };
 
   if (isLoading) {
@@ -79,43 +61,6 @@ export default function AdminPanel() {
         <p className="text-muted-foreground">Manage and monitor your Beast Clipping platform</p>
       </div>
 
-      {/* User Identity Card */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center gap-2">
-            <User className="w-5 h-5 text-primary" />
-            <CardTitle>Your Identity</CardTitle>
-          </div>
-          <CardDescription>Your authenticated principal ID</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center gap-2">
-            <code className="flex-1 text-xs bg-muted p-3 rounded font-mono break-all">
-              {principalId || 'Not available'}
-            </code>
-            <Button
-              onClick={handleCopyPrincipal}
-              variant="outline"
-              size="sm"
-              className="shrink-0"
-              disabled={!principalId}
-            >
-              {copied ? (
-                <>
-                  <Check className="w-4 h-4 mr-2" />
-                  Copied
-                </>
-              ) : (
-                <>
-                  <Copy className="w-4 h-4 mr-2" />
-                  Copy
-                </>
-              )}
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card>
@@ -147,7 +92,7 @@ export default function AdminPanel() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">Active</div>
-            <p className="text-xs text-muted-foreground mt-1">System status</p>
+            <p className="text-xs text-muted-foreground mt-1">System monitoring</p>
           </CardContent>
         </Card>
       </div>
@@ -159,36 +104,35 @@ export default function AdminPanel() {
           <CardDescription>Top performing clips ranked by engagement score</CardDescription>
         </CardHeader>
         <CardContent>
-          {!trendingAnalytics || trendingAnalytics.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <TrendingUp className="w-12 h-12 mx-auto mb-3 opacity-50" />
-              <p>No trending clips data available yet.</p>
-              <p className="text-sm mt-1">Create some clips to see analytics here.</p>
-            </div>
-          ) : (
+          {trendingAnalytics && trendingAnalytics.length > 0 ? (
             <div className="rounded-md border">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">#</TableHead>
+                    <TableHead className="w-[50px]">Rank</TableHead>
                     <TableHead>Title</TableHead>
-                    <TableHead className="text-right">Score Metrics</TableHead>
+                    <TableHead className="text-right">Score</TableHead>
                     <TableHead className="text-right">Trending Score</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {trendingAnalytics.map((clip, index) => (
                     <TableRow key={clip.id}>
-                      <TableCell className="font-medium">{index + 1}</TableCell>
-                      <TableCell className="font-medium">{clip.title}</TableCell>
-                      <TableCell className="text-right">{clip.scoreMetrics.toFixed(2)}</TableCell>
+                      <TableCell className="font-medium">#{index + 1}</TableCell>
+                      <TableCell className="max-w-md truncate">{clip.title}</TableCell>
+                      <TableCell className="text-right">{clip.scoreMetrics.toFixed(1)}</TableCell>
                       <TableCell className="text-right font-bold text-primary">
-                        {clip.trendingScore.toFixed(2)}
+                        {clip.trendingScore.toFixed(1)}
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+            </div>
+          ) : (
+            <div className="text-center py-8 text-muted-foreground">
+              <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
+              <p>No trending clips data available yet</p>
             </div>
           )}
         </CardContent>

@@ -8,9 +8,7 @@ import Int "mo:core/Int";
 import Runtime "mo:core/Runtime";
 import Order "mo:core/Order";
 import Principal "mo:core/Principal";
-import Iter "mo:core/Iter";
 import Text "mo:core/Text";
-import Debug "mo:core/Debug";
 
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
@@ -19,20 +17,7 @@ actor {
   let accessControlState = AccessControl.initState();
   include MixinAuthorization(accessControlState);
 
-  var adminPrincipals = Map.empty<Text, ()>();
-
-  let ownerPrincipal = "7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae";
-  let adminPrincipal1 = "dj7e5-haaaa-aaaaa-aaafa-cai";
-  let adminPrincipal2 = "dvnsi-uongs-uvsev-opmno-ziamp-zyvu2-ynz4e-5mibv-j52vu-xzxkr-oa5";
-  let adminPrincipal3 = "dj7e5-haaaa-aaaaa-aaafa-cai";
-  let adminPrincipal4 = "dvnsi-uongs-uvsev-opmno-ziamp-zyvu2-ynz4e-5mibv-j52vu-xzxkr-oa5";
-  let defaultAdminPrincipals = [
-    ownerPrincipal,
-    adminPrincipal1,
-    adminPrincipal2,
-    adminPrincipal3,
-    adminPrincipal4,
-  ];
+  let adminPassword = "testpasswordtestpasswordtestpasswordtestpassword";
 
   type VideoClip = {
     id : Text;
@@ -65,6 +50,24 @@ actor {
     endTimestamp : Nat;
     title : Text;
     viralScore : Float;
+  };
+
+  // REMOVED: getStoredAdminPassword function - passwords should NEVER be exposed via API
+  // This function had no authorization and would leak the admin password to anyone
+
+  public shared ({ caller }) func checkAdminPassword(password : Text) : async Bool {
+    // Password verification should be available to authenticated users only
+    // to prevent anonymous brute force attacks
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can verify passwords");
+    };
+    
+    let isValid = password == adminPassword;
+    if (isValid) {
+      // Grant admin role upon successful password verification
+      AccessControl.assignRole(accessControlState, caller, caller, #admin);
+    };
+    isValid;
   };
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
@@ -125,7 +128,7 @@ actor {
   };
 
   public shared ({ caller }) func deleteClip(clipId : Text) : async () {
-    if (not AccessControl.isAdmin(accessControlState, caller)) {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can delete clips");
     };
     switch (videoClips.get(clipId)) {
@@ -312,62 +315,4 @@ actor {
     };
     [];
   };
-
-  public shared ({ caller }) func isPersistentAdmin() : async Bool {
-    let principalText = caller.toText();
-    Debug.print("Checking isPersistentAdmin for principal: " # principalText);
-
-    // Check against hardcoded admin principals
-    let isHardcodedAdmin = defaultAdminPrincipals.any(
-      func(adminPrincipal) {
-        adminPrincipal == principalText;
-      }
-    );
-    if (isHardcodedAdmin) {
-      Debug.print("Principal found in default admin principals: " # principalText);
-      return true;
-    };
-
-    switch (adminPrincipals.get(principalText)) {
-      case (?_value) {
-        Debug.print("Principal found via explicit admin method: " # principalText);
-        return true;
-      };
-      case (null) {
-        let adminSize = adminPrincipals.size();
-        Debug.print("Principal NOT found in adminPrincipals Map. Map size: " # adminSize.toText());
-        Debug.print("Enumerating stored admin principals for comparison:");
-        adminPrincipals.forEach(
-          func(storedPrincipal, _value) {
-            Debug.print("Stored principal: " # storedPrincipal);
-          }
-        );
-        return false;
-      };
-    };
-  };
-
-  // For explicit admin registration (persistent storage)
-  public shared ({ caller }) func registerAdmin(adminPrincipal : Text) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only super admins can register new admin principals");
-    };
-
-    adminPrincipals.add(adminPrincipal, ());
-    Debug.print("Registered persistent admin principal: " # adminPrincipal);
-  };
-
-  // Migrator to ensure default admins always exist
-  public shared ({ caller }) func migrateDefaultAdmins() : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only super admins can perform migration");
-    };
-
-    for (admin in defaultAdminPrincipals.values()) {
-      adminPrincipals.add(admin, ());
-      Debug.print("Migrated default admin principal: " # admin);
-    };
-    Debug.print("Default admin principals migration complete.");
-  };
 };
-

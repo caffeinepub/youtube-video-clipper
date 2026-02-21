@@ -1,32 +1,18 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T01:50:53.760Z",
+  "generatedAt": "2026-02-21T02:30:24.147Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
+    "total": 1,
     "implemented": 0,
     "items": [
       {
-        "id": "REQ-122",
-        "summary": "Fix the backend isCallerAdmin method in backend/main.mo to correctly authenticate the owner with principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' and return true instead of false, resolving the 'Access Denied' error shown in the uploaded screenshot where the principal ID is displayed but access is denied",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-123",
-        "summary": "Verify the adminPrincipals HashMap initialization in backend/main.mo correctly stores the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' during actor initialization, ensuring the principal format matches exactly and the HashMap lookup succeeds during authentication checks",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-124",
-        "summary": "Add comprehensive backend logging in the isCallerAdmin method to output: 1) the caller's principal using Principal.toText(), 2) the result of the adminPrincipals HashMap lookup (whether the principal exists), 3) the current size of the adminPrincipals HashMap, 4) all principals stored in the HashMap by iterating through entries for comparison, 5) the final boolean return value, enabling diagnosis of why authentication is failing for the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
+        "id": "REQ-138",
+        "summary": "Read and display the contents of backend/main.mo file to show the user the hardcoded admin password value configured in the password-based authentication system",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
@@ -37,13 +23,11 @@
     "backend/main.mo",
     "build-request.json",
     "feature_evidence.json",
-    "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useIsOwner.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

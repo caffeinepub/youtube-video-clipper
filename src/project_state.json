@@ -1,10 +1,10 @@
 {
   "schemaVersion": "1.0.0",
-  "projectStateVersion": 65,
+  "projectStateVersion": 75,
   "summary": "YouTube video clipping application",
   "architectural_notes": [
     "Admin panel authentication switched from principal-based to user ID-based access control",
-    "Backend admin check simplified to use HashMap storage for admin principals with pre-populated owner principal during initialization"
+    "Admin panel authentication will transition from principal/user ID-based to password-based access control"
   ],
   "known_issues": [
     "AI clip generation feature is not implemented despite being listed as completed in existing features",
@@ -12,7 +12,7 @@
     "Admin panel user ID display feature not working - the user ID section is not rendering despite implementation",
     "Admin panel displaying 'Checking permissions...' message but not progressing to show admin dashboard content after user verification"
   ],
-  "isFixRequest": true,
+  "isFixRequest": false,
   "existing_features": [
     {
       "id": "feature-create-a-form-where-users-can-input-a-youtube-video-url",
@@ -515,6 +515,38 @@
       "title": "Verify the admin route protection logic in frontend/src/App.tsx correctly evaluates the isCallerAdmin check and grants access to the AdminPanel when the backend returns true",
       "reqIds": [
         "REQ-120"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-frontend-app-tsx-admin-route-error-display-to-show-the-exact-backend-response-from-iscalleradmin-including-whether-the-call-succeeded-the-returned-value-and-any-error-details-to-help-diagnose-frontend-vs-backend-issues",
+      "title": "Update the frontend App.tsx admin route error display to show the exact backend response from isCallerAdmin, including whether the call succeeded, the returned value, and any error details to help diagnose frontend vs backend issues",
+      "reqIds": [
+        "REQ-128"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-useisowner-hook-in-frontend-src-hooks-useisowner-ts-to-call-the-new-password-based-admin-check-method-instead-of-the-principal-based-ispersistentadmin-method",
+      "title": "Update the useIsOwner hook in frontend/src/hooks/useIsOwner.ts to call the new password-based admin check method instead of the principal-based isPersistentAdmin method",
+      "reqIds": [
+        "REQ-131"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-create-a-password-input-component-in-the-layout-header-that-appears-for-authenticated-users-allowing-them-to-enter-the-admin-password-to-access-the-admin-panel",
+      "title": "Create a password input component in the Layout header that appears for authenticated users, allowing them to enter the admin password to access the admin panel",
+      "reqIds": [
+        "REQ-132"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-update-the-admin-route-protection-logic-in-frontend-src-app-tsx-to-use-password-based-authentication-instead-of-principal-based-checks-prompting-for-password-if-not-already-validated",
+      "title": "Update the admin route protection logic in frontend/src/App.tsx to use password-based authentication instead of principal-based checks, prompting for password if not already validated",
+      "reqIds": [
+        "REQ-133"
       ],
       "version": 1
     }
@@ -1065,6 +1097,104 @@
       "summary": "Add comprehensive backend logging in the isCallerAdmin method to output: 1) the caller's principal using Principal.toText(), 2) the result of the adminPrincipals HashMap lookup (whether the principal exists), 3) the current size of the adminPrincipals HashMap, 4) all principals stored in the HashMap by iterating through entries for comparison, 5) the final boolean return value, enabling diagnosis of why authentication is failing for the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae'",
       "reqIds": [
         "REQ-124"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-89",
+      "summary": "Debug and fix the backend isCallerAdmin method in backend/main.mo to identify why it returns false for the authenticated owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' despite correct authentication, and ensure it returns true for this principal",
+      "reqIds": [
+        "REQ-125"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-90",
+      "summary": "Add extensive backend debugging logs in the isCallerAdmin method to output: 1) the raw caller principal from Principal.toText(caller), 2) whether the adminPrincipals HashMap contains the caller, 3) the exact size of the adminPrincipals HashMap, 4) all principals currently stored in the HashMap by iterating entries, 5) the boolean return value being sent to frontend",
+      "reqIds": [
+        "REQ-126"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-91",
+      "summary": "Verify the adminPrincipals HashMap initialization in backend/main.mo correctly stores the owner principal '7cho6-twidd-xljev-okmzv-oebuv-llwo6-5tmzy-3n3pb-4nhg5-54713-aae' during actor initialization, ensuring the principal format exactly matches and HashMap.get succeeds during authentication",
+      "reqIds": [
+        "REQ-127"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-92",
+      "summary": "Replace the admin authentication system to use passwords instead of user IDs/principals",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-93",
+      "summary": "Replace the backend admin authentication system in backend/main.mo to use a password-based authentication mechanism instead of principal-based checks, storing a secure admin password hash that can be validated against user-provided passwords",
+      "reqIds": [
+        "REQ-129"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-94",
+      "summary": "Create a backend method 'checkAdminPassword' that accepts a password string as input and returns a boolean indicating whether the password matches the stored admin password hash",
+      "reqIds": [
+        "REQ-130"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-98",
+      "summary": "Remove or deprecate the principal-based admin authentication code including the adminPrincipals HashMap and isPersistentAdmin method from backend/main.mo",
+      "reqIds": [
+        "REQ-134"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-99",
+      "summary": "Set a hardcoded admin password in the backend for password-based authentication",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-100",
+      "summary": "Set a hardcoded admin password string in the backend/main.mo actor for password-based authentication",
+      "reqIds": [
+        "REQ-135"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-101",
+      "summary": "Update the backend checkAdminPassword method to validate user-provided passwords against the hardcoded admin password",
+      "reqIds": [
+        "REQ-136"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-102",
+      "summary": "Read and display the contents of the backend/main.mo file to identify the hardcoded admin password value configured in the password-based authentication system",
+      "reqIds": [
+        "REQ-137"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-103",
+      "summary": "Read the backend/main.mo file to display the configured admin password in the password-based authentication system",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-104",
+      "summary": "Read and display the contents of backend/main.mo file to show the user the hardcoded admin password value configured in the password-based authentication system",
+      "reqIds": [
+        "REQ-138"
       ],
       "status": "pending"
     }

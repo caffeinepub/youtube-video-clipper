@@ -41,6 +41,7 @@ export const TrendingClipAnalytics = IDL.Record({
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'checkAdminPassword' : IDL.Func([IDL.Text], [IDL.Bool], []),
   'deleteClip' : IDL.Func([IDL.Text], [], []),
   'findRelatedClips' : IDL.Func([IDL.Text], [IDL.Vec(IDL.Text)], ['query']),
   'generateClipsAutomatically' : IDL.Func(
@@ -65,9 +66,6 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-  'isPersistentAdmin' : IDL.Func([], [IDL.Bool], []),
-  'migrateDefaultAdmins' : IDL.Func([], [], []),
-  'registerAdmin' : IDL.Func([IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'saveClip' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Float64],
@@ -112,6 +110,7 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'checkAdminPassword' : IDL.Func([IDL.Text], [IDL.Bool], []),
     'deleteClip' : IDL.Func([IDL.Text], [], []),
     'findRelatedClips' : IDL.Func([IDL.Text], [IDL.Vec(IDL.Text)], ['query']),
     'generateClipsAutomatically' : IDL.Func(
@@ -136,9 +135,6 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
-    'isPersistentAdmin' : IDL.Func([], [IDL.Bool], []),
-    'migrateDefaultAdmins' : IDL.Func([], [], []),
-    'registerAdmin' : IDL.Func([IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'saveClip' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Float64],

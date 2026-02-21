@@ -1,6 +1,6 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix admin panel access denial for authenticated owner principal",
+  "title": "Read backend code to display admin password",
   "requirements": []
 }
