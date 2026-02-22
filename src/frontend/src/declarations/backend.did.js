@@ -8,7 +8,7 @@
 
 import { IDL } from '@icp-sdk/core/candid';
 
-export const UserRole = IDL.Variant({
+export const UserRole__1 = IDL.Variant({
   'admin' : IDL.Null,
   'user' : IDL.Null,
   'guest' : IDL.Null,
@@ -30,6 +30,12 @@ export const VideoClip = IDL.Record({
   'score' : IDL.Float64,
   'videoUrl' : IDL.Text,
 });
+export const UserRole = IDL.Variant({
+  'admin' : IDL.Null,
+  'owner' : IDL.Null,
+  'user' : IDL.Null,
+  'friend' : IDL.Null,
+});
 export const YouTubeChannelAuth = IDL.Record({
   'channelName' : IDL.Text,
   'expiresAt' : Time,
@@ -48,6 +54,7 @@ export const GoogleOAuthCredentials = IDL.Record({
 export const UserProfile = IDL.Record({
   'youtubeAuth' : IDL.Opt(YouTubeChannelAuth),
   'name' : IDL.Text,
+  'role' : UserRole,
   'googleOAuthCredentials' : IDL.Opt(GoogleOAuthCredentials),
 });
 export const TrendingClipAnalytics = IDL.Record({
@@ -89,7 +96,7 @@ export const TransformationOutput = IDL.Record({
 export const idlService = IDL.Service({
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addAdminByUserId' : IDL.Func([IDL.Text], [], []),
-  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+  'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
   'connectYouTubeChannel' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, Time],
       [],
@@ -109,9 +116,15 @@ export const idlService = IDL.Service({
     ),
   'getAdminsAsAdmin' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
   'getAllClips' : IDL.Func([IDL.Text], [IDL.Vec(VideoClip)], ['query']),
+  'getAllUserRoles' : IDL.Func(
+      [],
+      [IDL.Vec(IDL.Tuple(IDL.Principal, UserRole))],
+      ['query'],
+    ),
   'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
-  'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+  'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
   'getClipById' : IDL.Func([IDL.Text], [VideoClip], ['query']),
+  'getOwnRole' : IDL.Func([], [IDL.Opt(UserRole)], ['query']),
   'getTotalClipsCount' : IDL.Func([], [IDL.Nat], ['query']),
   'getTrendingClips' : IDL.Func([], [IDL.Vec(VideoClip)], ['query']),
   'getTrendingClipsAnalytics' : IDL.Func(
@@ -134,6 +147,7 @@ export const idlService = IDL.Service({
       [IDL.Text],
       [],
     ),
+  'setUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'storeGoogleOAuthCredentials' : IDL.Func([IDL.Text, IDL.Text], [], []),
   'transform' : IDL.Func(
       [TransformationInput],
@@ -145,7 +159,7 @@ export const idlService = IDL.Service({
 export const idlInitArgs = [];
 
 export const idlFactory = ({ IDL }) => {
-  const UserRole = IDL.Variant({
+  const UserRole__1 = IDL.Variant({
     'admin' : IDL.Null,
     'user' : IDL.Null,
     'guest' : IDL.Null,
@@ -167,6 +181,12 @@ export const idlFactory = ({ IDL }) => {
     'score' : IDL.Float64,
     'videoUrl' : IDL.Text,
   });
+  const UserRole = IDL.Variant({
+    'admin' : IDL.Null,
+    'owner' : IDL.Null,
+    'user' : IDL.Null,
+    'friend' : IDL.Null,
+  });
   const YouTubeChannelAuth = IDL.Record({
     'channelName' : IDL.Text,
     'expiresAt' : Time,
@@ -185,6 +205,7 @@ export const idlFactory = ({ IDL }) => {
   const UserProfile = IDL.Record({
     'youtubeAuth' : IDL.Opt(YouTubeChannelAuth),
     'name' : IDL.Text,
+    'role' : UserRole,
     'googleOAuthCredentials' : IDL.Opt(GoogleOAuthCredentials),
   });
   const TrendingClipAnalytics = IDL.Record({
@@ -223,7 +244,7 @@ export const idlFactory = ({ IDL }) => {
   return IDL.Service({
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addAdminByUserId' : IDL.Func([IDL.Text], [], []),
-    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
+    'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
     'connectYouTubeChannel' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, Time],
         [],
@@ -243,9 +264,15 @@ export const idlFactory = ({ IDL }) => {
       ),
     'getAdminsAsAdmin' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
     'getAllClips' : IDL.Func([IDL.Text], [IDL.Vec(VideoClip)], ['query']),
+    'getAllUserRoles' : IDL.Func(
+        [],
+        [IDL.Vec(IDL.Tuple(IDL.Principal, UserRole))],
+        ['query'],
+      ),
     'getCallerUserProfile' : IDL.Func([], [IDL.Opt(UserProfile)], ['query']),
-    'getCallerUserRole' : IDL.Func([], [UserRole], ['query']),
+    'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
     'getClipById' : IDL.Func([IDL.Text], [VideoClip], ['query']),
+    'getOwnRole' : IDL.Func([], [IDL.Opt(UserRole)], ['query']),
     'getTotalClipsCount' : IDL.Func([], [IDL.Nat], ['query']),
     'getTrendingClips' : IDL.Func([], [IDL.Vec(VideoClip)], ['query']),
     'getTrendingClipsAnalytics' : IDL.Func(
@@ -268,6 +295,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Text],
         [],
       ),
+    'setUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'storeGoogleOAuthCredentials' : IDL.Func([IDL.Text, IDL.Text], [], []),
     'transform' : IDL.Func(
         [TransformationInput],

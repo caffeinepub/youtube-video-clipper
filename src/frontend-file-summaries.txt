@@ -1,6 +1,6 @@
 {
   "frontend/src/App.tsx": "Main application component with routing including OAuth callback route, profile setup flow, video URL management, AI clip suggestions state, and integrated ChannelConnection component for authenticated users with proper prop handling for all child components.",
-  "frontend/src/components/Layout.tsx": "Layout wrapper component with header containing Beast Clipping branding, UserIdDisplay component for authenticated users, admin panel button for authenticated admin users, and integrated login/logout functionality.",
+  "frontend/src/components/Layout.tsx": "Layout wrapper component with header containing Beast Clipping branding, user role badge display (with proper null checks), user ID display, admin panel button for authenticated admin users, and integrated login/logout functionality.",
   "frontend/src/components/VideoUrlForm.tsx": "Form component for entering YouTube URLs with integrated AI clip generation button that appears after loading a video, handles validation, and triggers automatic clip suggestion generation.",
   "frontend/src/components/YouTubePlayer.tsx": "Embedded YouTube player component that displays videos in a responsive iframe container.",
   "frontend/src/components/ClipTimestampControls.tsx": "Clip creation interface with timestamp inputs, validation, and save functionality that integrates with the backend, managing its own title state and correctly calling the useClipTimestamps and useClipCreation hooks with proper parameter signatures.",
@@ -18,7 +18,7 @@
   "frontend/index.html": "HTML entry point with page title set to \"Beast Clipping\".",
   "frontend/src/hooks/useIsOwner.ts": "React Query hook that checks if the authenticated user is an admin by calling isCallerAdmin() from the backend, with extensive console logging to track authentication state, actor availability, query lifecycle, backend responses, and user profile email extraction for debugging admin button visibility issues.",
   "frontend/src/hooks/useAdminStats.ts": "React Query hook that fetches admin statistics including total clips count and trending clips analytics from the backend, with improved error handling that throws errors instead of silently returning defaults.",
-  "frontend/src/components/AdminPanel.tsx": "Admin dashboard component with collapsible debug panel, admin management section for adding/viewing admins, system statistics cards, and trending clips analytics table.",
+  "frontend/src/components/AdminPanel.tsx": "Admin dashboard component with collapsible sections including debug panel, admin management, user status management, system statistics cards, and trending clips analytics table.",
   "frontend/src/components/AdminErrorBoundary.tsx": "React error boundary component that catches and displays admin panel errors with detailed error messages, stack traces, and component stacks for better debugging, preventing admin failures from crashing the entire application.",
   "frontend/src/backend.d.ts": "TypeScript interface definitions for the backend canister including all available methods; getAdminDebugInfo is not yet implemented in the backend.",
   "frontend/src/hooks/useAutoGenerateClips.ts": "React Query mutation hook that generates AI-powered clip suggestions for a video, currently using mock data with plans to integrate real AI services through a secure backend endpoint.",
@@ -28,7 +28,7 @@
   "frontend/src/components/AdminPasswordInput.tsx": "Password input component with secure text masking, validation button, success/error feedback display, and navigation to admin panel on successful validation.",
   "frontend/src/hooks/useAdminDebug.ts": "React Query hook that fetches basic admin debug information using isCallerAdmin, returning placeholder data for admin principals list, HashMap size, and initialization status until the backend getAdminDebugInfo method is implemented.",
   "frontend/src/components/AdminDebugPanel.tsx": "Debug component displaying authenticated user's principal, backend admin check result, and a warning that the backend getAdminDebugInfo method is not yet implemented, with comprehensive troubleshooting guidance and conditional rendering based on available data.",
-  "frontend/src/components/ProfileSetup.tsx": "Profile setup component that prompts authenticated users to enter their name and email, storing both in the UserProfile (email is concatenated with name as a workaround until backend type is updated).",
+  "frontend/src/components/ProfileSetup.tsx": "Profile setup component that prompts authenticated users to enter their name and email, storing both in the UserProfile with a default 'user' role for new users.",
   "frontend/src/hooks/useQueries.ts": "React Query hooks for user profile and Google OAuth operations with enhanced error handling, detailed logging for OAuth credential storage, and specific error messages for backend configuration issues.",
   "frontend/src/components/ChannelConnection.tsx": "Component displaying Google account connection status with enhanced error messaging, detailed setup instructions for VITE_GOOGLE_CLIENT_ID configuration, tooltip for disabled connect button, and improved visual hierarchy for configuration requirements.",
   "frontend/src/hooks/useYouTubeChannel.ts": "React Query hook managing Google OAuth flow for YouTube channel connection with enhanced logging, toast notifications for success/error states, and validation of VITE_GOOGLE_CLIENT_ID configuration.",
@@ -43,5 +43,10 @@
   "frontend/src/components/AdminManagement.tsx": "Admin management section with a form to add new admins by principal ID and displays the current admin list, including success/error feedback.",
   "frontend/src/pages/OAuthCallback.tsx": "OAuth callback page that processes Google OAuth redirects with comprehensive error handling, detailed error messages for common failure scenarios, user-friendly feedback, and manual retry option.",
   "frontend/.env.example": "Comprehensive environment configuration template with detailed step-by-step instructions for obtaining and configuring Google OAuth Client ID, including troubleshooting guide for common OAuth issues.",
-  "frontend/.gitignore": "Git ignore file that excludes node_modules, build artifacts, editor files, and environment variable files (.env) from version control."
+  "frontend/.gitignore": "Git ignore file that excludes node_modules, build artifacts, editor files, and environment variable files (.env) from version control.",
+  "frontend/src/components/UserRoleBadge.tsx": "Badge component that displays user roles (Owner, Admin, User, Friend) with distinct color-coded styling and icons for each role type.",
+  "frontend/src/hooks/useGetOwnRole.ts": "React Query hook that fetches the current authenticated user's role from the backend using getOwnRole method.",
+  "frontend/src/hooks/useUserRoles.ts": "React Query hook that fetches all users and their roles from the backend using getAllUserRoles method, accessible only to admins.",
+  "frontend/src/hooks/useSetUserRole.ts": "React Query mutation hook that updates a user's role via the setUserRole backend method with proper error handling and cache invalidation.",
+  "frontend/src/components/UserStatusManagement.tsx": "Admin component that displays all users in a searchable table with their current roles and provides dropdowns to change user status between Owner, Admin, User, and Friend."
 }

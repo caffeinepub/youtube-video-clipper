@@ -2,11 +2,13 @@ import { SiYoutube } from 'react-icons/si';
 import { Scissors, Shield, LogIn, LogOut } from 'lucide-react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useIsOwner } from '../hooks/useIsOwner';
+import { useGetOwnRole } from '../hooks/useGetOwnRole';
 import { Link, useLocation } from '@tanstack/react-router';
 import { useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { useEffect } from 'react';
 import UserIdDisplay from './UserIdDisplay';
+import UserRoleBadge from './UserRoleBadge';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const currentYear = new Date().getFullYear();
@@ -15,6 +17,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   );
   const { identity, login, clear, loginStatus } = useInternetIdentity();
   const { isOwner, isLoading: isOwnerLoading, isFetched: isOwnerFetched } = useIsOwner();
+  const { data: userRole, isLoading: roleLoading, isFetched: roleFetched } = useGetOwnRole();
   const location = useLocation();
   const queryClient = useQueryClient();
 
@@ -36,6 +39,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       isOwnerLoading,
       isOwnerFetched,
     });
+    console.log('User Role:', {
+      userRole,
+      roleLoading,
+      roleFetched,
+    });
     
     const shouldShowButton = isAuthenticated && !isOwnerLoading && isOwnerFetched && isOwner;
     console.log('Admin Button Visibility:', {
@@ -55,7 +63,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       ) : 'Button should be visible'
     });
     console.groupEnd();
-  }, [isAuthenticated, loginStatus, identity, isOwner, isOwnerLoading, isOwnerFetched]);
+  }, [isAuthenticated, loginStatus, identity, isOwner, isOwnerLoading, isOwnerFetched, userRole, roleLoading, roleFetched]);
 
   const handleAuth = async () => {
     if (isAuthenticated) {
@@ -81,6 +89,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   // Determine if admin button should be shown
   const showAdminButton = isAuthenticated && !isOwnerLoading && isOwnerFetched && isOwner;
 
+  // Determine if role badge should be shown
+  const showRoleBadge = isAuthenticated && !roleLoading && roleFetched && userRole !== null && userRole !== undefined;
+
   // Log whenever showAdminButton changes
   useEffect(() => {
     console.log(`[Layout] showAdminButton changed to: ${showAdminButton}`);
@@ -103,6 +114,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </Link>
             
             <div className="flex items-center gap-3">
+              {/* User Role Badge - shown when authenticated and role is loaded */}
+              {showRoleBadge && userRole && (
+                <UserRoleBadge role={userRole} />
+              )}
+
               {/* User ID Display - shown when authenticated */}
               <UserIdDisplay />
               

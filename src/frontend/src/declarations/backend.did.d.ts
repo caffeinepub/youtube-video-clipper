@@ -49,9 +49,14 @@ export interface TrendingClipAnalytics {
 export interface UserProfile {
   'youtubeAuth' : [] | [YouTubeChannelAuth],
   'name' : string,
+  'role' : UserRole,
   'googleOAuthCredentials' : [] | [GoogleOAuthCredentials],
 }
 export type UserRole = { 'admin' : null } |
+  { 'owner' : null } |
+  { 'user' : null } |
+  { 'friend' : null };
+export type UserRole__1 = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
 export interface VideoClip {
@@ -85,7 +90,7 @@ export interface http_request_result {
 export interface _SERVICE {
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addAdminByUserId' : ActorMethod<[string], undefined>,
-  'assignCallerUserRole' : ActorMethod<[Principal, UserRole], undefined>,
+  'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
   'connectYouTubeChannel' : ActorMethod<
     [string, string, string, string, Time],
     undefined
@@ -99,9 +104,11 @@ export interface _SERVICE {
   'generateDownloadVideoUrl' : ActorMethod<[string, bigint, bigint], string>,
   'getAdminsAsAdmin' : ActorMethod<[], Array<string>>,
   'getAllClips' : ActorMethod<[string], Array<VideoClip>>,
+  'getAllUserRoles' : ActorMethod<[], Array<[Principal, UserRole]>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
-  'getCallerUserRole' : ActorMethod<[], UserRole>,
+  'getCallerUserRole' : ActorMethod<[], UserRole__1>,
   'getClipById' : ActorMethod<[string], VideoClip>,
+  'getOwnRole' : ActorMethod<[], [] | [UserRole]>,
   'getTotalClipsCount' : ActorMethod<[], bigint>,
   'getTrendingClips' : ActorMethod<[], Array<VideoClip>>,
   'getTrendingClipsAnalytics' : ActorMethod<[], Array<TrendingClipAnalytics>>,
@@ -115,6 +122,7 @@ export interface _SERVICE {
     [string, string, string, bigint, bigint, number],
     string
   >,
+  'setUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'storeGoogleOAuthCredentials' : ActorMethod<[string, string], undefined>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
 }

@@ -1,11 +1,10 @@
 import Map "mo:core/Map";
-import Text "mo:core/Text";
-import Float "mo:core/Float";
-import Time "mo:core/Time";
 import Principal "mo:core/Principal";
+import Time "mo:core/Time";
 
 module {
-  type OldYouTubeChannelAuth = {
+  // Original types (without role)
+  public type OldYouTubeChannelAuth = {
     accessToken : Text;
     refreshToken : Text;
     channelId : Text;
@@ -13,29 +12,7 @@ module {
     expiresAt : Time.Time;
   };
 
-  type OldUserProfile = {
-    name : Text;
-    youtubeAuth : ?OldYouTubeChannelAuth;
-  };
-
-  type OldActor = {
-    videoClips : Map.Map<Text, OldVideoClip>;
-    userProfiles : Map.Map<Principal, OldUserProfile>;
-    adminPrincipals : Map.Map<Principal, ()>;
-  };
-
-  type OldVideoClip = {
-    id : Text;
-    title : Text;
-    videoUrl : Text;
-    thumbnailUrl : Text;
-    startTime : Nat;
-    endTime : Nat;
-    createdAt : Time.Time;
-    score : Float;
-  };
-
-  type GoogleOAuthCredentials = {
+  public type OldGoogleOAuthCredentials = {
     accessToken : Text;
     refreshToken : Text;
     expiresAt : Time.Time;
@@ -44,32 +21,55 @@ module {
     scope : Text;
   };
 
-  type NewYouTubeChannelAuth = OldYouTubeChannelAuth;
-
-  type NewUserProfile = {
+  public type OldUserProfile = {
     name : Text;
-    youtubeAuth : ?NewYouTubeChannelAuth;
-    googleOAuthCredentials : ?GoogleOAuthCredentials;
+    youtubeAuth : ?OldYouTubeChannelAuth;
+    googleOAuthCredentials : ?OldGoogleOAuthCredentials;
   };
 
-  type NewActor = {
-    videoClips : Map.Map<Text, OldVideoClip>;
+  public type OldActor = {
+    userProfiles : Map.Map<Principal, OldUserProfile>;
+    adminPrincipals : Map.Map<Principal, ()>;
+  };
+
+  // New types (with role)
+  public type UserRole = {
+    #owner;
+    #admin;
+    #user;
+    #friend;
+  };
+
+  public type NewYouTubeChannelAuth = OldYouTubeChannelAuth;
+  public type NewGoogleOAuthCredentials = OldGoogleOAuthCredentials;
+
+  public type NewUserProfile = {
+    name : Text;
+    youtubeAuth : ?NewYouTubeChannelAuth;
+    googleOAuthCredentials : ?NewGoogleOAuthCredentials;
+    role : UserRole;
+  };
+
+  public type NewActor = {
     userProfiles : Map.Map<Principal, NewUserProfile>;
     adminPrincipals : Map.Map<Principal, ()>;
   };
 
+  // Migration function
   public func run(old : OldActor) : NewActor {
-    // Migrate user profiles to include googleOAuthCredentials field
     let newUserProfiles = old.userProfiles.map<Principal, OldUserProfile, NewUserProfile>(
-      func(_p, oldProfile) {
-        { oldProfile with googleOAuthCredentials = null };
+      func(_userId, oldProfile) {
+        {
+          name = oldProfile.name;
+          youtubeAuth = oldProfile.youtubeAuth;
+          googleOAuthCredentials = oldProfile.googleOAuthCredentials;
+          role = #user; // Default role for all existing users is 'user'
+        };
       }
     );
-
     {
-      videoClips = old.videoClips;
-      userProfiles = newUserProfiles;
-      adminPrincipals = old.adminPrincipals;
+      old with
+      userProfiles = newUserProfiles
     };
   };
 };

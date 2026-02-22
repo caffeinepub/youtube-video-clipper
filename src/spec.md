@@ -1,11 +1,13 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the Google Client ID configuration error to enable Google Account connection.
+**Goal:** Add a user status/role system with four levels (Owner, Admin, User, Friend) that can be managed through the admin panel and displayed on the home screen.
 
 **Planned changes:**
-- Configure the VITE_GOOGLE_CLIENT_ID environment variable to be properly loaded and accessible to the frontend
-- Verify the Google OAuth connection flow works end-to-end
-- Ensure users can successfully connect their Google/YouTube accounts and post clips
+- Add a status field to user profiles in the backend with four possible values: Owner, Admin, User, Friend
+- Implement backend methods to change user status, restricted to Admin and Owner roles only
+- Add a user management section to the admin panel with UI to select users and change their status
+- Display the current user's status prominently on the Home Screen
+- Create a backend query to retrieve all users with their status information for the admin panel
 
-**User-visible outcome:** Users can click "Connect Google Account" without encountering the configuration error, complete the Google OAuth flow, and successfully post video clips to YouTube.
+**User-visible outcome:** Users will see their current status (Owner, Admin, User, or Friend) displayed on the home screen. Admins and Owners can access a new section in the admin panel to view all users and change their status/role assignments.

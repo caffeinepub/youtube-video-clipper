@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, User, Mail } from 'lucide-react';
 import { toast } from 'sonner';
+import { UserRole } from '../backend';
 
 interface ProfileSetupProps {
   onComplete: () => void;
@@ -39,7 +40,11 @@ export default function ProfileSetup({ onComplete }: ProfileSetupProps) {
     try {
       // For now, we'll store the email in the name field as "name|email"
       // This is a workaround until the backend UserProfile type is updated
-      await saveProfile.mutateAsync({ name: `${name.trim()}|${email.trim()}` });
+      // New users default to 'user' role
+      await saveProfile.mutateAsync({ 
+        name: `${name.trim()}|${email.trim()}`,
+        role: UserRole.user,
+      });
       toast.success('Profile saved successfully!');
       onComplete();
     } catch (error) {

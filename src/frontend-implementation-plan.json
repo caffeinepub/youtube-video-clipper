@@ -1,62 +1,68 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Google Client ID configuration error",
+  "title": "Add user status/role system with admin management - Frontend",
   "requirements": [
     {
-      "id": "REQ-1",
-      "summary": "Configure VITE_GOOGLE_CLIENT_ID environment variable to resolve OAuth connection error",
+      "id": "REQ-3",
+      "summary": "Add status management UI to the admin panel with a form to select users and change their status",
       "acceptanceCriteria": [
-        "The 'Connect Google Account' button functions without showing the configuration error",
-        "The VITE_GOOGLE_CLIENT_ID environment variable is properly loaded and accessible",
-        "Users can successfully initiate the Google OAuth flow"
+        "Admin panel includes a new section for managing user status",
+        "Interface allows searching or selecting users by ID",
+        "Dropdown or selection interface shows all four status options: Owner, Admin, User, Friend",
+        "Success and error messages display when status changes are attempted"
       ],
       "file_operations": [
         {
-          "path": "frontend/.env.example",
-          "operation": "modify",
-          "description": "Update the .env.example template to provide clearer instructions for obtaining the Google OAuth Client ID from Google Cloud Console. Include step-by-step guidance for: 1) Creating OAuth credentials in Google Cloud Console, 2) Configuring authorized JavaScript origins and redirect URIs, 3) Copying the Client ID into the .env file. Ensure the VITE_GOOGLE_CLIENT_ID variable is clearly documented with the exact format expected."
+          "path": "frontend/src/components/UserStatusManagement.tsx",
+          "operation": "create",
+          "description": "Create a new component that displays a list of all users with their current status (Owner, Admin, User, Friend) and provides a dropdown to change each user's status. The component fetches user data using the getAllUserRoles backend capability and submits status changes using the setUserRole backend capability. Include validation that ensures only admins/owners can access this section, loading states during fetch and update operations, success/error toast notifications, and a search/filter input to find users by principal ID."
         },
         {
-          "path": "frontend/src/hooks/useYouTubeChannel.ts",
-          "operation": "modify",
-          "description": "Add runtime validation to check if VITE_GOOGLE_CLIENT_ID is properly configured before initiating OAuth flow. Improve error handling to provide actionable feedback when the environment variable is missing or empty. Verify the environment variable is accessed correctly using import.meta.env.VITE_GOOGLE_CLIENT_ID syntax. Add console logging to help diagnose configuration issues during development."
+          "path": "frontend/src/hooks/useUserRoles.ts",
+          "operation": "create",
+          "description": "Create a React Query hook that fetches all users and their roles by calling the getAllUserRoles backend capability. Returns an array of [Principal, UserRole] tuples. The query should be enabled only when an authenticated actor is available and should refetch when invalidated after role changes."
         },
         {
-          "path": "frontend/src/components/ChannelConnection.tsx",
+          "path": "frontend/src/hooks/useSetUserRole.ts",
+          "operation": "create",
+          "description": "Create a mutation hook for changing a user's status/role. Calls the setUserRole backend capability with the target principal and new UserRole. On success, invalidate the user roles query and display a success message. On error, display the error message to the user. Include proper error handling for authorization failures."
+        },
+        {
+          "path": "frontend/src/components/AdminPanel.tsx",
           "operation": "modify",
-          "description": "Enhance the error display to show more specific guidance when VITE_GOOGLE_CLIENT_ID is not configured. Update the UI to display the current configuration error message more prominently with instructions linking to the .env.example file. Ensure the 'Connect Google Account' button is disabled when the Client ID is missing, with a tooltip explaining the configuration requirement."
+          "description": "Add the new UserStatusManagement component to the admin panel as a new collapsible section titled 'User Status Management'. Place it below the existing admin management section. Ensure the section is only visible to authenticated admin/owner users. Wrap the component in a Card component for consistent styling with other admin panel sections."
         }
       ]
     },
     {
-      "id": "REQ-2",
-      "summary": "Verify end-to-end Google OAuth flow functionality after Client ID configuration",
+      "id": "REQ-4",
+      "summary": "Display the current user's status on the Home Screen in a visible location",
       "acceptanceCriteria": [
-        "Users can complete the Google OAuth authorization flow",
-        "Connected Google accounts display correctly in the UI",
-        "Users can successfully post video clips to YouTube after connecting"
+        "Home Screen displays the logged-in user's current status (Owner, Admin, User, or Friend)",
+        "Status is shown with clear visual styling to distinguish between different roles",
+        "Status display updates when the user's role changes"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/OAuthCallback.tsx",
-          "operation": "modify",
-          "description": "Add comprehensive error handling and validation for the OAuth callback flow. Verify that the authorization code is properly extracted from URL parameters, state parameter is validated, and error responses from Google are handled gracefully. Add user-friendly error messages for common OAuth failure scenarios (user cancellation, invalid state, expired tokens). Ensure proper redirection to the main app with success/failure status displayed via toast notifications."
+          "path": "frontend/src/components/UserRoleBadge.tsx",
+          "operation": "create",
+          "description": "Create a badge component that displays a user's role (Owner, Admin, User, Friend) with distinct visual styling for each role. Use color-coded backgrounds and icons: Owner (purple/gold), Admin (blue), User (green), Friend (gray). Accept a 'role' prop of type UserRole and optionally a 'size' prop. Use shadcn/ui Badge component as the base with custom styling applied via className."
         },
         {
-          "path": "frontend/src/hooks/useYouTubeChannel.ts",
-          "operation": "modify",
-          "description": "Verify the OAuth flow constructs the correct authorization URL with required scopes (youtube.upload, youtube.readonly). Ensure the redirect URI matches the authorized URI configured in Google Cloud Console. Add validation to confirm the state parameter is properly generated and stored for CSRF protection. Test that the connection status updates correctly after successful OAuth completion."
+          "path": "frontend/src/hooks/useGetOwnRole.ts",
+          "operation": "create",
+          "description": "Create a React Query hook that fetches the current user's role by calling the getOwnRole backend capability. Returns UserRole | null. Enable the query only when an authenticated actor is available. Include proper loading and error states."
         },
         {
-          "path": "frontend/src/components/ChannelConnection.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Ensure connected Google/YouTube account information displays correctly after successful OAuth flow, including channel name and avatar. Verify the disconnect functionality properly clears OAuth credentials and updates UI state. Add loading states during connection/disconnection operations. Test that the component correctly reflects connection status from useQueries hooks (useHasGoogleOAuthCredentials, useIsYouTubeChannelConnected)."
+          "description": "Add the UserRoleBadge component to the main application view (home screen). Place it in a prominent location near the top of the page, likely in the header area or just below it. Use the useGetOwnRole hook to fetch the current user's role and pass it to the UserRoleBadge component. Only display the badge when the user is authenticated and the role has been successfully fetched. Ensure the badge updates reactively when the user's role changes by leveraging React Query's automatic refetching."
         },
         {
-          "path": "frontend/src/hooks/usePostToYouTube.ts",
+          "path": "frontend/src/components/Layout.tsx",
           "operation": "modify",
-          "description": "Verify the YouTube posting flow validates OAuth connection status before attempting to post clips. Ensure proper error handling for authentication failures (expired tokens, revoked access). Add validation that clips meet YouTube Shorts requirements (max 60 seconds). Test that success/error responses are properly displayed to users via toast notifications with actionable messages."
+          "description": "Integrate the UserRoleBadge into the Layout header component next to the user's name or authentication controls. Use the useGetOwnRole hook to fetch the current user's role and conditionally render the UserRoleBadge when authenticated. Position it appropriately within the existing header navigation structure for visibility without cluttering the UI."
         }
       ]
     }

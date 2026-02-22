@@ -2,12 +2,13 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-resolve-the-google-client-id-not-configured-error-that-prevents-users-from-connecting-their-google-account-the-error-message-states-please-set-vite-google-client-id-environment-variable-ensure-the-environment-variable-is-properly-configured-and-accessible-to-the-frontend-application",
-      "featureTitle": "Resolve the 'Google Client ID not configured' error that prevents users from connecting their Google Account. The error message states 'Please set VITE_GOOGLE_CLIENT_ID environment variable.' Ensure the environment variable is properly configured and accessible to the frontend application.",
+      "featureId": "feature-add-status-management-ui-to-the-admin-panel-with-a-form-to-select-users-and-change-their-status",
+      "featureTitle": "Add status management UI to the admin panel with a form to select users and change their status",
       "files": [
-        "frontend/.env.example",
-        "frontend/src/components/ChannelConnection.tsx",
-        "frontend/src/hooks/useYouTubeChannel.ts"
+        "frontend/src/components/AdminPanel.tsx",
+        "frontend/src/components/UserStatusManagement.tsx",
+        "frontend/src/hooks/useSetUserRole.ts",
+        "frontend/src/hooks/useUserRoles.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -19,17 +20,17 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-1"
+        "REQ-3"
       ],
       "confidence": "high"
     },
     {
-      "featureId": "feature-verify-that-the-google-oauth-connection-flow-works-end-to-end-after-the-client-id-is-configured-allowing-users-to-successfully-connect-their-google-youtube-accounts-and-post-clips",
-      "featureTitle": "Verify that the Google OAuth connection flow works end-to-end after the Client ID is configured, allowing users to successfully connect their Google/YouTube accounts and post clips.",
+      "featureId": "feature-display-the-current-user-s-status-on-the-home-screen-in-a-visible-location",
+      "featureTitle": "Display the current user's status on the Home Screen in a visible location",
       "files": [
-        "frontend/src/components/ChannelConnection.tsx",
-        "frontend/src/hooks/useYouTubeChannel.ts",
-        "frontend/src/pages/OAuthCallback.tsx"
+        "frontend/src/components/Layout.tsx",
+        "frontend/src/components/UserRoleBadge.tsx",
+        "frontend/src/hooks/useGetOwnRole.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -41,7 +42,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-2"
+        "REQ-4"
       ],
       "confidence": "high"
     }

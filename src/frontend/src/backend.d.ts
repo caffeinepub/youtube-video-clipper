@@ -39,16 +39,16 @@ export interface http_header {
     value: string;
     name: string;
 }
-export interface http_request_result {
-    status: bigint;
-    body: Uint8Array;
-    headers: Array<http_header>;
-}
 export interface TrendingClipAnalytics {
     id: string;
     title: string;
     scoreMetrics: number;
     trendingScore: number;
+}
+export interface http_request_result {
+    status: bigint;
+    body: Uint8Array;
+    headers: Array<http_header>;
 }
 export interface TransformationInput {
     context: Uint8Array;
@@ -77,16 +77,23 @@ export interface GoogleOAuthCredentials {
 export interface UserProfile {
     youtubeAuth?: YouTubeChannelAuth;
     name: string;
+    role: UserRole;
     googleOAuthCredentials?: GoogleOAuthCredentials;
 }
 export enum UserRole {
+    admin = "admin",
+    owner = "owner",
+    user = "user",
+    friend = "friend"
+}
+export enum UserRole__1 {
     admin = "admin",
     user = "user",
     guest = "guest"
 }
 export interface backendInterface {
     addAdminByUserId(userId: string): Promise<void>;
-    assignCallerUserRole(user: Principal, role: UserRole): Promise<void>;
+    assignCallerUserRole(user: Principal, role: UserRole__1): Promise<void>;
     connectYouTubeChannel(accessToken: string, refreshToken: string, channelId: string, channelName: string, expiresAt: Time): Promise<void>;
     deleteClip(clipId: string): Promise<void>;
     findRelatedClips(clipId: string): Promise<Array<string>>;
@@ -94,9 +101,11 @@ export interface backendInterface {
     generateDownloadVideoUrl(videoId: string, startTime: bigint, endTime: bigint): Promise<string>;
     getAdminsAsAdmin(): Promise<Array<string>>;
     getAllClips(_searchText: string): Promise<Array<VideoClip>>;
+    getAllUserRoles(): Promise<Array<[Principal, UserRole]>>;
     getCallerUserProfile(): Promise<UserProfile | null>;
-    getCallerUserRole(): Promise<UserRole>;
+    getCallerUserRole(): Promise<UserRole__1>;
     getClipById(clipId: string): Promise<VideoClip>;
+    getOwnRole(): Promise<UserRole | null>;
     getTotalClipsCount(): Promise<bigint>;
     getTrendingClips(): Promise<Array<VideoClip>>;
     getTrendingClipsAnalytics(): Promise<Array<TrendingClipAnalytics>>;
@@ -107,6 +116,7 @@ export interface backendInterface {
     postClipToYouTube(clipMetadata: ClipMetadata): Promise<YouTubePostResult>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveClip(title: string, videoUrl: string, thumbnailUrl: string, startTime: bigint, endTime: bigint, score: number): Promise<string>;
+    setUserRole(target: Principal, userRole: UserRole): Promise<void>;
     storeGoogleOAuthCredentials(authorizationCode: string, redirectUri: string): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
 }

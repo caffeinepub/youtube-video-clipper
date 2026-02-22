@@ -1,59 +1,90 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-22T22:20:36.409Z",
+  "generatedAt": "2026-02-22T22:35:49.105Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 2,
+    "total": 5,
     "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Resolve the 'Google Client ID not configured' error that prevents users from connecting their Google Account. The error message states 'Please set VITE_GOOGLE_CLIENT_ID environment variable.' Ensure the environment variable is properly configured and accessible to the frontend application.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/.env.example",
-          "frontend/src/hooks/useYouTubeChannel.ts",
-          "frontend/src/components/ChannelConnection.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/.env.example",
-          "frontend/src/hooks/useYouTubeChannel.ts",
-          "frontend/src/components/ChannelConnection.tsx"
-        ]
+        "summary": "Add a user status/role type to the backend with four possible values: Owner, Admin, User, and Friend",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       },
       {
         "id": "REQ-2",
-        "summary": "Verify that the Google OAuth connection flow works end-to-end after the Client ID is configured, allowing users to successfully connect their Google/YouTube accounts and post clips.",
+        "summary": "Implement backend methods to change user status/role, including validation that only Admins and Owners can modify status",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
+      },
+      {
+        "id": "REQ-3",
+        "summary": "Add status management UI to the admin panel with a form to select users and change their status",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/OAuthCallback.tsx",
-          "frontend/src/hooks/useYouTubeChannel.ts",
-          "frontend/src/components/ChannelConnection.tsx",
-          "frontend/src/hooks/usePostToYouTube.ts"
+          "frontend/src/components/UserStatusManagement.tsx",
+          "frontend/src/hooks/useUserRoles.ts",
+          "frontend/src/hooks/useSetUserRole.ts",
+          "frontend/src/components/AdminPanel.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/OAuthCallback.tsx",
-          "frontend/src/hooks/useYouTubeChannel.ts",
-          "frontend/src/components/ChannelConnection.tsx"
+          "frontend/src/components/UserStatusManagement.tsx",
+          "frontend/src/hooks/useUserRoles.ts",
+          "frontend/src/hooks/useSetUserRole.ts",
+          "frontend/src/components/AdminPanel.tsx"
         ]
+      },
+      {
+        "id": "REQ-4",
+        "summary": "Display the current user's status on the Home Screen in a visible location",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/UserRoleBadge.tsx",
+          "frontend/src/hooks/useGetOwnRole.ts",
+          "frontend/src/App.tsx",
+          "frontend/src/components/Layout.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/UserRoleBadge.tsx",
+          "frontend/src/hooks/useGetOwnRole.ts",
+          "frontend/src/components/Layout.tsx"
+        ]
+      },
+      {
+        "id": "REQ-5",
+        "summary": "Create a backend query method to retrieve all users with their status information for display in the admin panel",
+        "status": "unknown",
+        "plannedFiles": [],
+        "matchedFiles": []
       }
     ]
   },
   "changedFiles": [
     "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/.env.example",
-    "frontend/src/components/ChannelConnection.tsx",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/hooks/useYouTubeChannel.ts",
-    "frontend/src/pages/OAuthCallback.tsx",
+    "frontend/src/backend.d.ts",
+    "frontend/src/backend.ts",
+    "frontend/src/components/AdminPanel.tsx",
+    "frontend/src/components/Layout.tsx",
+    "frontend/src/components/ProfileSetup.tsx",
+    "frontend/src/components/UserRoleBadge.tsx",
+    "frontend/src/components/UserStatusManagement.tsx",
+    "frontend/src/declarations/backend.did.d.ts",
+    "frontend/src/declarations/backend.did.js",
+    "frontend/src/hooks/useGetOwnRole.ts",
+    "frontend/src/hooks/useSetUserRole.ts",
+    "frontend/src/hooks/useUserRoles.ts",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",
