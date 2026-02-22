@@ -1,53 +1,44 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-21T22:49:21.777Z",
+  "generatedAt": "2026-02-22T22:20:36.409Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 3,
+    "total": 2,
     "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Configure VITE_GOOGLE_CLIENT_ID environment variable in the frontend build configuration to enable Google OAuth authentication",
+        "summary": "Resolve the 'Google Client ID not configured' error that prevents users from connecting their Google Account. The error message states 'Please set VITE_GOOGLE_CLIENT_ID environment variable.' Ensure the environment variable is properly configured and accessible to the frontend application.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/.env.example",
-          "frontend/.env",
-          "frontend/.gitignore",
           "frontend/src/hooks/useYouTubeChannel.ts",
           "frontend/src/components/ChannelConnection.tsx"
         ],
         "matchedFiles": [
           "frontend/.env.example",
-          "frontend/.gitignore",
           "frontend/src/hooks/useYouTubeChannel.ts",
           "frontend/src/components/ChannelConnection.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Verify Google OAuth credentials are correctly configured in the backend for the OAuth callback flow",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Test the complete Google account connection flow from button click through OAuth callback to successful connection status display",
+        "summary": "Verify that the Google OAuth connection flow works end-to-end after the Client ID is configured, allowing users to successfully connect their Google/YouTube accounts and post clips.",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/pages/OAuthCallback.tsx",
-          "frontend/src/components/ChannelConnection.tsx",
           "frontend/src/hooks/useYouTubeChannel.ts",
+          "frontend/src/components/ChannelConnection.tsx",
           "frontend/src/hooks/usePostToYouTube.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/ChannelConnection.tsx",
-          "frontend/src/hooks/useYouTubeChannel.ts"
+          "frontend/src/pages/OAuthCallback.tsx",
+          "frontend/src/hooks/useYouTubeChannel.ts",
+          "frontend/src/components/ChannelConnection.tsx"
         ]
       }
     ]
@@ -59,9 +50,10 @@
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
     "frontend/.env.example",
-    "frontend/.gitignore",
     "frontend/src/components/ChannelConnection.tsx",
+    "frontend/src/hooks/useQueries.ts",
     "frontend/src/hooks/useYouTubeChannel.ts",
+    "frontend/src/pages/OAuthCallback.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

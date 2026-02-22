@@ -1,73 +1,62 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix Google OAuth configuration error",
+  "title": "Fix Google Client ID configuration error",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Configure VITE_GOOGLE_CLIENT_ID environment variable in the frontend build configuration to enable Google OAuth authentication",
+      "summary": "Configure VITE_GOOGLE_CLIENT_ID environment variable to resolve OAuth connection error",
       "acceptanceCriteria": [
-        "VITE_GOOGLE_CLIENT_ID environment variable is set in the frontend configuration",
-        "The error message 'Google Client ID not configured' no longer appears",
-        "The 'Connect Google Account' button initiates OAuth flow successfully"
+        "The 'Connect Google Account' button functions without showing the configuration error",
+        "The VITE_GOOGLE_CLIENT_ID environment variable is properly loaded and accessible",
+        "Users can successfully initiate the Google OAuth flow"
       ],
       "file_operations": [
         {
           "path": "frontend/.env.example",
-          "operation": "create",
-          "description": "Create example environment file documenting the VITE_GOOGLE_CLIENT_ID variable with placeholder value and instructions for obtaining a Google OAuth Client ID from Google Cloud Console"
-        },
-        {
-          "path": "frontend/.env",
-          "operation": "create",
-          "description": "Create local environment file with VITE_GOOGLE_CLIENT_ID set to the actual Google OAuth Client ID value (this file should be gitignored and not committed)"
-        },
-        {
-          "path": "frontend/.gitignore",
           "operation": "modify",
-          "description": "Add .env to .gitignore if not already present to prevent committing sensitive OAuth credentials"
+          "description": "Update the .env.example template to provide clearer instructions for obtaining the Google OAuth Client ID from Google Cloud Console. Include step-by-step guidance for: 1) Creating OAuth credentials in Google Cloud Console, 2) Configuring authorized JavaScript origins and redirect URIs, 3) Copying the Client ID into the .env file. Ensure the VITE_GOOGLE_CLIENT_ID variable is clearly documented with the exact format expected."
         },
         {
           "path": "frontend/src/hooks/useYouTubeChannel.ts",
           "operation": "modify",
-          "description": "Update the Google OAuth flow to read VITE_GOOGLE_CLIENT_ID from import.meta.env and ensure the error message displays correctly when the environment variable is missing"
+          "description": "Add runtime validation to check if VITE_GOOGLE_CLIENT_ID is properly configured before initiating OAuth flow. Improve error handling to provide actionable feedback when the environment variable is missing or empty. Verify the environment variable is accessed correctly using import.meta.env.VITE_GOOGLE_CLIENT_ID syntax. Add console logging to help diagnose configuration issues during development."
         },
         {
           "path": "frontend/src/components/ChannelConnection.tsx",
           "operation": "modify",
-          "description": "Ensure the component properly displays the configuration error from useYouTubeChannel hook and that the 'Connect Google Account' button is disabled when VITE_GOOGLE_CLIENT_ID is not configured"
+          "description": "Enhance the error display to show more specific guidance when VITE_GOOGLE_CLIENT_ID is not configured. Update the UI to display the current configuration error message more prominently with instructions linking to the .env.example file. Ensure the 'Connect Google Account' button is disabled when the Client ID is missing, with a tooltip explaining the configuration requirement."
         }
       ]
     },
     {
-      "id": "REQ-3",
-      "summary": "Test the complete Google account connection flow from button click through OAuth callback to successful connection status display",
+      "id": "REQ-2",
+      "summary": "Verify end-to-end Google OAuth flow functionality after Client ID configuration",
       "acceptanceCriteria": [
-        "User can click 'Connect Google Account' button",
-        "OAuth flow completes without errors",
-        "ChannelConnection component displays connected status with channel information",
-        "User can successfully post clips to YouTube after connection"
+        "Users can complete the Google OAuth authorization flow",
+        "Connected Google accounts display correctly in the UI",
+        "Users can successfully post video clips to YouTube after connecting"
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/OAuthCallback.tsx",
           "operation": "modify",
-          "description": "Enhance error handling and user feedback during OAuth callback processing, ensuring all OAuth state validation and credential storage steps provide clear success or failure messages"
-        },
-        {
-          "path": "frontend/src/components/ChannelConnection.tsx",
-          "operation": "modify",
-          "description": "Verify the component correctly displays connected status with channel name and ID after successful OAuth flow, and ensure disconnect functionality works as expected"
+          "description": "Add comprehensive error handling and validation for the OAuth callback flow. Verify that the authorization code is properly extracted from URL parameters, state parameter is validated, and error responses from Google are handled gracefully. Add user-friendly error messages for common OAuth failure scenarios (user cancellation, invalid state, expired tokens). Ensure proper redirection to the main app with success/failure status displayed via toast notifications."
         },
         {
           "path": "frontend/src/hooks/useYouTubeChannel.ts",
           "operation": "modify",
-          "description": "Add comprehensive error handling for the OAuth flow including redirect URI validation, state parameter verification, and clear error messages for common failure scenarios"
+          "description": "Verify the OAuth flow constructs the correct authorization URL with required scopes (youtube.upload, youtube.readonly). Ensure the redirect URI matches the authorized URI configured in Google Cloud Console. Add validation to confirm the state parameter is properly generated and stored for CSRF protection. Test that the connection status updates correctly after successful OAuth completion."
+        },
+        {
+          "path": "frontend/src/components/ChannelConnection.tsx",
+          "operation": "modify",
+          "description": "Ensure connected Google/YouTube account information displays correctly after successful OAuth flow, including channel name and avatar. Verify the disconnect functionality properly clears OAuth credentials and updates UI state. Add loading states during connection/disconnection operations. Test that the component correctly reflects connection status from useQueries hooks (useHasGoogleOAuthCredentials, useIsYouTubeChannelConnected)."
         },
         {
           "path": "frontend/src/hooks/usePostToYouTube.ts",
           "operation": "modify",
-          "description": "Ensure the YouTube posting functionality properly checks for valid OAuth credentials before attempting to post clips, and provides clear feedback when authentication is required"
+          "description": "Verify the YouTube posting flow validates OAuth connection status before attempting to post clips. Ensure proper error handling for authentication failures (expired tokens, revoked access). Add validation that clips meet YouTube Shorts requirements (max 60 seconds). Test that success/error responses are properly displayed to users via toast notifications with actionable messages."
         }
       ]
     }

@@ -1,11 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix Google OAuth configuration to enable YouTube channel connection.
+**Goal:** Fix the Google Client ID configuration error to enable Google Account connection.
 
 **Planned changes:**
-- Configure VITE_GOOGLE_CLIENT_ID environment variable in frontend build configuration
-- Verify backend Google OAuth credentials are correctly set up for callback flow
-- Test complete Google account connection flow from button click through OAuth callback
+- Configure the VITE_GOOGLE_CLIENT_ID environment variable to be properly loaded and accessible to the frontend
+- Verify the Google OAuth connection flow works end-to-end
+- Ensure users can successfully connect their Google/YouTube accounts and post clips
 
-**User-visible outcome:** Users can successfully click "Connect Google Account", complete the OAuth flow without errors, and see their connected YouTube channel status, enabling them to post clips to YouTube.
+**User-visible outcome:** Users can click "Connect Google Account" without encountering the configuration error, complete the Google OAuth flow, and successfully post video clips to YouTube.

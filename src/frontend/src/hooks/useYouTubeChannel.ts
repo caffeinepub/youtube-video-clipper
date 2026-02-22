@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
 import { useGetCallerUserProfile } from './useQueries';
+import { toast } from 'sonner';
 
 interface ChannelStatus {
   isConnected: boolean;
@@ -50,6 +51,8 @@ export function useYouTubeChannel() {
       if (!GOOGLE_CLIENT_ID) {
         throw new Error('Google Client ID not configured. Please set VITE_GOOGLE_CLIENT_ID environment variable.');
       }
+
+      console.log('[useYouTubeChannel] Initiating OAuth flow with Client ID:', GOOGLE_CLIENT_ID.substring(0, 20) + '...');
       
       // Build OAuth URL with required scopes for YouTube
       const scopes = [
@@ -71,11 +74,16 @@ export function useYouTubeChannel() {
       authUrl.searchParams.set('prompt', 'consent');
       authUrl.searchParams.set('state', state);
       
+      console.log('[useYouTubeChannel] Redirecting to:', authUrl.toString());
+      
       // Redirect to Google OAuth
       window.location.href = authUrl.toString();
     },
     onError: (error) => {
       console.error('[useYouTubeChannel] connectMutation error:', error);
+      toast.error('Failed to connect', {
+        description: error instanceof Error ? error.message : 'Could not initiate Google OAuth flow',
+      });
     },
   });
 
@@ -97,9 +105,13 @@ export function useYouTubeChannel() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['youtubeChannel'] });
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      toast.success('Google account disconnected');
     },
     onError: (error) => {
       console.error('[useYouTubeChannel] disconnectMutation error:', error);
+      toast.error('Failed to disconnect', {
+        description: error instanceof Error ? error.message : 'Could not disconnect Google account',
+      });
     },
   });
 

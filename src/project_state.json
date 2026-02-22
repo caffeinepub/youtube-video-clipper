@@ -4,37 +4,28 @@
   "summary": "New project",
   "architectural_notes": [],
   "known_issues": [
-    "Google account connection/posting clips not working in Version 55"
+    "Google posting feature not working as expected (Version 56)"
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-configure-vite-google-client-id-environment-variable-in-the-frontend-build-configuration-to-enable-google-oauth-authentication",
-      "title": "Configure VITE_GOOGLE_CLIENT_ID environment variable in the frontend build configuration to enable Google OAuth authentication",
+      "id": "feature-resolve-the-google-client-id-not-configured-error-that-prevents-users-from-connecting-their-google-account-the-error-message-states-please-set-vite-google-client-id-environment-variable-ensure-the-environment-variable-is-properly-configured-and-accessible-to-the-frontend-application",
+      "title": "Resolve the 'Google Client ID not configured' error that prevents users from connecting their Google Account. The error message states 'Please set VITE_GOOGLE_CLIENT_ID environment variable.' Ensure the environment variable is properly configured and accessible to the frontend application.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-test-the-complete-google-account-connection-flow-from-button-click-through-oauth-callback-to-successful-connection-status-display",
-      "title": "Test the complete Google account connection flow from button click through OAuth callback to successful connection status display",
+      "id": "feature-verify-that-the-google-oauth-connection-flow-works-end-to-end-after-the-client-id-is-configured-allowing-users-to-successfully-connect-their-google-youtube-accounts-and-post-clips",
+      "title": "Verify that the Google OAuth connection flow works end-to-end after the Client ID is configured, allowing users to successfully connect their Google/YouTube accounts and post clips.",
       "reqIds": [
-        "REQ-3"
+        "REQ-2"
       ],
       "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-2",
-      "summary": "Verify Google OAuth credentials are correctly configured in the backend for the OAuth callback flow",
-      "reqIds": [
-        "REQ-2"
-      ],
-      "status": "pending"
-    }
-  ],
+  "new_feature_requests": [],
   "projectName": "Beast Clipping",
   "clarification_mode": "instant",
   "clarification_rounds": 0

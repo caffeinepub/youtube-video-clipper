@@ -1,12 +1,12 @@
 {
   "kind": "build_request",
-  "title": "Fix Google OAuth configuration error",
+  "title": "Fix Google Client ID configuration error",
   "projectName": "Beast Clipping",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Configure VITE_GOOGLE_CLIENT_ID environment variable in the frontend build configuration to enable Google OAuth authentication",
+      "text": "Resolve the 'Google Client ID not configured' error that prevents users from connecting their Google Account. The error message states 'Please set VITE_GOOGLE_CLIENT_ID environment variable.' Ensure the environment variable is properly configured and accessible to the frontend application.",
       "target": "frontend",
       "source": {
         "messageIds": [
@@ -17,29 +17,14 @@
         ]
       },
       "acceptanceCriteria": [
-        "VITE_GOOGLE_CLIENT_ID environment variable is set in the frontend configuration",
-        "The error message 'Google Client ID not configured' no longer appears",
-        "The 'Connect Google Account' button initiates OAuth flow successfully"
+        "The 'Connect Google Account' button functions without showing the configuration error",
+        "The VITE_GOOGLE_CLIENT_ID environment variable is properly loaded and accessible",
+        "Users can successfully initiate the Google OAuth flow"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Verify Google OAuth credentials are correctly configured in the backend for the OAuth callback flow",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-latest"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend can successfully process OAuth callback requests",
-        "OAuth state validation passes correctly",
-        "User credentials are stored successfully after OAuth authorization"
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "text": "Test the complete Google account connection flow from button click through OAuth callback to successful connection status display",
+      "text": "Verify that the Google OAuth connection flow works end-to-end after the Client ID is configured, allowing users to successfully connect their Google/YouTube accounts and post clips.",
       "target": "both",
       "source": {
         "messageIds": [
@@ -47,22 +32,21 @@
         ]
       },
       "acceptanceCriteria": [
-        "User can click 'Connect Google Account' button",
-        "OAuth flow completes without errors",
-        "ChannelConnection component displays connected status with channel information",
-        "User can successfully post clips to YouTube after connection"
+        "Users can complete the Google OAuth authorization flow",
+        "Connected Google accounts display correctly in the UI",
+        "Users can successfully post video clips to YouTube after connecting"
       ]
     }
   ],
   "constraints": [
-    "Do not modify the existing OAuth flow logic in OAuthCallback.tsx or ChannelConnection.tsx",
-    "Preserve the existing backend OAuth credential storage mechanism",
-    "Maintain compatibility with Internet Identity authentication"
+    "Do not modify the backend OAuth flow logic",
+    "Preserve the existing ChannelConnection component structure",
+    "Follow the existing .env.example template format"
   ],
   "nonGoals": [
-    "Changing the OAuth provider from Google",
-    "Modifying the UI design of the connection components",
-    "Adding additional authentication methods"
+    "Changing the OAuth scope configuration",
+    "Modifying the YouTube API integration beyond fixing the Client ID issue",
+    "Adding new authentication providers"
   ],
   "imageRequirements": {
     "required": [],

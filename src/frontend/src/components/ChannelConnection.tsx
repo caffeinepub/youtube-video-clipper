@@ -1,10 +1,11 @@
 import { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Youtube, Loader2, CheckCircle2, AlertCircle, Link2 } from 'lucide-react';
+import { Youtube, Loader2, CheckCircle2, AlertCircle, Link2, ExternalLink } from 'lucide-react';
 import { useYouTubeChannel } from '../hooks/useYouTubeChannel';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 
 export default function ChannelConnection() {
   const { channelStatus, isLoading, connectChannel, disconnectChannel, error, isConfigured } = useYouTubeChannel();
@@ -87,31 +88,54 @@ export default function ChannelConnection() {
                 Connect your Google account to enable automatic posting to YouTube
               </p>
             </div>
-            <Button
-              className="w-full"
-              onClick={handleConnect}
-              disabled={isConnecting || !isConfigured}
-            >
-              {isConnecting ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Connecting...
-                </>
-              ) : (
-                <>
-                  <Youtube className="w-4 h-4 mr-2" />
-                  Connect Google Account
-                </>
-              )}
-            </Button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div>
+                    <Button
+                      className="w-full"
+                      onClick={handleConnect}
+                      disabled={isConnecting || !isConfigured}
+                    >
+                      {isConnecting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Connecting...
+                        </>
+                      ) : (
+                        <>
+                          <Youtube className="w-4 h-4 mr-2" />
+                          Connect Google Account
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </TooltipTrigger>
+                {!isConfigured && (
+                  <TooltipContent>
+                    <p>Google Client ID must be configured first</p>
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
           </div>
         )}
 
         {!isConfigured && (
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              Google Client ID not configured. Please set VITE_GOOGLE_CLIENT_ID environment variable.
+            <AlertTitle>Configuration Required</AlertTitle>
+            <AlertDescription className="space-y-2">
+              <p>Google Client ID is not configured. To enable YouTube posting:</p>
+              <ol className="list-decimal list-inside space-y-1 text-xs mt-2">
+                <li>Go to <a href="https://console.cloud.google.com/apis/credentials" target="_blank" rel="noopener noreferrer" className="underline inline-flex items-center gap-1">Google Cloud Console <ExternalLink className="w-3 h-3" /></a></li>
+                <li>Create OAuth 2.0 credentials</li>
+                <li>Add authorized redirect URI: <code className="bg-muted px-1 py-0.5 rounded text-xs">{window.location.origin}/oauth/callback</code></li>
+                <li>Copy the Client ID</li>
+                <li>Set <code className="bg-muted px-1 py-0.5 rounded text-xs">VITE_GOOGLE_CLIENT_ID</code> in your <code className="bg-muted px-1 py-0.5 rounded text-xs">.env</code> file</li>
+                <li>Restart the development server</li>
+              </ol>
+              <p className="text-xs mt-2">See <code className="bg-muted px-1 py-0.5 rounded text-xs">.env.example</code> for detailed instructions.</p>
             </AlertDescription>
           </Alert>
         )}

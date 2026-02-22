@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-configure-vite-google-client-id-environment-variable-in-the-frontend-build-configuration-to-enable-google-oauth-authentication",
-      "featureTitle": "Configure VITE_GOOGLE_CLIENT_ID environment variable in the frontend build configuration to enable Google OAuth authentication",
+      "featureId": "feature-resolve-the-google-client-id-not-configured-error-that-prevents-users-from-connecting-their-google-account-the-error-message-states-please-set-vite-google-client-id-environment-variable-ensure-the-environment-variable-is-properly-configured-and-accessible-to-the-frontend-application",
+      "featureTitle": "Resolve the 'Google Client ID not configured' error that prevents users from connecting their Google Account. The error message states 'Please set VITE_GOOGLE_CLIENT_ID environment variable.' Ensure the environment variable is properly configured and accessible to the frontend application.",
       "files": [
         "frontend/.env.example",
-        "frontend/.gitignore",
         "frontend/src/components/ChannelConnection.tsx",
         "frontend/src/hooks/useYouTubeChannel.ts"
       ],
@@ -25,11 +24,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-test-the-complete-google-account-connection-flow-from-button-click-through-oauth-callback-to-successful-connection-status-display",
-      "featureTitle": "Test the complete Google account connection flow from button click through OAuth callback to successful connection status display",
+      "featureId": "feature-verify-that-the-google-oauth-connection-flow-works-end-to-end-after-the-client-id-is-configured-allowing-users-to-successfully-connect-their-google-youtube-accounts-and-post-clips",
+      "featureTitle": "Verify that the Google OAuth connection flow works end-to-end after the Client ID is configured, allowing users to successfully connect their Google/YouTube accounts and post clips.",
       "files": [
         "frontend/src/components/ChannelConnection.tsx",
-        "frontend/src/hooks/useYouTubeChannel.ts"
+        "frontend/src/hooks/useYouTubeChannel.ts",
+        "frontend/src/pages/OAuthCallback.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -41,7 +41,7 @@
         "http-outcalls@3.0.0"
       ],
       "testIds": [
-        "REQ-3"
+        "REQ-2"
       ],
       "confidence": "high"
     }

@@ -9,9 +9,7 @@ import Order "mo:core/Order";
 import Principal "mo:core/Principal";
 import Nat "mo:core/Nat";
 import Text "mo:core/Text";
-
 import OutCall "http-outcalls/outcall";
-
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 
@@ -524,4 +522,3 @@ actor {
     };
   };
 };
-
