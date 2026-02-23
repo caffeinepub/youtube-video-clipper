@@ -157,6 +157,7 @@ export interface GoogleOAuthCredentials {
     tokenType: string;
 }
 export interface UserProfile {
+    status: UserStatus;
     youtubeAuth?: YouTubeChannelAuth;
     name: string;
     role: UserRole;
@@ -172,6 +173,12 @@ export enum UserRole__1 {
     admin = "admin",
     user = "user",
     guest = "guest"
+}
+export enum UserStatus {
+    active = "active",
+    banned = "banned",
+    inactive = "inactive",
+    suspended = "suspended"
 }
 export interface backendInterface {
     _initializeAccessControlWithSecret(userSecret: string): Promise<void>;
@@ -202,8 +209,9 @@ export interface backendInterface {
     setUserRole(target: Principal, userRole: UserRole): Promise<void>;
     storeGoogleOAuthCredentials(authorizationCode: string, redirectUri: string): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
+    updateUserStatus(target: Principal, newStatus: UserStatus): Promise<void>;
 }
-import type { GoogleOAuthCredentials as _GoogleOAuthCredentials, UserProfile as _UserProfile, UserRole as _UserRole, UserRole__1 as _UserRole__1, YouTubeChannelAuth as _YouTubeChannelAuth } from "./declarations/backend.did.d.ts";
+import type { GoogleOAuthCredentials as _GoogleOAuthCredentials, UserProfile as _UserProfile, UserRole as _UserRole, UserRole__1 as _UserRole__1, UserStatus as _UserStatus, YouTubeChannelAuth as _YouTubeChannelAuth } from "./declarations/backend.did.d.ts";
 export class Backend implements backendInterface {
     constructor(private actor: ActorSubclass<_SERVICE>, private _uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, private _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, private processError?: (error: unknown) => never){}
     async _initializeAccessControlWithSecret(arg0: string): Promise<void> {
@@ -378,14 +386,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getCallerUserRole();
-                return from_candid_UserRole__1_n12(this._uploadFile, this._downloadFile, result);
+                return from_candid_UserRole__1_n14(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getCallerUserRole();
-            return from_candid_UserRole__1_n12(this._uploadFile, this._downloadFile, result);
+            return from_candid_UserRole__1_n14(this._uploadFile, this._downloadFile, result);
         }
     }
     async getClipById(arg0: string): Promise<VideoClip> {
@@ -406,14 +414,14 @@ export class Backend implements backendInterface {
         if (this.processError) {
             try {
                 const result = await this.actor.getOwnRole();
-                return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
+                return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
             const result = await this.actor.getOwnRole();
-            return from_candid_opt_n14(this._uploadFile, this._downloadFile, result);
+            return from_candid_opt_n16(this._uploadFile, this._downloadFile, result);
         }
     }
     async getTotalClipsCount(): Promise<bigint> {
@@ -531,14 +539,14 @@ export class Backend implements backendInterface {
     async saveCallerUserProfile(arg0: UserProfile): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n15(this._uploadFile, this._downloadFile, arg0));
+                const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n17(this._uploadFile, this._downloadFile, arg0));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n15(this._uploadFile, this._downloadFile, arg0));
+            const result = await this.actor.saveCallerUserProfile(to_candid_UserProfile_n17(this._uploadFile, this._downloadFile, arg0));
             return result;
         }
     }
@@ -559,14 +567,14 @@ export class Backend implements backendInterface {
     async setUserRole(arg0: Principal, arg1: UserRole): Promise<void> {
         if (this.processError) {
             try {
-                const result = await this.actor.setUserRole(arg0, to_candid_UserRole_n17(this._uploadFile, this._downloadFile, arg1));
+                const result = await this.actor.setUserRole(arg0, to_candid_UserRole_n21(this._uploadFile, this._downloadFile, arg1));
                 return result;
             } catch (e) {
                 this.processError(e);
                 throw new Error("unreachable");
             }
         } else {
-            const result = await this.actor.setUserRole(arg0, to_candid_UserRole_n17(this._uploadFile, this._downloadFile, arg1));
+            const result = await this.actor.setUserRole(arg0, to_candid_UserRole_n21(this._uploadFile, this._downloadFile, arg1));
             return result;
         }
     }
@@ -598,44 +606,64 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async updateUserStatus(arg0: Principal, arg1: UserStatus): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.updateUserStatus(arg0, to_candid_UserStatus_n19(this._uploadFile, this._downloadFile, arg1));
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.updateUserStatus(arg0, to_candid_UserStatus_n19(this._uploadFile, this._downloadFile, arg1));
+            return result;
+        }
+    }
 }
 function from_candid_UserProfile_n8(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserProfile): UserProfile {
     return from_candid_record_n9(_uploadFile, _downloadFile, value);
 }
-function from_candid_UserRole__1_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole__1): UserRole__1 {
-    return from_candid_variant_n13(_uploadFile, _downloadFile, value);
+function from_candid_UserRole__1_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole__1): UserRole__1 {
+    return from_candid_variant_n15(_uploadFile, _downloadFile, value);
 }
 function from_candid_UserRole_n5(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserRole): UserRole {
     return from_candid_variant_n6(_uploadFile, _downloadFile, value);
 }
-function from_candid_opt_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_YouTubeChannelAuth]): YouTubeChannelAuth | null {
+function from_candid_UserStatus_n10(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: _UserStatus): UserStatus {
+    return from_candid_variant_n11(_uploadFile, _downloadFile, value);
+}
+function from_candid_opt_n12(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_YouTubeChannelAuth]): YouTubeChannelAuth | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_GoogleOAuthCredentials]): GoogleOAuthCredentials | null {
+function from_candid_opt_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_GoogleOAuthCredentials]): GoogleOAuthCredentials | null {
     return value.length === 0 ? null : value[0];
 }
-function from_candid_opt_n14(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserRole]): UserRole | null {
+function from_candid_opt_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserRole]): UserRole | null {
     return value.length === 0 ? null : from_candid_UserRole_n5(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_opt_n7(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [] | [_UserProfile]): UserProfile | null {
     return value.length === 0 ? null : from_candid_UserProfile_n8(_uploadFile, _downloadFile, value[0]);
 }
 function from_candid_record_n9(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    status: _UserStatus;
     youtubeAuth: [] | [_YouTubeChannelAuth];
     name: string;
     role: _UserRole;
     googleOAuthCredentials: [] | [_GoogleOAuthCredentials];
 }): {
+    status: UserStatus;
     youtubeAuth?: YouTubeChannelAuth;
     name: string;
     role: UserRole;
     googleOAuthCredentials?: GoogleOAuthCredentials;
 } {
     return {
-        youtubeAuth: record_opt_to_undefined(from_candid_opt_n10(_uploadFile, _downloadFile, value.youtubeAuth)),
+        status: from_candid_UserStatus_n10(_uploadFile, _downloadFile, value.status),
+        youtubeAuth: record_opt_to_undefined(from_candid_opt_n12(_uploadFile, _downloadFile, value.youtubeAuth)),
         name: value.name,
         role: from_candid_UserRole_n5(_uploadFile, _downloadFile, value.role),
-        googleOAuthCredentials: record_opt_to_undefined(from_candid_opt_n11(_uploadFile, _downloadFile, value.googleOAuthCredentials))
+        googleOAuthCredentials: record_opt_to_undefined(from_candid_opt_n13(_uploadFile, _downloadFile, value.googleOAuthCredentials))
     };
 }
 function from_candid_tuple_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: [Principal, _UserRole]): [Principal, UserRole] {
@@ -644,7 +672,18 @@ function from_candid_tuple_n4(_uploadFile: (file: ExternalBlob) => Promise<Uint8
         from_candid_UserRole_n5(_uploadFile, _downloadFile, value[1])
     ];
 }
-function from_candid_variant_n13(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function from_candid_variant_n11(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    active: null;
+} | {
+    banned: null;
+} | {
+    inactive: null;
+} | {
+    suspended: null;
+}): UserStatus {
+    return "active" in value ? UserStatus.active : "banned" in value ? UserStatus.banned : "inactive" in value ? UserStatus.inactive : "suspended" in value ? UserStatus.suspended : value;
+}
+function from_candid_variant_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
     admin: null;
 } | {
     user: null;
@@ -667,34 +706,74 @@ function from_candid_variant_n6(_uploadFile: (file: ExternalBlob) => Promise<Uin
 function from_candid_vec_n3(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: Array<[Principal, _UserRole]>): Array<[Principal, UserRole]> {
     return value.map((x)=>from_candid_tuple_n4(_uploadFile, _downloadFile, x));
 }
-function to_candid_UserProfile_n15(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserProfile): _UserProfile {
-    return to_candid_record_n16(_uploadFile, _downloadFile, value);
+function to_candid_UserProfile_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserProfile): _UserProfile {
+    return to_candid_record_n18(_uploadFile, _downloadFile, value);
 }
 function to_candid_UserRole__1_n1(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole__1): _UserRole__1 {
     return to_candid_variant_n2(_uploadFile, _downloadFile, value);
 }
-function to_candid_UserRole_n17(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
-    return to_candid_variant_n18(_uploadFile, _downloadFile, value);
+function to_candid_UserRole_n21(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): _UserRole {
+    return to_candid_variant_n22(_uploadFile, _downloadFile, value);
 }
-function to_candid_record_n16(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+function to_candid_UserStatus_n19(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserStatus): _UserStatus {
+    return to_candid_variant_n20(_uploadFile, _downloadFile, value);
+}
+function to_candid_record_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: {
+    status: UserStatus;
     youtubeAuth?: YouTubeChannelAuth;
     name: string;
     role: UserRole;
     googleOAuthCredentials?: GoogleOAuthCredentials;
 }): {
+    status: _UserStatus;
     youtubeAuth: [] | [_YouTubeChannelAuth];
     name: string;
     role: _UserRole;
     googleOAuthCredentials: [] | [_GoogleOAuthCredentials];
 } {
     return {
+        status: to_candid_UserStatus_n19(_uploadFile, _downloadFile, value.status),
         youtubeAuth: value.youtubeAuth ? candid_some(value.youtubeAuth) : candid_none(),
         name: value.name,
-        role: to_candid_UserRole_n17(_uploadFile, _downloadFile, value.role),
+        role: to_candid_UserRole_n21(_uploadFile, _downloadFile, value.role),
         googleOAuthCredentials: value.googleOAuthCredentials ? candid_some(value.googleOAuthCredentials) : candid_none()
     };
 }
-function to_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
+function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole__1): {
+    admin: null;
+} | {
+    user: null;
+} | {
+    guest: null;
+} {
+    return value == UserRole__1.admin ? {
+        admin: null
+    } : value == UserRole__1.user ? {
+        user: null
+    } : value == UserRole__1.guest ? {
+        guest: null
+    } : value;
+}
+function to_candid_variant_n20(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserStatus): {
+    active: null;
+} | {
+    banned: null;
+} | {
+    inactive: null;
+} | {
+    suspended: null;
+} {
+    return value == UserStatus.active ? {
+        active: null
+    } : value == UserStatus.banned ? {
+        banned: null
+    } : value == UserStatus.inactive ? {
+        inactive: null
+    } : value == UserStatus.suspended ? {
+        suspended: null
+    } : value;
+}
+function to_candid_variant_n22(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole): {
     admin: null;
 } | {
     owner: null;
@@ -711,21 +790,6 @@ function to_candid_variant_n18(_uploadFile: (file: ExternalBlob) => Promise<Uint
         user: null
     } : value == UserRole.friend ? {
         friend: null
-    } : value;
-}
-function to_candid_variant_n2(_uploadFile: (file: ExternalBlob) => Promise<Uint8Array>, _downloadFile: (file: Uint8Array) => Promise<ExternalBlob>, value: UserRole__1): {
-    admin: null;
-} | {
-    user: null;
-} | {
-    guest: null;
-} {
-    return value == UserRole__1.admin ? {
-        admin: null
-    } : value == UserRole__1.user ? {
-        user: null
-    } : value == UserRole__1.guest ? {
-        guest: null
     } : value;
 }
 export interface CreateActorOptions {

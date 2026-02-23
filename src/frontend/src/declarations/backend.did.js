@@ -36,6 +36,12 @@ export const UserRole = IDL.Variant({
   'user' : IDL.Null,
   'friend' : IDL.Null,
 });
+export const UserStatus = IDL.Variant({
+  'active' : IDL.Null,
+  'banned' : IDL.Null,
+  'inactive' : IDL.Null,
+  'suspended' : IDL.Null,
+});
 export const YouTubeChannelAuth = IDL.Record({
   'channelName' : IDL.Text,
   'expiresAt' : Time,
@@ -52,6 +58,7 @@ export const GoogleOAuthCredentials = IDL.Record({
   'tokenType' : IDL.Text,
 });
 export const UserProfile = IDL.Record({
+  'status' : UserStatus,
   'youtubeAuth' : IDL.Opt(YouTubeChannelAuth),
   'name' : IDL.Text,
   'role' : UserRole,
@@ -154,6 +161,7 @@ export const idlService = IDL.Service({
       [TransformationOutput],
       ['query'],
     ),
+  'updateUserStatus' : IDL.Func([IDL.Principal, UserStatus], [], []),
 });
 
 export const idlInitArgs = [];
@@ -187,6 +195,12 @@ export const idlFactory = ({ IDL }) => {
     'user' : IDL.Null,
     'friend' : IDL.Null,
   });
+  const UserStatus = IDL.Variant({
+    'active' : IDL.Null,
+    'banned' : IDL.Null,
+    'inactive' : IDL.Null,
+    'suspended' : IDL.Null,
+  });
   const YouTubeChannelAuth = IDL.Record({
     'channelName' : IDL.Text,
     'expiresAt' : Time,
@@ -203,6 +217,7 @@ export const idlFactory = ({ IDL }) => {
     'tokenType' : IDL.Text,
   });
   const UserProfile = IDL.Record({
+    'status' : UserStatus,
     'youtubeAuth' : IDL.Opt(YouTubeChannelAuth),
     'name' : IDL.Text,
     'role' : UserRole,
@@ -302,6 +317,7 @@ export const idlFactory = ({ IDL }) => {
         [TransformationOutput],
         ['query'],
       ),
+    'updateUserStatus' : IDL.Func([IDL.Principal, UserStatus], [], []),
   });
 };
 

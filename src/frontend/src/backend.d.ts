@@ -75,6 +75,7 @@ export interface GoogleOAuthCredentials {
     tokenType: string;
 }
 export interface UserProfile {
+    status: UserStatus;
     youtubeAuth?: YouTubeChannelAuth;
     name: string;
     role: UserRole;
@@ -90,6 +91,12 @@ export enum UserRole__1 {
     admin = "admin",
     user = "user",
     guest = "guest"
+}
+export enum UserStatus {
+    active = "active",
+    banned = "banned",
+    inactive = "inactive",
+    suspended = "suspended"
 }
 export interface backendInterface {
     addAdminByUserId(userId: string): Promise<void>;
@@ -119,4 +126,5 @@ export interface backendInterface {
     setUserRole(target: Principal, userRole: UserRole): Promise<void>;
     storeGoogleOAuthCredentials(authorizationCode: string, redirectUri: string): Promise<void>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
+    updateUserStatus(target: Principal, newStatus: UserStatus): Promise<void>;
 }

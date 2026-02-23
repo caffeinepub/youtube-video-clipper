@@ -89,9 +89,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   // Determine if admin button should be shown
   const showAdminButton = isAuthenticated && !isOwnerLoading && isOwnerFetched && isOwner;
 
-  // Determine if role badge should be shown
-  const showRoleBadge = isAuthenticated && !roleLoading && roleFetched && userRole !== null && userRole !== undefined;
-
   // Log whenever showAdminButton changes
   useEffect(() => {
     console.log(`[Layout] showAdminButton changed to: ${showAdminButton}`);
@@ -115,7 +112,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             
             <div className="flex items-center gap-3">
               {/* User Role Badge - shown when authenticated and role is loaded */}
-              {showRoleBadge && userRole && (
+              {isAuthenticated && !roleLoading && roleFetched && userRole !== null && userRole !== undefined && (
                 <UserRoleBadge role={userRole} />
               )}
 
@@ -135,21 +132,6 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   <Shield className="w-5 h-5" />
                   <span>Admin Panel</span>
                 </Link>
-              )}
-              
-              {/* Show loading indicator for admin check when authenticated */}
-              {isAuthenticated && isOwnerLoading && (
-                <div className="flex items-center gap-2 px-4 py-2 text-muted-foreground">
-                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
-                  <span className="text-sm">Checking permissions...</span>
-                </div>
-              )}
-              
-              {/* Debug info - remove after fixing */}
-              {isAuthenticated && isOwnerFetched && !isOwnerLoading && (
-                <div className="text-xs text-muted-foreground px-2">
-                  Admin: {isOwner ? '✓' : '✗'}
-                </div>
               )}
               
               {/* Login/Logout button */}

@@ -1,24 +1,24 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "Admin panel for status management",
   "architectural_notes": [],
   "known_issues": [],
   "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-add-status-management-ui-to-the-admin-panel-with-a-form-to-select-users-and-change-their-status",
-      "title": "Add status management UI to the admin panel with a form to select users and change their status",
+      "id": "feature-add-a-status-change-dropdown-in-the-userstatusmanagement-component-that-allows-admins-to-modify-user-status-in-addition-to-roles",
+      "title": "Add a status change dropdown in the UserStatusManagement component that allows admins to modify user status in addition to roles",
       "reqIds": [
-        "REQ-3"
+        "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-display-the-current-user-s-status-on-the-home-screen-in-a-visible-location",
-      "title": "Display the current user's status on the Home Screen in a visible location",
+      "id": "feature-create-usesetuserstatus-react-hook-that-wraps-the-backend-setuserstatus-method-and-invalidates-relevant-queries-on-success",
+      "title": "Create useSetUserStatus React hook that wraps the backend setUserStatus method and invalidates relevant queries on success",
       "reqIds": [
-        "REQ-4"
+        "REQ-3"
       ],
       "version": 1
     }
@@ -26,36 +26,20 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Add user status/role system (Owner, Admin, User, Friend) manageable in admin panel and displayed on Home Screen",
+      "summary": "Allow admin panel users to change status",
       "reqIds": [],
       "status": "pending"
     },
     {
-      "id": "AR-2",
-      "summary": "Add a user status/role type to the backend with four possible values: Owner, Admin, User, and Friend",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "status": "pending"
-    },
-    {
       "id": "AR-3",
-      "summary": "Implement backend methods to change user status/role, including validation that only Admins and Owners can modify status",
+      "summary": "Implement backend method to update user status that can be called by admin users",
       "reqIds": [
         "REQ-2"
       ],
       "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Create a backend query method to retrieve all users with their status information for display in the admin panel",
-      "reqIds": [
-        "REQ-5"
-      ],
-      "status": "pending"
     }
   ],
-  "projectName": "Beast Clipping",
+  "projectName": "Enable admin users to change user status",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

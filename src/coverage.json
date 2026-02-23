@@ -1,68 +1,43 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-22T22:35:49.105Z",
+  "generatedAt": "2026-02-23T22:32:34.681Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
+    "total": 3,
     "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add a user status/role type to the backend with four possible values: Owner, Admin, User, and Friend",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Add a status change dropdown in the UserStatusManagement component that allows admins to modify user status in addition to roles",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/components/UserStatusManagement.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/components/UserStatusManagement.tsx"
+        ]
       },
       {
         "id": "REQ-2",
-        "summary": "Implement backend methods to change user status/role, including validation that only Admins and Owners can modify status",
+        "summary": "Implement backend method to update user status that can be called by admin users",
         "status": "unknown",
         "plannedFiles": [],
         "matchedFiles": []
       },
       {
         "id": "REQ-3",
-        "summary": "Add status management UI to the admin panel with a form to select users and change their status",
+        "summary": "Create useSetUserStatus React hook that wraps the backend setUserStatus method and invalidates relevant queries on success",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/UserStatusManagement.tsx",
-          "frontend/src/hooks/useUserRoles.ts",
-          "frontend/src/hooks/useSetUserRole.ts",
-          "frontend/src/components/AdminPanel.tsx"
+          "frontend/src/hooks/useSetUserStatus.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/UserStatusManagement.tsx",
-          "frontend/src/hooks/useUserRoles.ts",
-          "frontend/src/hooks/useSetUserRole.ts",
-          "frontend/src/components/AdminPanel.tsx"
+          "frontend/src/hooks/useSetUserStatus.ts"
         ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Display the current user's status on the Home Screen in a visible location",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/UserRoleBadge.tsx",
-          "frontend/src/hooks/useGetOwnRole.ts",
-          "frontend/src/App.tsx",
-          "frontend/src/components/Layout.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/UserRoleBadge.tsx",
-          "frontend/src/hooks/useGetOwnRole.ts",
-          "frontend/src/components/Layout.tsx"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Create a backend query method to retrieve all users with their status information for display in the admin panel",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
       }
     ]
   },
@@ -75,15 +50,11 @@
     "frontend-implementation-plan.json",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
-    "frontend/src/components/AdminPanel.tsx",
-    "frontend/src/components/Layout.tsx",
     "frontend/src/components/ProfileSetup.tsx",
-    "frontend/src/components/UserRoleBadge.tsx",
     "frontend/src/components/UserStatusManagement.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useGetOwnRole.ts",
-    "frontend/src/hooks/useSetUserRole.ts",
+    "frontend/src/hooks/useSetUserStatus.ts",
     "frontend/src/hooks/useUserRoles.ts",
     "project_state.json",
     "scratch/component-selection.json",

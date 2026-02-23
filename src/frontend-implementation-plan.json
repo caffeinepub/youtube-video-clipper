@@ -1,68 +1,37 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add user status/role system with admin management - Frontend",
+  "title": "Enable admin users to change user status",
   "requirements": [
     {
-      "id": "REQ-3",
-      "summary": "Add status management UI to the admin panel with a form to select users and change their status",
+      "id": "REQ-1",
+      "summary": "Add a status change dropdown in the UserStatusManagement component that allows admins to modify user status in addition to roles",
       "acceptanceCriteria": [
-        "Admin panel includes a new section for managing user status",
-        "Interface allows searching or selecting users by ID",
-        "Dropdown or selection interface shows all four status options: Owner, Admin, User, Friend",
-        "Success and error messages display when status changes are attempted"
+        "Status dropdown is visible in the user management table",
+        "Only admins can see and use the status change controls",
+        "Status changes persist when applied"
       ],
       "file_operations": [
         {
           "path": "frontend/src/components/UserStatusManagement.tsx",
-          "operation": "create",
-          "description": "Create a new component that displays a list of all users with their current status (Owner, Admin, User, Friend) and provides a dropdown to change each user's status. The component fetches user data using the getAllUserRoles backend capability and submits status changes using the setUserRole backend capability. Include validation that ensures only admins/owners can access this section, loading states during fetch and update operations, success/error toast notifications, and a search/filter input to find users by principal ID."
-        },
-        {
-          "path": "frontend/src/hooks/useUserRoles.ts",
-          "operation": "create",
-          "description": "Create a React Query hook that fetches all users and their roles by calling the getAllUserRoles backend capability. Returns an array of [Principal, UserRole] tuples. The query should be enabled only when an authenticated actor is available and should refetch when invalidated after role changes."
-        },
-        {
-          "path": "frontend/src/hooks/useSetUserRole.ts",
-          "operation": "create",
-          "description": "Create a mutation hook for changing a user's status/role. Calls the setUserRole backend capability with the target principal and new UserRole. On success, invalidate the user roles query and display a success message. On error, display the error message to the user. Include proper error handling for authorization failures."
-        },
-        {
-          "path": "frontend/src/components/AdminPanel.tsx",
           "operation": "modify",
-          "description": "Add the new UserStatusManagement component to the admin panel as a new collapsible section titled 'User Status Management'. Place it below the existing admin management section. Ensure the section is only visible to authenticated admin/owner users. Wrap the component in a Card component for consistent styling with other admin panel sections."
+          "description": "Add a status change dropdown column to the user management table. Use the same UI pattern as the existing role dropdown. Include a Select component for UserStatus (active, inactive, suspended, banned) that calls the useSetUserStatus hook when changed. Display the current user status in the table. Ensure the status dropdown is only visible to authenticated admin users."
         }
       ]
     },
     {
-      "id": "REQ-4",
-      "summary": "Display the current user's status on the Home Screen in a visible location",
+      "id": "REQ-3",
+      "summary": "Create useSetUserStatus React hook that wraps the backend setUserStatus method and invalidates relevant queries on success",
       "acceptanceCriteria": [
-        "Home Screen displays the logged-in user's current status (Owner, Admin, User, or Friend)",
-        "Status is shown with clear visual styling to distinguish between different roles",
-        "Status display updates when the user's role changes"
+        "Hook follows the same pattern as useSetUserRole",
+        "Query invalidation refreshes the user list after status changes",
+        "Toast notifications show success or error messages"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/UserRoleBadge.tsx",
+          "path": "frontend/src/hooks/useSetUserStatus.ts",
           "operation": "create",
-          "description": "Create a badge component that displays a user's role (Owner, Admin, User, Friend) with distinct visual styling for each role. Use color-coded backgrounds and icons: Owner (purple/gold), Admin (blue), User (green), Friend (gray). Accept a 'role' prop of type UserRole and optionally a 'size' prop. Use shadcn/ui Badge component as the base with custom styling applied via className."
-        },
-        {
-          "path": "frontend/src/hooks/useGetOwnRole.ts",
-          "operation": "create",
-          "description": "Create a React Query hook that fetches the current user's role by calling the getOwnRole backend capability. Returns UserRole | null. Enable the query only when an authenticated actor is available. Include proper loading and error states."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Add the UserRoleBadge component to the main application view (home screen). Place it in a prominent location near the top of the page, likely in the header area or just below it. Use the useGetOwnRole hook to fetch the current user's role and pass it to the UserRoleBadge component. Only display the badge when the user is authenticated and the role has been successfully fetched. Ensure the badge updates reactively when the user's role changes by leveraging React Query's automatic refetching."
-        },
-        {
-          "path": "frontend/src/components/Layout.tsx",
-          "operation": "modify",
-          "description": "Integrate the UserRoleBadge into the Layout header component next to the user's name or authentication controls. Use the useGetOwnRole hook to fetch the current user's role and conditionally render the UserRoleBadge when authenticated. Position it appropriately within the existing header navigation structure for visibility without cluttering the UI."
+          "description": "Create a mutation hook that calls actor.updateUserStatus(target, newStatus) from the backend interface. Follow the same pattern as useSetUserRole: use useMutation from React Query, accept target Principal and newStatus UserStatus parameters, invalidate the 'allUserRoles' query on success, and show toast notifications for success and error states. Handle async/await properly and ensure error messages are user-friendly."
         }
       ]
     }

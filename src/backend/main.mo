@@ -1,11 +1,11 @@
 import Map "mo:core/Map";
-import List "mo:core/List";
 import Time "mo:core/Time";
+import List "mo:core/List";
 import Float "mo:core/Float";
+import Order "mo:core/Order";
 import VarArray "mo:core/VarArray";
 import Int "mo:core/Int";
 import Runtime "mo:core/Runtime";
-import Order "mo:core/Order";
 import Principal "mo:core/Principal";
 import Nat "mo:core/Nat";
 import Text "mo:core/Text";
@@ -24,6 +24,13 @@ actor {
     #admin;
     #user;
     #friend;
+  };
+
+  public type UserStatus = {
+    #active;
+    #inactive;
+    #banned;
+    #suspended;
   };
 
   public type VideoClip = {
@@ -61,6 +68,7 @@ actor {
     youtubeAuth : ?YouTubeChannelAuth;
     googleOAuthCredentials : ?GoogleOAuthCredentials;
     role : UserRole;
+    status : UserStatus;
   };
 
   let userProfiles = Map.empty<Principal, UserProfile>();
@@ -146,14 +154,14 @@ actor {
 
   public query ({ caller }) func getAllClips(_searchText : Text) : async [VideoClip] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+      Runtime.trap("Unauthorized: Only users can access this endpoint");
     };
     videoClips.values().toArray();
   };
 
   public query ({ caller }) func findRelatedClips(clipId : Text) : async [Text] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+      Runtime.trap("Unauthorized: Only users can access this endpoint");
     };
 
     let targetClip = switch (videoClips.get(clipId)) {
@@ -192,7 +200,7 @@ actor {
 
   public query ({ caller }) func getTrendingClips() : async [VideoClip] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+      Runtime.trap("Unauthorized: Only users can access this endpoint");
     };
 
     let allClipsArray = videoClips.values().toArray();
@@ -219,7 +227,7 @@ actor {
 
   public query ({ caller }) func getTrendingClipsAnalytics() : async [TrendingClipAnalytics] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+      Runtime.trap("Unauthorized: Only users can access this endpoint");
     };
 
     let allClipsArray = videoClips.values().toArray();
@@ -259,7 +267,7 @@ actor {
 
   public query ({ caller }) func getClipById(clipId : Text) : async VideoClip {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+      Runtime.trap("Unauthorized: Only users can access this endpoint");
     };
     switch (videoClips.get(clipId)) {
       case (?clip) { clip };
@@ -269,7 +277,7 @@ actor {
 
   public query ({ caller }) func getTotalClipsCount() : async Nat {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+      Runtime.trap("Unauthorized: Only users can access this endpoint");
     };
     videoClips.size();
   };
@@ -283,7 +291,7 @@ actor {
     score : Float,
   ) : async Text {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+      Runtime.trap("Unauthorized: Only users can save clips");
     };
     let id = title.concat(Time.now().toText());
     let newVideoClip : VideoClip = {
@@ -302,13 +310,13 @@ actor {
 
   public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+      Runtime.trap("Unauthorized: Only users can access profiles");
     };
     userProfiles.get(caller);
   };
 
   public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
-    if (caller != user and not AccessControl.isAdmin(accessControlState, caller)) {
+    if (caller != user and not (AccessControl.isAdmin(accessControlState, caller))) {
       Runtime.trap("Unauthorized: Can only view your own profile");
     };
     userProfiles.get(user);
@@ -316,12 +324,25 @@ actor {
 
   public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
+      Runtime.trap("Unauthorized: Only users can save profiles");
     };
     userProfiles.add(caller, profile);
   };
 
-  // Only the owner or an admin can delete a clip
+  public shared ({ caller }) func updateUserStatus(target : Principal, newStatus : UserStatus) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update user status");
+    };
+
+    let existingProfile = switch (userProfiles.get(target)) {
+      case (?profile) { profile };
+      case (null) { Runtime.trap("User not found") };
+    };
+
+    let updatedProfile = { existingProfile with status = newStatus };
+    userProfiles.add(target, updatedProfile);
+  };
+
   public shared ({ caller }) func deleteClip(clipId : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can delete clips");
@@ -329,19 +350,6 @@ actor {
     switch (videoClips.get(clipId)) {
       case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
       case (_) { videoClips.remove(clipId) };
-    };
-  };
-
-  func isOwnerOrAdmin(caller : Principal) : Bool {
-    switch (userProfiles.get(caller)) {
-      case (?profile) {
-        switch (profile.role) {
-          case (#owner) { true };
-          case (#admin) { true };
-          case (_) { false };
-        };
-      };
-      case (null) { false };
     };
   };
 
@@ -354,7 +362,7 @@ actor {
 
   public query ({ caller }) func generateDownloadVideoUrl(videoId : Text, startTime : Nat, endTime : Nat) : async Text {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can generate download links");
+      Runtime.trap("Unauthorized: Only users can generate download links");
     };
     if (startTime >= endTime) {
       Runtime.trap("Invalid timestamps: start time must be less than end time");
@@ -370,8 +378,23 @@ actor {
 
     let userPrincipal = Principal.fromText(userId);
 
-    AccessControl.assignRole(accessControlState, caller, userPrincipal, #admin);
+    let existingProfile = switch (userProfiles.get(userPrincipal)) {
+      case (?profile) { profile };
+      case (null) {
+        {
+          name = "Admin User";
+          youtubeAuth = null;
+          googleOAuthCredentials = null;
+          role = #admin;
+          status = #active;
+        };
+      };
+    };
 
+    let updatedProfile = { existingProfile with role = #admin };
+    userProfiles.add(userPrincipal, updatedProfile);
+
+    AccessControl.assignRole(accessControlState, caller, userPrincipal, #admin);
     adminPrincipals.add(userPrincipal, ());
   };
 
@@ -393,7 +416,7 @@ actor {
     expiresAt : Time.Time,
   ) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can connect YouTube channels");
+      Runtime.trap("Unauthorized: Only users can connect YouTube channels");
     };
     let youtubeAuth : YouTubeChannelAuth = {
       accessToken;
@@ -405,7 +428,7 @@ actor {
 
     let currentProfile : UserProfile = switch (userProfiles.get(caller)) {
       case (null) {
-        { name = "Guest"; youtubeAuth = ?youtubeAuth; googleOAuthCredentials = null; role = #user };
+        { name = "Guest"; youtubeAuth = ?youtubeAuth; googleOAuthCredentials = null; role = #user; status = #active };
       };
       case (?profile) {
         { profile with youtubeAuth = ?youtubeAuth };
@@ -417,7 +440,7 @@ actor {
 
   public query ({ caller }) func isYouTubeChannelConnected() : async Bool {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can check YouTube connection status");
+      Runtime.trap("Unauthorized: Only users can check YouTube connection status");
     };
     switch (userProfiles.get(caller)) {
       case (null) { false };
@@ -432,7 +455,7 @@ actor {
 
   public query ({ caller }) func hasGoogleOAuthCredentials() : async Bool {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can check Google OAuth status");
+      Runtime.trap("Unauthorized: Only users can check Google OAuth status");
     };
     switch (userProfiles.get(caller)) {
       case (null) { false };
@@ -454,10 +477,9 @@ actor {
     redirectUri : Text,
   ) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can connect Google OAuth");
+      Runtime.trap("Unauthorized: Only users can connect Google OAuth");
     };
 
-    // Client ID and Client Secret should be stored securely in configuration
     let clientId = "YOUR_CLIENT_ID_HERE";
     let clientSecret = "YOUR_CLIENT_SECRET_HERE";
 
@@ -481,8 +503,6 @@ actor {
       transform,
     );
 
-    // Parse response and store credentials
-    // This is a simplified version - in production, properly parse the JSON response
     let credentials : GoogleOAuthCredentials = {
       accessToken = "token_from_response";
       refreshToken = "refresh_token_from_response";
@@ -494,7 +514,7 @@ actor {
 
     let currentProfile : UserProfile = switch (userProfiles.get(caller)) {
       case (null) {
-        { name = "User"; youtubeAuth = null; googleOAuthCredentials = ?credentials; role = #user };
+        { name = "User"; youtubeAuth = null; googleOAuthCredentials = ?credentials; role = #user; status = #active };
       };
       case (?profile) {
         { profile with googleOAuthCredentials = ?credentials };
@@ -506,7 +526,7 @@ actor {
 
   public shared ({ caller }) func postClipToYouTube(clipMetadata : ClipMetadata) : async YouTubePostResult {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can post clips to YouTube");
+      Runtime.trap("Unauthorized: Only users can post clips to YouTube");
     };
 
     let userProfile = switch (userProfiles.get(caller)) {
@@ -535,7 +555,7 @@ actor {
       Runtime.trap("Invalid clip: start time must precede end time");
     };
 
-    let clipDuration = clipMetadata.endTimestamp - clipMetadata.startTimestamp;
+    let clipDuration = Int.abs(clipMetadata.endTimestamp.toInt() - clipMetadata.startTimestamp.toInt());
     if (clipDuration > 60) {
       Runtime.trap("Invalid clip: YouTube Shorts must be 60 seconds or less");
     };
@@ -547,13 +567,9 @@ actor {
     };
   };
 
-  // Set user role - only callable by admins/owners (in JavaScript)
   public shared ({ caller }) func setUserRole(target : Principal, userRole : UserRole) : async () {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
-      Runtime.trap("Unauthorized: Only logged-in users can access this endpoint");
-    };
-    if (not isOwnerOrAdmin(caller)) {
-      Runtime.trap("Unauthorized: Only owners and admins can update user roles");
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update user roles");
     };
 
     switch (userRole, caller == target) {
@@ -580,23 +596,36 @@ actor {
 
     let updatedProfile = { existingProfile with role = userRole };
     userProfiles.add(target, updatedProfile);
+
+    switch (userRole) {
+      case (#owner) {
+        AccessControl.assignRole(accessControlState, caller, target, #admin);
+      };
+      case (#admin) {
+        AccessControl.assignRole(accessControlState, caller, target, #admin);
+      };
+      case (#user) {
+        AccessControl.assignRole(accessControlState, caller, target, #user);
+      };
+      case (#friend) {
+        AccessControl.assignRole(accessControlState, caller, target, #user);
+      };
+    };
   };
 
-  // User can retrieve their own role for UI display in the admin panel
   public query ({ caller }) func getOwnRole() : async ?UserRole {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      return null;
+    };
     switch (userProfiles.get(caller)) {
       case (?profile) { ?profile.role };
       case (null) { null };
     };
   };
 
-  // Admin/owner can retrieve all users with their status/role for the admin panel
   public query ({ caller }) func getAllUserRoles() : async [(Principal, UserRole)] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can access this endpoint");
-    };
-    if (not isOwnerOrAdmin(caller)) {
-      Runtime.trap("Unauthorized: Only owners and admins can access this endpoint");
     };
     let allUserProfiles = userProfiles.toArray();
     allUserProfiles.map(func((principal, profile)) { (principal, profile.role) });

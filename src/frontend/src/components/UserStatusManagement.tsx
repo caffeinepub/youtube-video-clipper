@@ -3,20 +3,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Search, AlertCircle, Loader2 } from 'lucide-react';
 import { useUserRoles } from '../hooks/useUserRoles';
 import { useSetUserRole } from '../hooks/useSetUserRole';
-import { UserRole } from '../backend';
+import { useSetUserStatus } from '../hooks/useSetUserStatus';
+import { UserRole, UserStatus } from '../backend';
 import UserRoleBadge from './UserRoleBadge';
 import { Principal } from '@icp-sdk/core/principal';
 
 export default function UserStatusManagement() {
-  const { data: userRoles, isLoading, error } = useUserRoles();
+  const { data: users, isLoading, error } = useUserRoles();
   const setUserRoleMutation = useSetUserRole();
+  const setUserStatusMutation = useSetUserStatus();
   const [searchTerm, setSearchTerm] = useState('');
 
   const handleRoleChange = async (principalText: string, newRole: UserRole) => {
@@ -28,7 +30,46 @@ export default function UserStatusManagement() {
     }
   };
 
-  const filteredUsers = userRoles?.filter(([principal]) => {
+  const handleStatusChange = async (principalText: string, newStatus: UserStatus) => {
+    try {
+      const principal = Principal.fromText(principalText);
+      await setUserStatusMutation.mutateAsync({ target: principal, status: newStatus });
+    } catch (error) {
+      console.error('Failed to change status:', error);
+    }
+  };
+
+  const getStatusBadgeVariant = (status: UserStatus): 'default' | 'secondary' | 'destructive' | 'outline' => {
+    switch (status) {
+      case UserStatus.active:
+        return 'default';
+      case UserStatus.inactive:
+        return 'secondary';
+      case UserStatus.suspended:
+        return 'outline';
+      case UserStatus.banned:
+        return 'destructive';
+      default:
+        return 'default';
+    }
+  };
+
+  const getStatusLabel = (status: UserStatus): string => {
+    switch (status) {
+      case UserStatus.active:
+        return 'Active';
+      case UserStatus.inactive:
+        return 'Inactive';
+      case UserStatus.suspended:
+        return 'Suspended';
+      case UserStatus.banned:
+        return 'Banned';
+      default:
+        return status;
+    }
+  };
+
+  const filteredUsers = users?.filter(({ principal }) => {
     const principalText = principal.toString();
     return principalText.toLowerCase().includes(searchTerm.toLowerCase());
   });
@@ -58,7 +99,7 @@ export default function UserStatusManagement() {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              {error instanceof Error ? error.message : 'Failed to load user roles'}
+              {error instanceof Error ? error.message : 'Failed to load user data'}
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -71,7 +112,7 @@ export default function UserStatusManagement() {
       <CardHeader>
         <CardTitle>User Status Management</CardTitle>
         <CardDescription>
-          Manage user roles and permissions. Change status between Owner, Admin, User, and Friend.
+          Manage user roles and account status. Change roles between Owner, Admin, User, and Friend, or update account status.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -97,14 +138,17 @@ export default function UserStatusManagement() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Principal ID</TableHead>
+                  <TableHead>Current Role</TableHead>
+                  <TableHead>Change Role</TableHead>
                   <TableHead>Current Status</TableHead>
                   <TableHead>Change Status</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {filteredUsers.map(([principal, role]) => {
+                {filteredUsers.map(({ principal, role, status }) => {
                   const principalText = principal.toString();
-                  const isUpdating = setUserRoleMutation.isPending;
+                  const isRoleUpdating = setUserRoleMutation.isPending;
+                  const isStatusUpdating = setUserStatusMutation.isPending;
                   
                   return (
                     <TableRow key={principalText}>
@@ -119,7 +163,7 @@ export default function UserStatusManagement() {
                           <Select
                             value={role}
                             onValueChange={(value) => handleRoleChange(principalText, value as UserRole)}
-                            disabled={isUpdating}
+                            disabled={isRoleUpdating || isStatusUpdating}
                           >
                             <SelectTrigger className="w-[140px]">
                               <SelectValue />
@@ -131,7 +175,34 @@ export default function UserStatusManagement() {
                               <SelectItem value={UserRole.friend}>Friend</SelectItem>
                             </SelectContent>
                           </Select>
-                          {isUpdating && (
+                          {isRoleUpdating && (
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={getStatusBadgeVariant(status)}>
+                          {getStatusLabel(status)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <Select
+                            value={status}
+                            onValueChange={(value) => handleStatusChange(principalText, value as UserStatus)}
+                            disabled={isRoleUpdating || isStatusUpdating}
+                          >
+                            <SelectTrigger className="w-[140px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value={UserStatus.active}>Active</SelectItem>
+                              <SelectItem value={UserStatus.inactive}>Inactive</SelectItem>
+                              <SelectItem value={UserStatus.suspended}>Suspended</SelectItem>
+                              <SelectItem value={UserStatus.banned}>Banned</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          {isStatusUpdating && (
                             <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
                           )}
                         </div>
@@ -150,9 +221,9 @@ export default function UserStatusManagement() {
           </div>
         )}
 
-        {userRoles && (
+        {users && (
           <p className="text-sm text-muted-foreground">
-            Total users: {userRoles.length}
+            Total users: {users.length}
           </p>
         )}
       </CardContent>

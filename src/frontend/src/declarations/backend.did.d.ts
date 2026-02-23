@@ -47,6 +47,7 @@ export interface TrendingClipAnalytics {
   'trendingScore' : number,
 }
 export interface UserProfile {
+  'status' : UserStatus,
   'youtubeAuth' : [] | [YouTubeChannelAuth],
   'name' : string,
   'role' : UserRole,
@@ -59,6 +60,10 @@ export type UserRole = { 'admin' : null } |
 export type UserRole__1 = { 'admin' : null } |
   { 'user' : null } |
   { 'guest' : null };
+export type UserStatus = { 'active' : null } |
+  { 'banned' : null } |
+  { 'inactive' : null } |
+  { 'suspended' : null };
 export interface VideoClip {
   'id' : string,
   'startTime' : bigint,
@@ -125,6 +130,7 @@ export interface _SERVICE {
   'setUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'storeGoogleOAuthCredentials' : ActorMethod<[string, string], undefined>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
+  'updateUserStatus' : ActorMethod<[Principal, UserStatus], undefined>,
 }
 export declare const idlService: IDL.ServiceClass;
 export declare const idlInitArgs: IDL.Type[];

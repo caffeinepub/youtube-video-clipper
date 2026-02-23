@@ -2,13 +2,30 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-status-management-ui-to-the-admin-panel-with-a-form-to-select-users-and-change-their-status",
-      "featureTitle": "Add status management UI to the admin panel with a form to select users and change their status",
+      "featureId": "feature-add-a-status-change-dropdown-in-the-userstatusmanagement-component-that-allows-admins-to-modify-user-status-in-addition-to-roles",
+      "featureTitle": "Add a status change dropdown in the UserStatusManagement component that allows admins to modify user status in addition to roles",
       "files": [
-        "frontend/src/components/AdminPanel.tsx",
-        "frontend/src/components/UserStatusManagement.tsx",
-        "frontend/src/hooks/useSetUserRole.ts",
-        "frontend/src/hooks/useUserRoles.ts"
+        "frontend/src/components/UserStatusManagement.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-1"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-create-usesetuserstatus-react-hook-that-wraps-the-backend-setuserstatus-method-and-invalidates-relevant-queries-on-success",
+      "featureTitle": "Create useSetUserStatus React hook that wraps the backend setUserStatus method and invalidates relevant queries on success",
+      "files": [
+        "frontend/src/hooks/useSetUserStatus.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -21,28 +38,6 @@
       ],
       "testIds": [
         "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-display-the-current-user-s-status-on-the-home-screen-in-a-visible-location",
-      "featureTitle": "Display the current user's status on the Home Screen in a visible location",
-      "files": [
-        "frontend/src/components/Layout.tsx",
-        "frontend/src/components/UserRoleBadge.tsx",
-        "frontend/src/hooks/useGetOwnRole.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0"
-      ],
-      "testIds": [
-        "REQ-4"
       ],
       "confidence": "high"
     }
