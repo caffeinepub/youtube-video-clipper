@@ -1,88 +1,45 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-25T22:52:05.111Z",
+  "generatedAt": "2026-02-25T23:06:15.717Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 4,
-    "implemented": 3,
+    "total": 2,
+    "implemented": 2,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Add a backend data type `FeedbackSubmission` with fields: id (Nat), submitterPrincipal (Text), submitterUserId (Text), submissionType (variant { FeatureRequest; BugReport }), title (Text), description (Text), timestamp (Int). Store submissions in a stable array or HashMap. Expose the following functions: `submitFeedback(submissionType, title, description)` callable by any authenticated user (captures caller principal and derived user ID automatically); `getFeedbackSubmissions()` callable only by admins and owner, returns all submissions; `deleteFeedbackSubmission(id)` callable only by admins and owner.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
+        "summary": "Fix the OAuthCallback page so it does not show 'Connection Failed / Actor not available' when the actor is not yet initialized. The page should wait for the actor to become available (with a loading state) before attempting to exchange the OAuth authorization code, rather than failing immediately if the actor is null or undefined.",
+        "status": "implemented",
+        "plannedFiles": [
+          "frontend/src/pages/OAuthCallback.tsx"
+        ],
+        "matchedFiles": [
+          "frontend/src/pages/OAuthCallback.tsx"
+        ]
       },
       {
         "id": "REQ-2",
-        "summary": "Add a 'Feedback' button or link in the main navigation/header (Layout.tsx area, but implement via App.tsx or a new modal/page) that is visible to all authenticated users. This opens a modal form with: a toggle/tab to select 'Request a Feature' or 'Report a Bug'; a Title field; a Description textarea; and a Submit button. On submission, call the backend `submitFeedback` function. Show a success toast on completion and close the modal.",
+        "summary": "Ensure the actor initialization in useActor hook and the OAuthCallback page are properly synchronized — the OAuthCallback should re-attempt or wait using React Query's enabled flag or a polling/retry strategy until the authenticated actor is ready before proceeding with the OAuth callback processing.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/components/Layout.tsx",
-          "frontend/src/components/FeedbackModal.tsx"
+          "frontend/src/pages/OAuthCallback.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/App.tsx",
-          "frontend/src/components/Layout.tsx",
-          "frontend/src/components/FeedbackModal.tsx"
-        ]
-      },
-      {
-        "id": "REQ-3",
-        "summary": "Add a `useFeedbackSubmit` mutation hook that calls `actor.submitFeedback` and invalidates relevant queries on success. Add a `useFeedbackSubmissions` query hook that calls `actor.getFeedbackSubmissions` (used only in the admin view). Add a `useDeleteFeedback` mutation hook that calls `actor.deleteFeedbackSubmission`.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/hooks/useFeedbackSubmit.ts",
-          "frontend/src/hooks/useFeedbackSubmissions.ts",
-          "frontend/src/hooks/useDeleteFeedback.ts"
-        ],
-        "matchedFiles": [
-          "frontend/src/hooks/useFeedbackSubmit.ts",
-          "frontend/src/hooks/useFeedbackSubmissions.ts",
-          "frontend/src/hooks/useDeleteFeedback.ts"
-        ]
-      },
-      {
-        "id": "REQ-4",
-        "summary": "Add a 'Feedback Submissions' section to the AdminPanel component. This section displays all submitted feedback in a table/card list showing: submission type badge (Feature Request / Bug Report), title, description, submitter's short user ID, submitter's full principal, and timestamp. Admins and owner can delete individual submissions. Show loading and empty states appropriately.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/AdminPanel.tsx",
-          "frontend/src/components/FeedbackSubmissions.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/AdminPanel.tsx",
-          "frontend/src/components/FeedbackSubmissions.tsx"
+          "frontend/src/pages/OAuthCallback.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
-    "build-template/README.md",
-    "caffeine.lock.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/AdminPanel.tsx",
-    "frontend/src/components/FeedbackModal.tsx",
-    "frontend/src/components/FeedbackSubmissions.tsx",
-    "frontend/src/components/Layout.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useDeleteFeedback.ts",
-    "frontend/src/hooks/useFeedbackSubmissions.ts",
-    "frontend/src/hooks/useFeedbackSubmit.ts",
+    "frontend/src/pages/OAuthCallback.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

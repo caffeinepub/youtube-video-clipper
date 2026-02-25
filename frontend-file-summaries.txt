@@ -41,7 +41,7 @@
   "frontend/src/hooks/useAdminList.ts": "React Query hook that fetches the list of admin principal IDs from the backend using getAdminsAsAdmin method.",
   "frontend/src/components/AdminList.tsx": "Component that displays the current list of admins with their short user IDs and full principal IDs, showing loading and error states appropriately.",
   "frontend/src/components/AdminManagement.tsx": "Admin management section with a form to add new admins by principal ID and displays the current admin list, including success/error feedback.",
-  "frontend/src/pages/OAuthCallback.tsx": "OAuth callback page that processes Google OAuth redirects with comprehensive error handling, detailed error messages for common failure scenarios, user-friendly feedback, and manual retry option.",
+  "frontend/src/pages/OAuthCallback.tsx": "OAuth callback page that waits for the backend actor to be fully initialized before attempting the OAuth code exchange, showing a loading spinner during actor initialization, processing the OAuth flow once the actor is ready, and falling back to a timeout error with retry option if the actor never becomes available within 15 seconds.",
   "frontend/.env.example": "Comprehensive environment configuration template with detailed step-by-step instructions for obtaining and configuring Google OAuth Client ID, including troubleshooting guide for common OAuth issues.",
   "frontend/.gitignore": "Git ignore file that excludes node_modules, build artifacts, editor files, and environment variable files (.env) from version control.",
   "frontend/src/components/UserRoleBadge.tsx": "Badge component that displays user roles (Owner, Admin, User, Friend) with distinct color-coded styling and icons for each role type.",

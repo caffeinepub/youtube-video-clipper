@@ -1,14 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Add a feature request / bug report feedback system where authenticated users can submit feedback and admins/owner can view and manage submissions.
+**Goal:** Fix the OAuthCallback page so it waits for the actor to initialize before attempting the OAuth code exchange, instead of immediately failing with "Actor not available."
 
 **Planned changes:**
-- Add a `FeedbackSubmission` data type in the backend with fields for id, submitter principal, user ID, submission type (Feature Request / Bug Report), title, description, and timestamp, stored in stable storage
-- Expose backend functions: `submitFeedback` (any authenticated user), `getFeedbackSubmissions` (admin/owner only), and `deleteFeedbackSubmission` (admin/owner only)
-- Add a "Feedback" button in the header (wired through App.tsx) visible to all authenticated users
-- Add a modal form with a type selector (Feature Request / Bug Report), Title input, Description textarea, and Submit button; shows a success toast and closes on successful submission
-- Add React query/mutation hooks: `useFeedbackSubmit`, `useFeedbackSubmissions`, and `useDeleteFeedback`
-- Add a "Feedback Submissions" section in the AdminPanel displaying all submissions with type badge, title, description, short user ID, full principal, timestamp, and a delete action; gated to admins and owner only
+- Modify `frontend/src/pages/OAuthCallback.tsx` to show a loading indicator while the actor is initializing
+- Add a wait/retry mechanism (e.g., using React Query's `enabled` flag or a polling strategy) so the OAuth code exchange is only attempted once the actor is confirmed available
+- If the actor becomes available within a reasonable timeout, proceed with the OAuth flow normally
+- If the actor remains unavailable after the timeout, show a clear error with a retry option instead of immediately failing
 
-**User-visible outcome:** Authenticated users can submit feature requests or bug reports via a modal form in the header. Admins and the owner can view all submissions in the Admin Panel and delete individual entries.
+**User-visible outcome:** A logged-in user completing the Google OAuth redirect flow will no longer see the "Connection Failed / Actor not available" error. Instead, they will see a loading state while the actor initializes, and the OAuth connection will complete successfully once the actor is ready.

@@ -1,49 +1,31 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-02-25T22:52:05.107Z",
-  "summary": "The diff implements all four requirements with good coverage. Backend adds FeedbackSubmission type, stable storage, and the three required functions. Frontend adds the FeedbackModal, FeedbackSubmissions component, three hooks, wires the Feedback button through App.tsx/Layout.tsx, and integrates the section into AdminPanel. One minor AC gap exists: the submitterUserId field is stored but the backend's actual derivation logic (8-char base-36 hash from caller principal) is not visible in the truncated diff. The AdminPanel section visibility gating by isOwner/isAdmin is also not clearly shown in the truncated AdminPanel diff.",
+  "generatedAt": "2026-02-25T23:06:15.714Z",
+  "summary": "The diff modifies OAuthCallback.tsx to implement a waiting/loading state with a 15-second timeout before declaring the actor unavailable. It checks actorFetching and actor availability before processing the OAuth callback, satisfying most requirements. The implementation correctly delays processing until the actor is ready, shows a loading indicator, and provides a timeout-based error. However, a dedicated retry button is not clearly present (auto-redirect is used instead), and the polling/retry mechanism via React Query's enabled flag is not used.",
   "missing_requirements": [
     {
       "id": "REQ-1",
-      "requirement": "submitFeedback must capture and store the caller's derived user ID as an 8-char base-36 hash",
-      "reason": "The backend/main.mo diff is truncated and the actual submitFeedback implementation body is not visible, so it cannot be confirmed that the submitterUserId is derived as an 8-char base-36 hash of the caller principal as specified.",
+      "requirement": "If the actor is genuinely unavailable after timeout, a clear error is shown with a retry option",
+      "reason": "The timeout handler sets an error state and auto-navigates to '/' after 5 seconds, but no explicit retry button is visible in the diff for the user to manually retry. The diff is truncated so full render JSX is not visible, but the error path only shows auto-redirect without evidence of a retry button.",
       "evidence": [
-        "backend/main.mo",
-        "backend/migration.mo"
+        "frontend/src/pages/OAuthCallback.tsx"
       ]
     },
     {
-      "id": "REQ-4",
-      "requirement": "Feedback Submissions section must be gated and only visible to admins and owner",
-      "reason": "The AdminPanel.tsx diff is truncated and the portion showing the Feedback section render including any isOwner/isAdmin gate around FeedbackSubmissions is cut off. It cannot be confirmed that the section is conditionally rendered only for admins/owner.",
+      "id": "REQ-2",
+      "requirement": "OAuthCallback should re-attempt or wait using React Query's enabled flag or a polling/retry strategy until the authenticated actor is ready",
+      "reason": "The implementation uses a useRef guard and useEffect pattern rather than React Query's enabled flag or a formal retry/polling strategy. The AC specifically calls out React Query's enabled flag or polling/retry strategy, which is not used here.",
       "evidence": [
-        "frontend/src/components/AdminPanel.tsx"
+        "frontend/src/pages/OAuthCallback.tsx"
       ]
     }
   ],
-  "hallucinated_features": [
-    {
-      "description": "A backend migration module (migration.mo) was added to handle schema evolution from old actor state to new actor state with feedbackSubmissions and currentSubmissionId fields",
-      "reason": "The build request only asked for stable storage of submissions and reuse of existing admin/owner check patterns. It did not request a migration module or explicit migration pattern. The migration.mo file was added beyond what was specified.",
-      "evidence": [
-        "backend/migration.mo"
-      ]
-    }
-  ],
-  "confidence": 0.72,
+  "hallucinated_features": [],
+  "confidence": 0.62,
   "changed_files": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/AdminPanel.tsx",
-    "frontend/src/components/FeedbackModal.tsx",
-    "frontend/src/components/FeedbackSubmissions.tsx",
-    "frontend/src/components/Layout.tsx",
-    "frontend/src/hooks/useDeleteFeedback.ts",
-    "frontend/src/hooks/useFeedbackSubmissions.ts",
-    "frontend/src/hooks/useFeedbackSubmit.ts",
+    "frontend/src/pages/OAuthCallback.tsx",
     "project_state.json"
   ]
 }

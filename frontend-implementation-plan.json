@@ -1,82 +1,39 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Add Feature Request / Bug Report Form with Admin-Visible Submissions",
+  "title": "Fix OAuth callback 'Actor not available' connection failure",
   "requirements": [
     {
+      "id": "REQ-1",
+      "summary": "Add loading state and actor availability check to OAuthCallback page to prevent premature 'Actor not available' errors",
+      "acceptanceCriteria": [
+        "OAuthCallback page shows a loading indicator while the actor is initializing instead of immediately failing",
+        "OAuth code exchange is only attempted once the actor is confirmed available",
+        "If the actor becomes available within a reasonable timeout, the OAuth flow completes successfully",
+        "If the actor is genuinely unavailable after timeout, a clear error is shown with a retry option",
+        "No 'Actor not available' error appears for a logged-in user who completes the Google OAuth redirect flow"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/OAuthCallback.tsx",
+          "operation": "modify",
+          "description": "Add loading state while actor is initializing. Replace immediate error throw with conditional rendering: show loading spinner while actor is being fetched, only attempt OAuth code exchange when actor is confirmed available. Add timeout logic (e.g., 10 seconds) to handle cases where actor never becomes available, displaying a user-friendly error with retry option if timeout is reached."
+        }
+      ]
+    },
+    {
       "id": "REQ-2",
-      "summary": "Add a Feedback button in navigation that opens a modal form for submitting feature requests or bug reports",
+      "summary": "Synchronize actor initialization state with OAuthCallback using React Query's enabled flag to prevent premature backend calls",
       "acceptanceCriteria": [
-        "A 'Feedback' button is visible in the header/nav for all authenticated users",
-        "The modal contains a type selector (Feature Request / Bug Report), Title input, and Description textarea",
-        "Submitting calls the backend and shows a success toast",
-        "The modal closes after successful submission",
-        "Form validates that title and description are non-empty before submitting"
+        "useActor hook readiness state is correctly consumed by OAuthCallback before making backend calls",
+        "OAuthCallback does not call backend actor methods when actor is null/undefined",
+        "A retry or wait mechanism is in place so transient actor initialization delays do not cause hard failures"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/pages/OAuthCallback.tsx",
           "operation": "modify",
-          "description": "Add state management for the feedback modal (open/close state). Pass a toggleFeedbackModal function to Layout via props. Wire the FeedbackModal component into the main app render tree, conditional on modal open state."
-        },
-        {
-          "path": "frontend/src/components/Layout.tsx",
-          "operation": "modify",
-          "description": "Add a Feedback button in the header navigation area (between existing nav items and the login section) that calls the toggleFeedbackModal function passed via props. The button should only be visible when isAuthenticated is true."
-        },
-        {
-          "path": "frontend/src/components/FeedbackModal.tsx",
-          "operation": "create",
-          "description": "Create a modal component using shadcn/ui Dialog components. Include a type selector (radio group or tabs) for 'Request a Feature' vs 'Report a Bug', a Title input field, a Description textarea, and Submit/Cancel buttons. Use the useFeedbackSubmit hook to call the backend on form submission. Show a success toast on completion and call the onClose callback to close the modal. Validate that title and description are non-empty before allowing submission."
-        }
-      ]
-    },
-    {
-      "id": "REQ-3",
-      "summary": "Add React Query hooks for feedback submission, fetching submissions, and deleting submissions",
-      "acceptanceCriteria": [
-        "useFeedbackSubmit mutation hook wraps actor.submitFeedback",
-        "useFeedbackSubmissions query hook wraps actor.getFeedbackSubmissions",
-        "useDeleteFeedback mutation hook wraps actor.deleteFeedbackSubmission and invalidates the submissions query on success"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/hooks/useFeedbackSubmit.ts",
-          "operation": "create",
-          "description": "Create a mutation hook that calls actor.submitFeedback with submissionType (FeatureRequest or BugReport enum), title, and description. On success, invalidate the 'feedbackSubmissions' query key and show a success toast. Return the mutation result including isLoading and error states."
-        },
-        {
-          "path": "frontend/src/hooks/useFeedbackSubmissions.ts",
-          "operation": "create",
-          "description": "Create a query hook that calls actor.getFeedbackSubmissions to fetch all feedback submissions. Use queryKey ['feedbackSubmissions']. Only enable the query when the actor is available. Return the query result with typed FeedbackSubmission array data."
-        },
-        {
-          "path": "frontend/src/hooks/useDeleteFeedback.ts",
-          "operation": "create",
-          "description": "Create a mutation hook that calls actor.deleteFeedbackSubmission with a submission ID (bigint). On success, invalidate the 'feedbackSubmissions' query key and show a success toast. On error, show an error toast. Return the mutation result including isLoading state."
-        }
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "summary": "Add a Feedback Submissions section to the AdminPanel component displaying all submitted feedback with delete capability",
-      "acceptanceCriteria": [
-        "The AdminPanel shows a Feedback Submissions section",
-        "Each submission displays type badge, title, description, short user ID, full principal, and formatted timestamp",
-        "Admins can delete submissions with a confirmation step or delete button",
-        "Empty state message is shown when no submissions exist",
-        "Section is only visible to admins and owner (gated by existing isOwner/isAdmin checks)"
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/AdminPanel.tsx",
-          "operation": "modify",
-          "description": "Add a new collapsible section titled 'Feedback Submissions' after the existing User Status Management section. Import and render the FeedbackSubmissions component within this section. The section is already protected by the existing admin/owner authorization checks in AdminPanel."
-        },
-        {
-          "path": "frontend/src/components/FeedbackSubmissions.tsx",
-          "operation": "create",
-          "description": "Create a component that uses the useFeedbackSubmissions and useDeleteFeedback hooks. Display submissions in a table or card list format. For each submission, show: a colored badge indicating submission type (FeatureRequest in blue, BugReport in red), title, description, submitter's 8-character user ID (generated via userIdGenerator utility), submitter's full principal, and formatted timestamp (using date formatting). Include a Delete button for each submission that triggers the useDeleteFeedback mutation with confirmation (using a confirm dialog or Alert component). Show a loading spinner when fetching, and an empty state message ('No feedback submissions yet') when the array is empty."
+          "description": "Consume both actor and isFetching from useActor hook. Use React Query's enabled flag or conditional effect dependencies to ensure storeGoogleOAuthCredentials mutation is only triggered when actor is defined and not fetching. Add retry logic using React Query's retry configuration or a custom polling mechanism that waits for actor availability before proceeding with the OAuth callback processing."
         }
       ]
     }

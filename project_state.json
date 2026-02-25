@@ -4,50 +4,27 @@
   "summary": "New project",
   "architectural_notes": [],
   "known_issues": [],
-  "isFixRequest": false,
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-add-a-feedback-button-or-link-in-the-main-navigation-header-layout-tsx-area-but-implement-via-app-tsx-or-a-new-modal-page-that-is-visible-to-all-authenticated-users-this-opens-a-modal-form-with-a-toggle-tab-to-select-request-a-feature-or-report-a-bug-a-title-field-a-description-textarea-and-a-submit-button-on-submission-call-the-backend-submitfeedback-function-show-a-success-toast-on-completion-and-close-the-modal",
-      "title": "Add a 'Feedback' button or link in the main navigation/header (Layout.tsx area, but implement via App.tsx or a new modal/page) that is visible to all authenticated users. This opens a modal form with: a toggle/tab to select 'Request a Feature' or 'Report a Bug'; a Title field; a Description textarea; and a Submit button. On submission, call the backend `submitFeedback` function. Show a success toast on completion and close the modal.",
+      "id": "feature-fix-the-oauthcallback-page-so-it-does-not-show-connection-failed-actor-not-available-when-the-actor-is-not-yet-initialized-the-page-should-wait-for-the-actor-to-become-available-with-a-loading-state-before-attempting-to-exchange-the-oauth-authorization-code-rather-than-failing-immediately-if-the-actor-is-null-or-undefined",
+      "title": "Fix the OAuthCallback page so it does not show 'Connection Failed / Actor not available' when the actor is not yet initialized. The page should wait for the actor to become available (with a loading state) before attempting to exchange the OAuth authorization code, rather than failing immediately if the actor is null or undefined.",
+      "reqIds": [
+        "REQ-1"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-actor-initialization-in-useactor-hook-and-the-oauthcallback-page-are-properly-synchronized-the-oauthcallback-should-re-attempt-or-wait-using-react-query-s-enabled-flag-or-a-polling-retry-strategy-until-the-authenticated-actor-is-ready-before-proceeding-with-the-oauth-callback-processing",
+      "title": "Ensure the actor initialization in useActor hook and the OAuthCallback page are properly synchronized — the OAuthCallback should re-attempt or wait using React Query's enabled flag or a polling/retry strategy until the authenticated actor is ready before proceeding with the OAuth callback processing.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
-    },
-    {
-      "id": "feature-add-a-usefeedbacksubmit-mutation-hook-that-calls-actor-submitfeedback-and-invalidates-relevant-queries-on-success-add-a-usefeedbacksubmissions-query-hook-that-calls-actor-getfeedbacksubmissions-used-only-in-the-admin-view-add-a-usedeletefeedback-mutation-hook-that-calls-actor-deletefeedbacksubmission",
-      "title": "Add a `useFeedbackSubmit` mutation hook that calls `actor.submitFeedback` and invalidates relevant queries on success. Add a `useFeedbackSubmissions` query hook that calls `actor.getFeedbackSubmissions` (used only in the admin view). Add a `useDeleteFeedback` mutation hook that calls `actor.deleteFeedbackSubmission`.",
-      "reqIds": [
-        "REQ-3"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-feedback-submissions-section-to-the-adminpanel-component-this-section-displays-all-submitted-feedback-in-a-table-card-list-showing-submission-type-badge-feature-request-bug-report-title-description-submitter-s-short-user-id-submitter-s-full-principal-and-timestamp-admins-and-owner-can-delete-individual-submissions-show-loading-and-empty-states-appropriately",
-      "title": "Add a 'Feedback Submissions' section to the AdminPanel component. This section displays all submitted feedback in a table/card list showing: submission type badge (Feature Request / Bug Report), title, description, submitter's short user ID, submitter's full principal, and timestamp. Admins and owner can delete individual submissions. Show loading and empty states appropriately.",
-      "reqIds": [
-        "REQ-4"
-      ],
-      "version": 1
     }
   ],
-  "new_feature_requests": [
-    {
-      "id": "AR-1",
-      "summary": "Add a 'Request a Feature' or 'Report a Bug' form that stores submissions (with user ID) in a list visible to admins and owner, and/or sends an email notification",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Add a backend data type `FeedbackSubmission` with fields: id (Nat), submitterPrincipal (Text), submitterUserId (Text), submissionType (variant { FeatureRequest; BugReport }), title (Text), description (Text), timestamp (Int). Store submissions in a stable array or HashMap. Expose the following functions: `submitFeedback(submissionType, title, description)` callable by any authenticated user (captures caller principal and derived user ID automatically); `getFeedbackSubmissions()` callable only by admins and owner, returns all submissions; `deleteFeedbackSubmission(id)` callable only by admins and owner.",
-      "reqIds": [
-        "REQ-1"
-      ],
-      "status": "pending"
-    }
-  ],
-  "projectName": "Beast Clipping",
+  "new_feature_requests": [],
+  "projectName": "Fix OAuth callback 'Actor not available' connection failure",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }
