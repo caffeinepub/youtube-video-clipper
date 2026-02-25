@@ -1,0 +1,98 @@
+{
+  "kind": "build_request",
+  "title": "Add Feature Request / Bug Report Form with Admin-Visible Submissions",
+  "projectName": "Beast Clipping",
+  "priority": "normal",
+  "requirements": [
+    {
+      "id": "REQ-1",
+      "text": "Add a backend data type `FeedbackSubmission` with fields: id (Nat), submitterPrincipal (Text), submitterUserId (Text), submissionType (variant { FeatureRequest; BugReport }), title (Text), description (Text), timestamp (Int). Store submissions in a stable array or HashMap. Expose the following functions: `submitFeedback(submissionType, title, description)` callable by any authenticated user (captures caller principal and derived user ID automatically); `getFeedbackSubmissions()` callable only by admins and owner, returns all submissions; `deleteFeedbackSubmission(id)` callable only by admins and owner.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-14"
+        ],
+        "quotes": [
+          "stores the data in a list the admins and owner can see",
+          "That shows their user id when sent"
+        ]
+      },
+      "acceptanceCriteria": [
+        "submitFeedback stores the caller's principal and derived user ID (8-char base-36 hash) alongside submission data",
+        "getFeedbackSubmissions returns all submissions only when caller is admin or owner, otherwise returns an error/empty",
+        "deleteFeedbackSubmission removes a submission by ID only when caller is admin or owner",
+        "Submissions are persisted in stable storage across upgrades"
+      ]
+    },
+    {
+      "id": "REQ-2",
+      "text": "Add a 'Feedback' button or link in the main navigation/header (Layout.tsx area, but implement via App.tsx or a new modal/page) that is visible to all authenticated users. This opens a modal form with: a toggle/tab to select 'Request a Feature' or 'Report a Bug'; a Title field; a Description textarea; and a Submit button. On submission, call the backend `submitFeedback` function. Show a success toast on completion and close the modal.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-14"
+        ],
+        "quotes": [
+          "Add a simple \"Request a Feature\" or \"Report a Bug\" form"
+        ]
+      },
+      "acceptanceCriteria": [
+        "A 'Feedback' button is visible in the header/nav for all authenticated users",
+        "The modal contains a type selector (Feature Request / Bug Report), Title input, and Description textarea",
+        "Submitting calls the backend and shows a success toast",
+        "The modal closes after successful submission",
+        "Form validates that title and description are non-empty before submitting"
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Add a `useFeedbackSubmit` mutation hook that calls `actor.submitFeedback` and invalidates relevant queries on success. Add a `useFeedbackSubmissions` query hook that calls `actor.getFeedbackSubmissions` (used only in the admin view). Add a `useDeleteFeedback` mutation hook that calls `actor.deleteFeedbackSubmission`.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-14"
+        ]
+      },
+      "acceptanceCriteria": [
+        "useFeedbackSubmit mutation hook wraps actor.submitFeedback",
+        "useFeedbackSubmissions query hook wraps actor.getFeedbackSubmissions",
+        "useDeleteFeedback mutation hook wraps actor.deleteFeedbackSubmission and invalidates the submissions query on success"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Add a 'Feedback Submissions' section to the AdminPanel component. This section displays all submitted feedback in a table/card list showing: submission type badge (Feature Request / Bug Report), title, description, submitter's short user ID, submitter's full principal, and timestamp. Admins and owner can delete individual submissions. Show loading and empty states appropriately.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-14"
+        ],
+        "quotes": [
+          "stores the data in a list the admins and owner can see",
+          "That shows their user id when sent"
+        ]
+      },
+      "acceptanceCriteria": [
+        "The AdminPanel shows a Feedback Submissions section",
+        "Each submission displays type badge, title, description, short user ID, full principal, and formatted timestamp",
+        "Admins can delete submissions with a confirmation step or delete button",
+        "Empty state message is shown when no submissions exist",
+        "Section is only visible to admins and owner (gated by existing isOwner/isAdmin checks)"
+      ]
+    }
+  ],
+  "constraints": [
+    "Do not modify any files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
+    "Do not modify Layout.tsx directly for the Feedback button — wire it through App.tsx state or a wrapper component instead",
+    "Access control for getFeedbackSubmissions and deleteFeedbackSubmission must reuse existing admin/owner check patterns already present in backend/main.mo"
+  ],
+  "nonGoals": [
+    "Sending email notifications — store submissions in backend only",
+    "Public visibility of feedback submissions (non-admin users cannot view others' submissions)",
+    "Editing submitted feedback after submission"
+  ],
+  "imageRequirements": {
+    "required": [],
+    "edits": []
+  }
+}
