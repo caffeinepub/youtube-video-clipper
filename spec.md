@@ -1,12 +1,11 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the YouTube/Google OAuth connection flow so that after a successful OAuth callback the connection state is correctly persisted and remains connected in the UI.
+**Goal:** Remove YouTube role restrictions, add banned/suspended blocking screens, and fix the YouTube OAuth connection flow in the Beast Clipping app.
 
 **Planned changes:**
-- Fix the OAuthCallback page to wait for backend actor initialization before processing and storing OAuth credentials, and surface a clear error if the actor is not ready in time.
-- After the `storeGoogleOAuthCredentials` mutation succeeds, invalidate and refetch all YouTube connection-related React Query cache entries so the UI immediately reflects the connected state.
-- Ensure the `ChannelConnection` component correctly reads and displays the persisted OAuth connection status from the backend without reverting to disconnected.
-- Redirect to the main page after successful credential storage with the connection state already set to connected.
+- Remove all role-based access checks from YouTube-related UI components (channel connection, video URL input, YouTube player, clip suggestions, clip creation, post-to-YouTube) so all authenticated users can use them regardless of role
+- Add a full-screen blocking error page for users with `banned` or `suspended` account status, enforced at the app layout level so it cannot be bypassed
+- Fix the YouTube OAuth callback flow to wait for the backend actor to be fully initialized before storing credentials, correctly persist OAuth credentials in the backend, and invalidate relevant React Query caches (channel connection status, OAuth credential status) after a successful save
 
-**User-visible outcome:** After completing the Google OAuth consent flow, the YouTube channel shows as connected and remains connected — including after a page refresh — without flickering back to a disconnected state.
+**User-visible outcome:** All logged-in users can access YouTube features regardless of role; banned/suspended users see a clear blocking error screen instead of the app; and connecting a YouTube channel via Google OAuth now correctly persists and shows as connected without reverting.

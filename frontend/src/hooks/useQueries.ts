@@ -16,6 +16,8 @@ export function useGetCallerUserProfile() {
     },
     enabled: !!actor && !actorFetching,
     retry: false,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   return {
@@ -101,16 +103,17 @@ export function useStoreGoogleOAuth() {
     },
     onSuccess: async () => {
       console.log('[useStoreGoogleOAuth] Invalidating and refetching queries...');
-      // Invalidate all related queries
+      // Invalidate all related queries first
       await queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
       await queryClient.invalidateQueries({ queryKey: ['hasGoogleOAuth'] });
       await queryClient.invalidateQueries({ queryKey: ['isYouTubeConnected'] });
       await queryClient.invalidateQueries({ queryKey: ['youtubeChannel'] });
       // Force immediate refetch so UI reflects connected state before navigation
-      await queryClient.refetchQueries({ queryKey: ['youtubeChannel'] });
       await queryClient.refetchQueries({ queryKey: ['hasGoogleOAuth'] });
       await queryClient.refetchQueries({ queryKey: ['isYouTubeConnected'] });
+      await queryClient.refetchQueries({ queryKey: ['youtubeChannel'] });
       await queryClient.refetchQueries({ queryKey: ['currentUserProfile'] });
+      console.log('[useStoreGoogleOAuth] All queries refetched');
     },
     onError: (error) => {
       console.error('[useStoreGoogleOAuth] Mutation error:', error);

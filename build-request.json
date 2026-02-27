@@ -1,73 +1,76 @@
 {
   "kind": "build_request",
-  "title": "Fix YouTube OAuth connection state — shows connected then immediately reports disconnected",
+  "title": "All-role YouTube access, banned/suspended error screens, and YouTube OAuth fix",
   "projectName": "Beast Clipping",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the YouTube/Google OAuth connection flow so that after a successful OAuth callback the connection state is correctly persisted and reflected in the UI as connected. The current bug causes the app to briefly show a connected state and then revert to showing disconnected, even though the OAuth credentials were processed.",
+      "text": "Remove any role-based access restrictions from YouTube-related features (channel connection, video URL input, YouTube player, clip suggestions, clip creation, post-to-YouTube). All authenticated users regardless of role (owner, admin, user, friend) must be able to see and use these features.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-10",
-          "msg-7",
-          "msg-5"
+          "msg-latest"
         ],
         "quotes": [
-          "The YouTube connect don't connect it connects then says it isn't connected",
-          "No it don't connect it connects then says it isn't connected"
+          "Make it so all roles can access the YouTube stuff"
         ]
       },
       "acceptanceCriteria": [
-        "After completing the Google OAuth consent flow and being redirected back to the app, the YouTube channel connection status is shown as connected and remains connected.",
-        "The connection status does not flip back to disconnected immediately after a successful OAuth callback.",
-        "Refreshing the page after connecting still shows the channel as connected.",
-        "The ChannelConnection component correctly reflects the persisted OAuth credentials from the backend."
+        "A user with role 'user' can see and interact with the ChannelConnection, VideoUrlForm, YouTubePlayer, ClipSuggestions, ClipTimestampControls, and ClipList components",
+        "A user with role 'friend' can see and interact with the same YouTube-related components",
+        "No YouTube-related UI element is hidden or disabled based on role checks alone"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Fix the OAuthCallback page to reliably wait for backend actor initialization before processing and storing OAuth credentials. If the actor is not ready within the timeout window, surface a clear, actionable error rather than silently failing or incorrectly reporting the connection as failed.",
+      "text": "When an authenticated user's account status is 'banned' or 'suspended', display a full-screen error/blocking page instead of the normal app UI. The screen must clearly communicate that the account is banned or suspended and prevent access to all app features.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-10"
+          "msg-latest"
         ],
         "quotes": [
-          "The YouTube connect don't connect it connects then says it isn't connected"
+          "make it so that banned and suspended shows a error screen to the people with the status"
         ]
       },
       "acceptanceCriteria": [
-        "The OAuthCallback page does not attempt to store credentials before the actor is fully initialized.",
-        "If the actor is not ready within the timeout, a clear error message is shown to the user explaining what happened.",
-        "After credentials are stored via the mutation hook, the OAuthCallback page redirects to the main page with connection state already set to connected.",
-        "The useYouTubeChannel hook's connection status query is invalidated/refetched after credentials are successfully stored so the UI immediately reflects the connected state."
+        "A user whose backend status is 'banned' sees a dedicated error screen explaining their account is banned",
+        "A user whose backend status is 'suspended' sees a dedicated error screen explaining their account is suspended",
+        "The error screen prevents access to all other app functionality (no navigation around it)",
+        "The error screen is shown immediately after login if the status is banned or suspended",
+        "Users with active (non-banned, non-suspended) status see the normal app UI"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Ensure the useYouTubeChannel hook's connection status check query is invalidated and refetched after the OAuth credential save mutation completes successfully, so the ChannelConnection component immediately reads the correct connected state from the backend.",
-      "target": "frontend",
+      "text": "Fix the YouTube OAuth connection flow so that after a user completes the Google OAuth callback, the channel remains connected and does not revert to a disconnected state. Ensure the OAuth credentials are correctly stored in the backend, the actor is fully initialized before storing credentials, and all relevant React Query caches (channel connection status, OAuth credential status) are invalidated after a successful credential save so the UI reflects the connected state.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-10"
+          "msg-latest"
+        ],
+        "quotes": [
+          "fix the YouTube connection because it still isn't working"
         ]
       },
       "acceptanceCriteria": [
-        "After the storeGoogleOAuthCredentials mutation succeeds, all YouTube connection-related React Query cache entries are invalidated.",
-        "The ChannelConnection component fetches fresh connection status from the backend and displays the channel as connected without requiring a manual page refresh."
+        "After completing the Google OAuth flow, the ChannelConnection component shows the connected channel info and does not revert to disconnected",
+        "The OAuthCallback page waits for the backend actor to be fully ready before attempting to store credentials",
+        "On successful credential storage, the useYouTubeChannel and OAuth credential status queries are invalidated and refetched",
+        "The backend correctly persists OAuth credentials across calls so isYouTubeConnected returns true after credentials are saved",
+        "No race condition exists between actor initialization and credential storage in the OAuth callback"
       ]
     }
   ],
   "constraints": [
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
-    "Do not change the backend OAuth credential storage logic unless a backend bug is confirmed as the root cause."
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
+    "The banned/suspended error screen must be enforced at the app layout level so it cannot be bypassed by direct navigation"
   ],
   "nonGoals": [
-    "Changing the OAuth provider or authentication method.",
-    "Redesigning the ChannelConnection UI beyond fixing the connection state display.",
-    "Adding new YouTube features."
+    "Adding new YouTube features beyond what already exists",
+    "Changing the admin panel's ability to set user status",
+    "Modifying the role permission model beyond removing YouTube access restrictions"
   ],
   "imageRequirements": {
     "required": [],

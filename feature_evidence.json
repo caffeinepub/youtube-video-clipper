@@ -2,11 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-youtube-google-oauth-connection-flow-so-that-after-a-successful-oauth-callback-the-connection-state-is-correctly-persisted-and-reflected-in-the-ui-as-connected-the-current-bug-causes-the-app-to-briefly-show-a-connected-state-and-then-revert-to-showing-disconnected-even-though-the-oauth-credentials-were-processed",
-      "featureTitle": "Fix the YouTube/Google OAuth connection flow so that after a successful OAuth callback the connection state is correctly persisted and reflected in the UI as connected. The current bug causes the app to briefly show a connected state and then revert to showing disconnected, even though the OAuth credentials were processed.",
+      "featureId": "feature-remove-any-role-based-access-restrictions-from-youtube-related-features-channel-connection-video-url-input-youtube-player-clip-suggestions-clip-creation-post-to-youtube-all-authenticated-users-regardless-of-role-owner-admin-user-friend-must-be-able-to-see-and-use-these-features",
+      "featureTitle": "Remove any role-based access restrictions from YouTube-related features (channel connection, video URL input, YouTube player, clip suggestions, clip creation, post-to-YouTube). All authenticated users regardless of role (owner, admin, user, friend) must be able to see and use these features.",
       "files": [
-        "frontend/src/hooks/useYouTubeChannel.ts",
-        "frontend/src/pages/OAuthCallback.tsx"
+        "frontend/src/App.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -23,11 +22,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-fix-the-oauthcallback-page-to-reliably-wait-for-backend-actor-initialization-before-processing-and-storing-oauth-credentials-if-the-actor-is-not-ready-within-the-timeout-window-surface-a-clear-actionable-error-rather-than-silently-failing-or-incorrectly-reporting-the-connection-as-failed",
-      "featureTitle": "Fix the OAuthCallback page to reliably wait for backend actor initialization before processing and storing OAuth credentials. If the actor is not ready within the timeout window, surface a clear, actionable error rather than silently failing or incorrectly reporting the connection as failed.",
+      "featureId": "feature-when-an-authenticated-user-s-account-status-is-banned-or-suspended-display-a-full-screen-error-blocking-page-instead-of-the-normal-app-ui-the-screen-must-clearly-communicate-that-the-account-is-banned-or-suspended-and-prevent-access-to-all-app-features",
+      "featureTitle": "When an authenticated user's account status is 'banned' or 'suspended', display a full-screen error/blocking page instead of the normal app UI. The screen must clearly communicate that the account is banned or suspended and prevent access to all app features.",
       "files": [
-        "frontend/src/hooks/useQueries.ts",
-        "frontend/src/pages/OAuthCallback.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/components/AccountStatusErrorScreen.tsx",
+        "frontend/src/components/AccountStatusGuard.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -44,11 +44,12 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-useyoutubechannel-hook-s-connection-status-check-query-is-invalidated-and-refetched-after-the-oauth-credential-save-mutation-completes-successfully-so-the-channelconnection-component-immediately-reads-the-correct-connected-state-from-the-backend",
-      "featureTitle": "Ensure the useYouTubeChannel hook's connection status check query is invalidated and refetched after the OAuth credential save mutation completes successfully, so the ChannelConnection component immediately reads the correct connected state from the backend.",
+      "featureId": "feature-fix-the-youtube-oauth-connection-flow-so-that-after-a-user-completes-the-google-oauth-callback-the-channel-remains-connected-and-does-not-revert-to-a-disconnected-state-ensure-the-oauth-credentials-are-correctly-stored-in-the-backend-the-actor-is-fully-initialized-before-storing-credentials-and-all-relevant-react-query-caches-channel-connection-status-oauth-credential-status-are-invalidated-after-a-successful-credential-save-so-the-ui-reflects-the-connected-state",
+      "featureTitle": "Fix the YouTube OAuth connection flow so that after a user completes the Google OAuth callback, the channel remains connected and does not revert to a disconnected state. Ensure the OAuth credentials are correctly stored in the backend, the actor is fully initialized before storing credentials, and all relevant React Query caches (channel connection status, OAuth credential status) are invalidated after a successful credential save so the UI reflects the connected state.",
       "files": [
         "frontend/src/hooks/useQueries.ts",
-        "frontend/src/hooks/useYouTubeChannel.ts"
+        "frontend/src/hooks/useYouTubeChannel.ts",
+        "frontend/src/pages/OAuthCallback.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",

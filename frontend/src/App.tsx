@@ -6,6 +6,7 @@ import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from './hooks/useQueries';
 import Layout from './components/Layout';
 import ProfileSetup from './components/ProfileSetup';
+import AccountStatusGuard from './components/AccountStatusGuard';
 import VideoUrlForm from './components/VideoUrlForm';
 import YouTubePlayer from './components/YouTubePlayer';
 import ClipTimestampControls from './components/ClipTimestampControls';
@@ -34,7 +35,9 @@ function RootLayout() {
   return (
     <>
       <Layout onOpenFeedback={() => setFeedbackOpen(true)}>
-        <Outlet />
+        <AccountStatusGuard>
+          <Outlet />
+        </AccountStatusGuard>
       </Layout>
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </>

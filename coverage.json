@@ -1,7 +1,7 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-26T22:24:53.885Z",
+  "generatedAt": "2026-02-27T23:37:34.227Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
@@ -12,54 +12,68 @@
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the YouTube/Google OAuth connection flow so that after a successful OAuth callback the connection state is correctly persisted and reflected in the UI as connected. The current bug causes the app to briefly show a connected state and then revert to showing disconnected, even though the OAuth credentials were processed.",
+        "summary": "Remove any role-based access restrictions from YouTube-related features (channel connection, video URL input, YouTube player, clip suggestions, clip creation, post-to-YouTube). All authenticated users regardless of role (owner, admin, user, friend) must be able to see and use these features.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/OAuthCallback.tsx",
-          "frontend/src/hooks/useYouTubeChannel.ts",
-          "frontend/src/components/ChannelConnection.tsx"
+          "frontend/src/App.tsx",
+          "frontend/src/components/Layout.tsx",
+          "frontend/src/components/ChannelConnection.tsx",
+          "frontend/src/components/ClipCard.tsx",
+          "frontend/src/components/ClipList.tsx",
+          "frontend/src/components/ClipSuggestions.tsx",
+          "frontend/src/components/ClipTimestampControls.tsx",
+          "frontend/src/components/VideoUrlForm.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/OAuthCallback.tsx",
-          "frontend/src/hooks/useYouTubeChannel.ts"
+          "frontend/src/App.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Fix the OAuthCallback page to reliably wait for backend actor initialization before processing and storing OAuth credentials. If the actor is not ready within the timeout window, surface a clear, actionable error rather than silently failing or incorrectly reporting the connection as failed.",
+        "summary": "When an authenticated user's account status is 'banned' or 'suspended', display a full-screen error/blocking page instead of the normal app UI. The screen must clearly communicate that the account is banned or suspended and prevent access to all app features.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/OAuthCallback.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/utils/urlParams.ts"
+          "frontend/src/components/AccountStatusGuard.tsx",
+          "frontend/src/components/AccountStatusErrorScreen.tsx",
+          "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/OAuthCallback.tsx",
-          "frontend/src/hooks/useQueries.ts"
+          "frontend/src/components/AccountStatusGuard.tsx",
+          "frontend/src/components/AccountStatusErrorScreen.tsx",
+          "frontend/src/App.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Ensure the useYouTubeChannel hook's connection status check query is invalidated and refetched after the OAuth credential save mutation completes successfully, so the ChannelConnection component immediately reads the correct connected state from the backend.",
+        "summary": "Fix the YouTube OAuth connection flow so that after a user completes the Google OAuth callback, the channel remains connected and does not revert to a disconnected state. Ensure the OAuth credentials are correctly stored in the backend, the actor is fully initialized before storing credentials, and all relevant React Query caches (channel connection status, OAuth credential status) are invalidated after a successful credential save so the UI reflects the connected state.",
         "status": "implemented",
         "plannedFiles": [
+          "frontend/src/pages/OAuthCallback.tsx",
+          "frontend/src/hooks/useYouTubeChannel.ts",
           "frontend/src/hooks/useQueries.ts",
-          "frontend/src/hooks/useYouTubeChannel.ts"
+          "frontend/src/components/ChannelConnection.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/hooks/useYouTubeChannel.ts"
+          "frontend/src/pages/OAuthCallback.tsx",
+          "frontend/src/hooks/useYouTubeChannel.ts",
+          "frontend/src/hooks/useQueries.ts"
         ]
       }
     ]
   },
   "changedFiles": [
+    "backend/main.mo",
+    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
+    "frontend/src/App.tsx",
+    "frontend/src/components/AccountStatusErrorScreen.tsx",
+    "frontend/src/components/AccountStatusGuard.tsx",
     "frontend/src/hooks/useQueries.ts",
     "frontend/src/hooks/useYouTubeChannel.ts",
+    "frontend/src/index.css",
     "frontend/src/pages/OAuthCallback.tsx",
     "project_state.json",
     "scratch/component-selection.json",

@@ -22,7 +22,7 @@ export function useYouTubeChannel() {
         throw new Error('Actor not available');
       }
 
-      // Use backend as the single source of truth — do NOT rely on cached userProfile
+      // Use backend as the single source of truth
       const [hasOAuth, isYTConnected] = await Promise.all([
         actor.hasGoogleOAuthCredentials(),
         actor.isYouTubeChannelConnected(),
@@ -35,7 +35,7 @@ export function useYouTubeChannel() {
         const profile = await actor.getCallerUserProfile();
         return {
           isConnected: true,
-          channelName: profile?.youtubeAuth?.channelName || 'My Channel',
+          channelName: profile?.youtubeAuth?.channelName || 'Google Account',
           channelId: profile?.youtubeAuth?.channelId,
         };
       }
@@ -45,6 +45,9 @@ export function useYouTubeChannel() {
     enabled: !!actor && !actorFetching,
     staleTime: 0,
     refetchOnMount: 'always',
+    // Retry a few times in case of transient failures after OAuth callback
+    retry: 2,
+    retryDelay: 1000,
   });
 
   const connectMutation = useMutation({
@@ -78,7 +81,7 @@ export function useYouTubeChannel() {
       authUrl.searchParams.set('prompt', 'consent');
       authUrl.searchParams.set('state', state);
 
-      console.log('[useYouTubeChannel] Redirecting to:', authUrl.toString());
+      console.log('[useYouTubeChannel] Redirecting to Google OAuth...');
 
       window.location.href = authUrl.toString();
     },

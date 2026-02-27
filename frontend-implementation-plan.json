@@ -1,79 +1,117 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix YouTube OAuth connection state — shows connected then immediately reports disconnected",
+  "title": "All-role YouTube access, banned/suspended error screens, and YouTube OAuth fix",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix the YouTube/Google OAuth connection flow so that after a successful OAuth callback the connection state is correctly persisted and reflected in the UI as connected",
+      "summary": "Remove role-based access restrictions from all YouTube-related features so users of any role (owner, admin, user, friend) can access them",
       "acceptanceCriteria": [
-        "After completing the Google OAuth consent flow and being redirected back to the app, the YouTube channel connection status is shown as connected and remains connected.",
-        "The connection status does not flip back to disconnected immediately after a successful OAuth callback.",
-        "Refreshing the page after connecting still shows the channel as connected.",
-        "The ChannelConnection component correctly reflects the persisted OAuth credentials from the backend."
+        "A user with role 'user' can see and interact with the ChannelConnection, VideoUrlForm, YouTubePlayer, ClipSuggestions, ClipTimestampControls, and ClipList components",
+        "A user with role 'friend' can see and interact with the same YouTube-related components",
+        "No YouTube-related UI element is hidden or disabled based on role checks alone"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/OAuthCallback.tsx",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Modify the OAuthCallback page to ensure proper state synchronization after successful credential storage. After the storeGoogleOAuthCredentials mutation succeeds, invalidate all YouTube connection-related query cache keys (youtubeConnection, hasGoogleOAuthCredentials, callerUserProfile) to force immediate refetch. Ensure the page waits for the invalidation and refetch to complete before redirecting to the home page, so the UI already shows the connected state when the user lands on the home page."
+          "description": "Remove any conditional rendering or role-based guards around YouTube-related components (VideoUrlForm, YouTubePlayer, ClipTimestampControls, ClipSuggestions, ChannelConnection, ClipList). Ensure all authenticated users see these components regardless of role."
         },
         {
-          "path": "frontend/src/hooks/useYouTubeChannel.ts",
+          "path": "frontend/src/components/Layout.tsx",
           "operation": "modify",
-          "description": "Review and fix the connection status query logic in useYouTubeChannel to ensure it properly reflects backend state. Verify that the query key is consistent across all call sites and that the enabled condition correctly waits for the actor to be ready. Add explicit query invalidation logic after the disconnect mutation completes successfully to ensure the UI immediately reflects the disconnected state."
+          "description": "Review and remove any role-based navigation restrictions that might prevent users from accessing YouTube features. Ensure the main app layout does not hide YouTube functionality based on user role."
         },
         {
           "path": "frontend/src/components/ChannelConnection.tsx",
           "operation": "modify",
-          "description": "Update the ChannelConnection component to handle edge cases where the connection status might be stale immediately after returning from OAuth callback. Add a loading state display during the transition period after OAuth callback and before the connection status query returns fresh data. Ensure the component does not render cached stale connection data from before the OAuth flow started."
+          "description": "Remove any role checks that restrict who can connect or disconnect a YouTube channel. All authenticated users should be able to use the connection functionality."
+        },
+        {
+          "path": "frontend/src/components/ClipCard.tsx",
+          "operation": "modify",
+          "description": "Remove any role-based restrictions on clip actions (delete, download, post to YouTube). Ensure all authenticated users can perform these actions on their clips."
+        },
+        {
+          "path": "frontend/src/components/ClipList.tsx",
+          "operation": "modify",
+          "description": "Remove any role-based filtering or display logic that would hide clips from non-admin users. All authenticated users should see the full clip list."
+        },
+        {
+          "path": "frontend/src/components/ClipSuggestions.tsx",
+          "operation": "modify",
+          "description": "Remove any role checks that restrict who can view or select clip suggestions. All authenticated users should see AI-generated and trending suggestions."
+        },
+        {
+          "path": "frontend/src/components/ClipTimestampControls.tsx",
+          "operation": "modify",
+          "description": "Remove any role-based restrictions on the clip creation form. All authenticated users should be able to set timestamps and create clips."
+        },
+        {
+          "path": "frontend/src/components/VideoUrlForm.tsx",
+          "operation": "modify",
+          "description": "Remove any role checks that prevent users from entering YouTube URLs or triggering AI clip generation. All authenticated users should be able to load videos."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Fix the OAuthCallback page to reliably wait for backend actor initialization before processing and storing OAuth credentials",
+      "summary": "Display a full-screen blocking error page for users with 'banned' or 'suspended' account status",
       "acceptanceCriteria": [
-        "The OAuthCallback page does not attempt to store credentials before the actor is fully initialized.",
-        "If the actor is not ready within the timeout, a clear error message is shown to the user explaining what happened.",
-        "After credentials are stored via the mutation hook, the OAuthCallback page redirects to the main page with connection state already set to connected.",
-        "The useYouTubeChannel hook's connection status query is invalidated/refetched after credentials are successfully stored so the UI immediately reflects the connected state."
+        "A user whose backend status is 'banned' sees a dedicated error screen explaining their account is banned",
+        "A user whose backend status is 'suspended' sees a dedicated error screen explaining their account is suspended",
+        "The error screen prevents access to all other app functionality (no navigation around it)",
+        "The error screen is shown immediately after login if the status is banned or suspended",
+        "Users with active (non-banned, non-suspended) status see the normal app UI"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/OAuthCallback.tsx",
-          "operation": "modify",
-          "description": "Improve the actor readiness check logic to properly detect when the actor is fully initialized and ready to accept credential storage requests. Replace the existing retry logic with a more robust polling mechanism that checks both actor availability and actor.isCallerAdmin or another health-check method to confirm the actor is truly ready. If the actor does not become ready within 15 seconds, display a clear, user-friendly error message explaining that the backend was not ready in time and provide actionable next steps (e.g., retry button or navigate to home and try connecting again)."
+          "path": "frontend/src/components/AccountStatusGuard.tsx",
+          "operation": "create",
+          "description": "Create a new component that fetches the current user's profile and checks their status. If status is 'banned' or 'suspended', render a full-screen error page with appropriate messaging and prevent access to children. If status is 'active' or 'inactive', render children normally. Include loading state while fetching profile."
         },
         {
-          "path": "frontend/src/hooks/useQueries.ts",
-          "operation": "modify",
-          "description": "Review the useStoreGoogleOAuthCredentials mutation hook to ensure it properly handles backend errors and returns clear error messages to the caller. Add error handling for cases where the backend actor is not yet ready or the credential storage fails due to initialization issues. Ensure the mutation's onSuccess callback invalidates all relevant query keys (youtubeConnection, hasGoogleOAuthCredentials, callerUserProfile) so the UI immediately reflects the new connected state."
+          "path": "frontend/src/components/AccountStatusErrorScreen.tsx",
+          "operation": "create",
+          "description": "Create a presentational component that displays a full-screen centered error message for banned or suspended accounts. Accept status ('banned' or 'suspended') as a prop and render appropriate messaging, icon, and logout button. Use shadcn/ui Card and Alert components for styling."
         },
         {
-          "path": "frontend/src/utils/urlParams.ts",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Review the URL parameter extraction logic to ensure it correctly handles both query string and hash-based routing for OAuth callback parameters (code, state, error, error_description). Add validation to ensure the authorization code and state are present and non-empty before proceeding. Add a helper function to extract error parameters from the OAuth callback URL and return a user-friendly error message if the OAuth provider returned an error."
+          "description": "Wrap the main app content (HomePage and all routes) inside the AccountStatusGuard component, but place it inside the authentication check. Only authenticated users should have their status checked. The guard must be at the layout level to prevent bypassing via direct navigation."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Ensure the useYouTubeChannel hook's connection status check query is invalidated and refetched after the OAuth credential save mutation completes successfully",
+      "summary": "Fix YouTube OAuth connection flow to persist channel connection and prevent reversion to disconnected state after callback",
       "acceptanceCriteria": [
-        "After the storeGoogleOAuthCredentials mutation succeeds, all YouTube connection-related React Query cache entries are invalidated.",
-        "The ChannelConnection component fetches fresh connection status from the backend and displays the channel as connected without requiring a manual page refresh."
+        "After completing the Google OAuth flow, the ChannelConnection component shows the connected channel info and does not revert to disconnected",
+        "The OAuthCallback page waits for the backend actor to be fully ready before attempting to store credentials",
+        "On successful credential storage, the useYouTubeChannel and OAuth credential status queries are invalidated and refetched",
+        "The backend correctly persists OAuth credentials across calls so isYouTubeConnected returns true after credentials are saved",
+        "No race condition exists between actor initialization and credential storage in the OAuth callback"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/OAuthCallback.tsx",
           "operation": "modify",
-          "description": "Update the useStoreGoogleOAuthCredentials mutation hook to add an onSuccess callback that uses queryClient.invalidateQueries to invalidate all YouTube connection-related query keys including youtubeConnection, hasGoogleOAuthCredentials, and callerUserProfile. Ensure the invalidation triggers immediate refetch of these queries so any component (like ChannelConnection) that depends on connection status will automatically receive and display the fresh connected state."
+          "description": "Enhance the actor readiness check to ensure the backend actor is fully initialized before calling storeGoogleOAuthCredentials. Add explicit polling or retry logic if the actor is not ready. After successful credential storage, invalidate both 'youtubeChannel' and 'hasGoogleOAuthCredentials' query keys to force refetch. Add more detailed error logging for debugging OAuth issues."
         },
         {
           "path": "frontend/src/hooks/useYouTubeChannel.ts",
           "operation": "modify",
-          "description": "Ensure the connection status query (useIsYouTubeChannelConnected) is properly configured with staleTime: 0 or a very short staleTime so it always refetches after invalidation. Verify that the query's enabled condition does not prevent refetch after the credentials are stored. Add a refetchOnMount: 'always' option to ensure the query always fetches fresh data when the ChannelConnection component mounts after returning from the OAuth callback."
+          "description": "Review the initiateGoogleOAuth mutation to ensure it correctly handles the OAuth flow state. After the OAuth callback completes successfully, ensure the isYouTubeChannelConnected query is invalidated and refetched. Add dependency on the actor being ready before enabling queries."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Review the storeGoogleOAuthCredentials mutation and ensure it invalidates all relevant query keys on success: 'youtubeChannel', 'hasGoogleOAuthCredentials', and 'currentUserProfile'. Add error handling for race conditions or actor initialization failures. Ensure mutations wait for actor readiness before executing."
+        },
+        {
+          "path": "frontend/src/components/ChannelConnection.tsx",
+          "operation": "modify",
+          "description": "Ensure the component correctly reflects connection state by using both isYouTubeChannelConnected and hasGoogleOAuthCredentials queries. Add a refetch mechanism or polling after returning from OAuth callback to immediately show connected state. Display loading state during refetch to prevent UI flicker."
         }
       ]
     }

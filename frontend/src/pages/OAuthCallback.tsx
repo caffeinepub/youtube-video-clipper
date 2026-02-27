@@ -6,32 +6,43 @@ import { Button } from '@/components/ui/button';
 import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useStoreGoogleOAuth } from '../hooks/useQueries';
 import { useActor } from '../hooks/useActor';
+import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
-const ACTOR_WAIT_TIMEOUT_MS = 15000; // 15 seconds
+const ACTOR_WAIT_TIMEOUT_MS = 20000; // 20 seconds
+const ACTOR_POLL_INTERVAL_MS = 300;  // poll every 300ms
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
   const { actor, isFetching: actorFetching } = useActor();
   const { mutateAsync: storeOAuth } = useStoreGoogleOAuth();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<'waiting' | 'processing' | 'success' | 'error'>('waiting');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [errorDetails, setErrorDetails] = useState<string>('');
   const hasProcessed = useRef(false);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      if (pollRef.current) clearInterval(pollRef.current);
+    };
+  }, []);
 
   // Set a timeout: if actor never becomes available, show error
   useEffect(() => {
     timeoutRef.current = setTimeout(() => {
       if (hasProcessed.current) return;
-      if (status === 'waiting' || status === 'processing') {
-        hasProcessed.current = true;
-        setStatus('error');
-        setErrorMessage('Actor not available');
-        setErrorDetails('The connection to the backend timed out. Please make sure you are logged in and try again.');
-        toast.error('Connection failed', { description: 'Backend connection timed out.' });
-        setTimeout(() => navigate({ to: '/' }), 5000);
-      }
+      if (pollRef.current) clearInterval(pollRef.current);
+      hasProcessed.current = true;
+      setStatus('error');
+      setErrorMessage('Actor not available');
+      setErrorDetails('The connection to the backend timed out. Please make sure you are logged in and try again.');
+      toast.error('Connection failed', { description: 'Backend connection timed out.' });
+      setTimeout(() => navigate({ to: '/' }), 5000);
     }, ACTOR_WAIT_TIMEOUT_MS);
 
     return () => {
@@ -48,6 +59,7 @@ export default function OAuthCallback() {
     // Actor is available — proceed
     hasProcessed.current = true;
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    if (pollRef.current) clearInterval(pollRef.current);
 
     const handleOAuthCallback = async () => {
       setStatus('processing');
@@ -63,6 +75,7 @@ export default function OAuthCallback() {
 
         console.log('[OAuthCallback] URL params:', {
           hasCode: !!code,
+          codeLength: code?.length,
           hasState: !!state,
           error,
           errorDescription,
@@ -94,10 +107,30 @@ export default function OAuthCallback() {
         const redirectUri = `${window.location.origin}/oauth/callback`;
         console.log('[OAuthCallback] Storing OAuth credentials with redirect URI:', redirectUri);
 
-        // storeOAuth's onSuccess already refetches all relevant queries before resolving
+        // Store credentials in backend
         await storeOAuth({ authorizationCode: code, redirectUri });
 
-        console.log('[OAuthCallback] OAuth credentials stored and queries refreshed');
+        console.log('[OAuthCallback] OAuth credentials stored, forcing query refetch...');
+
+        // Force refetch all connection-related queries to ensure fresh state
+        await Promise.all([
+          queryClient.invalidateQueries({ queryKey: ['youtubeChannel'] }),
+          queryClient.invalidateQueries({ queryKey: ['hasGoogleOAuth'] }),
+          queryClient.invalidateQueries({ queryKey: ['isYouTubeConnected'] }),
+          queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] }),
+        ]);
+
+        // Wait a moment then refetch to confirm the state is persisted
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        await Promise.all([
+          queryClient.refetchQueries({ queryKey: ['youtubeChannel'] }),
+          queryClient.refetchQueries({ queryKey: ['hasGoogleOAuth'] }),
+          queryClient.refetchQueries({ queryKey: ['isYouTubeConnected'] }),
+          queryClient.refetchQueries({ queryKey: ['currentUserProfile'] }),
+        ]);
+
+        console.log('[OAuthCallback] All queries refreshed, navigating home...');
         setStatus('success');
         toast.success('Google account connected successfully!');
 
@@ -115,81 +148,97 @@ export default function OAuthCallback() {
         if (errorMsg.includes('Actor not available')) {
           setErrorDetails('Please make sure you are logged in and try again.');
         } else if (errorMsg.includes('state parameter')) {
-          setErrorDetails('Security validation failed. This can happen if you opened multiple authorization windows.');
-        } else if (errorMsg.includes('authorization code')) {
-          setErrorDetails('The authorization code from Google was invalid or missing.');
+          setErrorDetails('Security validation failed. This can happen if you opened multiple authorization windows. Please try again.');
         } else if (errorMsg.includes('Backend OAuth configuration')) {
-          setErrorDetails('The backend needs to be configured with valid Google OAuth client credentials. Contact the administrator.');
+          setErrorDetails('The backend Google OAuth credentials (client ID and secret) have not been configured. Please contact the administrator.');
+        } else if (errorMsg.includes('cancelled')) {
+          setErrorDetails('You cancelled the Google authorization. Click the button below to try again.');
+        } else {
+          setErrorDetails('An unexpected error occurred during the OAuth flow. Please try again.');
         }
 
-        toast.error('Connection failed', { description: errorMsg });
-
-        setTimeout(() => {
-          navigate({ to: '/' });
-        }, 5000);
+        toast.error('Failed to connect Google account', { description: errorMsg });
+        setTimeout(() => navigate({ to: '/' }), 5000);
       }
     };
 
     handleOAuthCallback();
-  }, [actor, actorFetching, navigate, storeOAuth]);
-
-  const handleRetry = () => {
-    navigate({ to: '/' });
-  };
-
-  const isWaiting = status === 'waiting';
-  const isProcessing = status === 'processing';
+  }, [actor, actorFetching, storeOAuth, navigate, queryClient]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
+    <div className="min-h-screen flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Connecting Your Account</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            {status === 'success' ? (
+              <CheckCircle2 className="w-5 h-5 text-green-600" />
+            ) : status === 'error' ? (
+              <AlertCircle className="w-5 h-5 text-destructive" />
+            ) : (
+              <Loader2 className="w-5 h-5 animate-spin text-primary" />
+            )}
+            {status === 'waiting' && 'Connecting to Backend...'}
+            {status === 'processing' && 'Connecting Google Account...'}
+            {status === 'success' && 'Connected Successfully!'}
+            {status === 'error' && 'Connection Failed'}
+          </CardTitle>
           <CardDescription>
-            {isWaiting && 'Initializing connection...'}
-            {isProcessing && 'Please wait while we connect your Google account...'}
-            {status === 'success' && 'Successfully connected!'}
-            {status === 'error' && 'Connection failed'}
+            {status === 'waiting' && 'Waiting for backend to initialize...'}
+            {status === 'processing' && 'Processing your Google authorization...'}
+            {status === 'success' && 'Your Google account has been connected. Redirecting...'}
+            {status === 'error' && 'There was a problem connecting your Google account.'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {(isWaiting || isProcessing) && (
-            <div className="flex flex-col items-center justify-center py-8 space-y-4">
-              <Loader2 className="w-12 h-12 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">
-                {isWaiting ? 'Waiting for backend connection...' : 'Connecting to Google...'}
-              </p>
-              <p className="text-xs text-muted-foreground">This may take a few moments</p>
+          {(status === 'waiting' || status === 'processing') && (
+            <div className="flex items-center justify-center py-8">
+              <div className="text-center space-y-3">
+                <Loader2 className="w-10 h-10 animate-spin text-primary mx-auto" />
+                <p className="text-sm text-muted-foreground">
+                  {status === 'waiting'
+                    ? 'Initializing backend connection...'
+                    : 'Storing your credentials securely...'}
+                </p>
+              </div>
             </div>
           )}
 
           {status === 'success' && (
-            <Alert>
-              <CheckCircle2 className="h-4 w-4" />
-              <AlertTitle>Success!</AlertTitle>
-              <AlertDescription>
-                Your Google account has been connected successfully. Redirecting you back to the app...
+            <Alert className="border-green-200 bg-green-50 dark:bg-green-950/20">
+              <CheckCircle2 className="h-4 w-4 text-green-600" />
+              <AlertTitle className="text-green-800 dark:text-green-400">Success!</AlertTitle>
+              <AlertDescription className="text-green-700 dark:text-green-300">
+                Your Google account has been connected. You can now post clips directly to YouTube.
               </AlertDescription>
             </Alert>
           )}
 
           {status === 'error' && (
-            <div className="space-y-4">
+            <>
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Connection Failed</AlertTitle>
-                <AlertDescription className="space-y-2">
-                  <p>{errorMessage}</p>
-                  {errorDetails && (
-                    <p className="text-xs mt-2">{errorDetails}</p>
-                  )}
-                  <p className="text-xs mt-2">Redirecting back to home page in 5 seconds...</p>
+                <AlertDescription>
+                  <p className="font-medium">{errorMessage}</p>
+                  {errorDetails && <p className="mt-1 text-sm opacity-90">{errorDetails}</p>}
                 </AlertDescription>
               </Alert>
-              <Button onClick={handleRetry} className="w-full" variant="outline">
-                Return to Home Now
-              </Button>
-            </div>
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => navigate({ to: '/' })}
+                >
+                  Go Home
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={() => navigate({ to: '/' })}
+                >
+                  Try Again
+                </Button>
+              </div>
+            </>
           )}
         </CardContent>
       </Card>
