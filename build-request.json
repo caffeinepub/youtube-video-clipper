@@ -1,57 +1,73 @@
 {
   "kind": "build_request",
-  "title": "Fix OAuth callback 'Actor not available' connection failure",
+  "title": "Fix YouTube OAuth connection state — shows connected then immediately reports disconnected",
+  "projectName": "Beast Clipping",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the OAuthCallback page so it does not show 'Connection Failed / Actor not available' when the actor is not yet initialized. The page should wait for the actor to become available (with a loading state) before attempting to exchange the OAuth authorization code, rather than failing immediately if the actor is null or undefined.",
+      "text": "Fix the YouTube/Google OAuth connection flow so that after a successful OAuth callback the connection state is correctly persisted and reflected in the UI as connected. The current bug causes the app to briefly show a connected state and then revert to showing disconnected, even though the OAuth credentials were processed.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-10",
+          "msg-7",
+          "msg-5"
         ],
         "quotes": [
-          "Connection Failed",
-          "Actor not available",
-          "Please make sure you are logged in and try again."
+          "The YouTube connect don't connect it connects then says it isn't connected",
+          "No it don't connect it connects then says it isn't connected"
         ]
       },
       "acceptanceCriteria": [
-        "OAuthCallback page shows a loading indicator while the actor is initializing instead of immediately failing",
-        "OAuth code exchange is only attempted once the actor is confirmed available",
-        "If the actor becomes available within a reasonable timeout, the OAuth flow completes successfully",
-        "If the actor is genuinely unavailable after timeout, a clear error is shown with a retry option",
-        "No 'Actor not available' error appears for a logged-in user who completes the Google OAuth redirect flow"
+        "After completing the Google OAuth consent flow and being redirected back to the app, the YouTube channel connection status is shown as connected and remains connected.",
+        "The connection status does not flip back to disconnected immediately after a successful OAuth callback.",
+        "Refreshing the page after connecting still shows the channel as connected.",
+        "The ChannelConnection component correctly reflects the persisted OAuth credentials from the backend."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Ensure the actor initialization in useActor hook and the OAuthCallback page are properly synchronized — the OAuthCallback should re-attempt or wait using React Query's enabled flag or a polling/retry strategy until the authenticated actor is ready before proceeding with the OAuth callback processing.",
+      "text": "Fix the OAuthCallback page to reliably wait for backend actor initialization before processing and storing OAuth credentials. If the actor is not ready within the timeout window, surface a clear, actionable error rather than silently failing or incorrectly reporting the connection as failed.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-1"
+          "msg-10"
         ],
         "quotes": [
-          "Actor not available"
+          "The YouTube connect don't connect it connects then says it isn't connected"
         ]
       },
       "acceptanceCriteria": [
-        "useActor hook readiness state is correctly consumed by OAuthCallback before making backend calls",
-        "OAuthCallback does not call backend actor methods when actor is null/undefined",
-        "A retry or wait mechanism is in place so transient actor initialization delays do not cause hard failures"
+        "The OAuthCallback page does not attempt to store credentials before the actor is fully initialized.",
+        "If the actor is not ready within the timeout, a clear error message is shown to the user explaining what happened.",
+        "After credentials are stored via the mutation hook, the OAuthCallback page redirects to the main page with connection state already set to connected.",
+        "The useYouTubeChannel hook's connection status query is invalidated/refetched after credentials are successfully stored so the UI immediately reflects the connected state."
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "text": "Ensure the useYouTubeChannel hook's connection status check query is invalidated and refetched after the OAuth credential save mutation completes successfully, so the ChannelConnection component immediately reads the correct connected state from the backend.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-10"
+        ]
+      },
+      "acceptanceCriteria": [
+        "After the storeGoogleOAuthCredentials mutation succeeds, all YouTube connection-related React Query cache entries are invalidated.",
+        "The ChannelConnection component fetches fresh connection status from the backend and displays the channel as connected without requiring a manual page refresh."
       ]
     }
   ],
   "constraints": [
-    "Do not modify frontend/src/hooks/useActor.ts or frontend/src/hooks/useInternetIdentity.ts",
-    "Only modify frontend/src/pages/OAuthCallback.tsx and any related hooks if needed"
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
+    "Do not change the backend OAuth credential storage logic unless a backend bug is confirmed as the root cause."
   ],
   "nonGoals": [
-    "Changing the Google OAuth flow or credentials",
-    "Modifying backend actor logic",
-    "Redesigning the OAuth callback UI beyond fixing the error handling"
+    "Changing the OAuth provider or authentication method.",
+    "Redesigning the ChannelConnection UI beyond fixing the connection state display.",
+    "Adding new YouTube features."
   ],
   "imageRequirements": {
     "required": [],

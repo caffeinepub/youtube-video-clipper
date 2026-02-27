@@ -1,39 +1,79 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix OAuth callback 'Actor not available' connection failure",
+  "title": "Fix YouTube OAuth connection state — shows connected then immediately reports disconnected",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Add loading state and actor availability check to OAuthCallback page to prevent premature 'Actor not available' errors",
+      "summary": "Fix the YouTube/Google OAuth connection flow so that after a successful OAuth callback the connection state is correctly persisted and reflected in the UI as connected",
       "acceptanceCriteria": [
-        "OAuthCallback page shows a loading indicator while the actor is initializing instead of immediately failing",
-        "OAuth code exchange is only attempted once the actor is confirmed available",
-        "If the actor becomes available within a reasonable timeout, the OAuth flow completes successfully",
-        "If the actor is genuinely unavailable after timeout, a clear error is shown with a retry option",
-        "No 'Actor not available' error appears for a logged-in user who completes the Google OAuth redirect flow"
+        "After completing the Google OAuth consent flow and being redirected back to the app, the YouTube channel connection status is shown as connected and remains connected.",
+        "The connection status does not flip back to disconnected immediately after a successful OAuth callback.",
+        "Refreshing the page after connecting still shows the channel as connected.",
+        "The ChannelConnection component correctly reflects the persisted OAuth credentials from the backend."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/OAuthCallback.tsx",
           "operation": "modify",
-          "description": "Add loading state while actor is initializing. Replace immediate error throw with conditional rendering: show loading spinner while actor is being fetched, only attempt OAuth code exchange when actor is confirmed available. Add timeout logic (e.g., 10 seconds) to handle cases where actor never becomes available, displaying a user-friendly error with retry option if timeout is reached."
+          "description": "Modify the OAuthCallback page to ensure proper state synchronization after successful credential storage. After the storeGoogleOAuthCredentials mutation succeeds, invalidate all YouTube connection-related query cache keys (youtubeConnection, hasGoogleOAuthCredentials, callerUserProfile) to force immediate refetch. Ensure the page waits for the invalidation and refetch to complete before redirecting to the home page, so the UI already shows the connected state when the user lands on the home page."
+        },
+        {
+          "path": "frontend/src/hooks/useYouTubeChannel.ts",
+          "operation": "modify",
+          "description": "Review and fix the connection status query logic in useYouTubeChannel to ensure it properly reflects backend state. Verify that the query key is consistent across all call sites and that the enabled condition correctly waits for the actor to be ready. Add explicit query invalidation logic after the disconnect mutation completes successfully to ensure the UI immediately reflects the disconnected state."
+        },
+        {
+          "path": "frontend/src/components/ChannelConnection.tsx",
+          "operation": "modify",
+          "description": "Update the ChannelConnection component to handle edge cases where the connection status might be stale immediately after returning from OAuth callback. Add a loading state display during the transition period after OAuth callback and before the connection status query returns fresh data. Ensure the component does not render cached stale connection data from before the OAuth flow started."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Synchronize actor initialization state with OAuthCallback using React Query's enabled flag to prevent premature backend calls",
+      "summary": "Fix the OAuthCallback page to reliably wait for backend actor initialization before processing and storing OAuth credentials",
       "acceptanceCriteria": [
-        "useActor hook readiness state is correctly consumed by OAuthCallback before making backend calls",
-        "OAuthCallback does not call backend actor methods when actor is null/undefined",
-        "A retry or wait mechanism is in place so transient actor initialization delays do not cause hard failures"
+        "The OAuthCallback page does not attempt to store credentials before the actor is fully initialized.",
+        "If the actor is not ready within the timeout, a clear error message is shown to the user explaining what happened.",
+        "After credentials are stored via the mutation hook, the OAuthCallback page redirects to the main page with connection state already set to connected.",
+        "The useYouTubeChannel hook's connection status query is invalidated/refetched after credentials are successfully stored so the UI immediately reflects the connected state."
       ],
       "file_operations": [
         {
           "path": "frontend/src/pages/OAuthCallback.tsx",
           "operation": "modify",
-          "description": "Consume both actor and isFetching from useActor hook. Use React Query's enabled flag or conditional effect dependencies to ensure storeGoogleOAuthCredentials mutation is only triggered when actor is defined and not fetching. Add retry logic using React Query's retry configuration or a custom polling mechanism that waits for actor availability before proceeding with the OAuth callback processing."
+          "description": "Improve the actor readiness check logic to properly detect when the actor is fully initialized and ready to accept credential storage requests. Replace the existing retry logic with a more robust polling mechanism that checks both actor availability and actor.isCallerAdmin or another health-check method to confirm the actor is truly ready. If the actor does not become ready within 15 seconds, display a clear, user-friendly error message explaining that the backend was not ready in time and provide actionable next steps (e.g., retry button or navigate to home and try connecting again)."
+        },
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Review the useStoreGoogleOAuthCredentials mutation hook to ensure it properly handles backend errors and returns clear error messages to the caller. Add error handling for cases where the backend actor is not yet ready or the credential storage fails due to initialization issues. Ensure the mutation's onSuccess callback invalidates all relevant query keys (youtubeConnection, hasGoogleOAuthCredentials, callerUserProfile) so the UI immediately reflects the new connected state."
+        },
+        {
+          "path": "frontend/src/utils/urlParams.ts",
+          "operation": "modify",
+          "description": "Review the URL parameter extraction logic to ensure it correctly handles both query string and hash-based routing for OAuth callback parameters (code, state, error, error_description). Add validation to ensure the authorization code and state are present and non-empty before proceeding. Add a helper function to extract error parameters from the OAuth callback URL and return a user-friendly error message if the OAuth provider returned an error."
+        }
+      ]
+    },
+    {
+      "id": "REQ-3",
+      "summary": "Ensure the useYouTubeChannel hook's connection status check query is invalidated and refetched after the OAuth credential save mutation completes successfully",
+      "acceptanceCriteria": [
+        "After the storeGoogleOAuthCredentials mutation succeeds, all YouTube connection-related React Query cache entries are invalidated.",
+        "The ChannelConnection component fetches fresh connection status from the backend and displays the channel as connected without requiring a manual page refresh."
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useQueries.ts",
+          "operation": "modify",
+          "description": "Update the useStoreGoogleOAuthCredentials mutation hook to add an onSuccess callback that uses queryClient.invalidateQueries to invalidate all YouTube connection-related query keys including youtubeConnection, hasGoogleOAuthCredentials, and callerUserProfile. Ensure the invalidation triggers immediate refetch of these queries so any component (like ChannelConnection) that depends on connection status will automatically receive and display the fresh connected state."
+        },
+        {
+          "path": "frontend/src/hooks/useYouTubeChannel.ts",
+          "operation": "modify",
+          "description": "Ensure the connection status query (useIsYouTubeChannelConnected) is properly configured with staleTime: 0 or a very short staleTime so it always refetches after invalidation. Verify that the query's enabled condition does not prevent refetch after the credentials are stored. Add a refetchOnMount: 'always' option to ensure the query always fetches fresh data when the ChannelConnection component mounts after returning from the OAuth callback."
         }
       ]
     }

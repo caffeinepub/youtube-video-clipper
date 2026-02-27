@@ -94,15 +94,17 @@ export default function OAuthCallback() {
         const redirectUri = `${window.location.origin}/oauth/callback`;
         console.log('[OAuthCallback] Storing OAuth credentials with redirect URI:', redirectUri);
 
+        // storeOAuth's onSuccess already refetches all relevant queries before resolving
         await storeOAuth({ authorizationCode: code, redirectUri });
 
-        console.log('[OAuthCallback] OAuth credentials stored successfully');
+        console.log('[OAuthCallback] OAuth credentials stored and queries refreshed');
         setStatus('success');
         toast.success('Google account connected successfully!');
 
+        // Navigate after a short delay so the user sees the success state
         setTimeout(() => {
           navigate({ to: '/' });
-        }, 2000);
+        }, 1500);
       } catch (err) {
         console.error('[OAuthCallback] Error:', err);
         setStatus('error');
@@ -116,6 +118,8 @@ export default function OAuthCallback() {
           setErrorDetails('Security validation failed. This can happen if you opened multiple authorization windows.');
         } else if (errorMsg.includes('authorization code')) {
           setErrorDetails('The authorization code from Google was invalid or missing.');
+        } else if (errorMsg.includes('Backend OAuth configuration')) {
+          setErrorDetails('The backend needs to be configured with valid Google OAuth client credentials. Contact the administrator.');
         }
 
         toast.error('Connection failed', { description: errorMsg });
@@ -133,7 +137,8 @@ export default function OAuthCallback() {
     navigate({ to: '/' });
   };
 
-  const isWaiting = status === 'waiting' || (status === 'processing' && actorFetching);
+  const isWaiting = status === 'waiting';
+  const isProcessing = status === 'processing';
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-background">
@@ -141,18 +146,18 @@ export default function OAuthCallback() {
         <CardHeader>
           <CardTitle>Connecting Your Account</CardTitle>
           <CardDescription>
-            {(status === 'waiting') && 'Initializing connection...'}
-            {status === 'processing' && 'Please wait while we connect your Google account...'}
+            {isWaiting && 'Initializing connection...'}
+            {isProcessing && 'Please wait while we connect your Google account...'}
             {status === 'success' && 'Successfully connected!'}
             {status === 'error' && 'Connection failed'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {(isWaiting || status === 'processing') && (
+          {(isWaiting || isProcessing) && (
             <div className="flex flex-col items-center justify-center py-8 space-y-4">
               <Loader2 className="w-12 h-12 animate-spin text-primary" />
               <p className="text-sm text-muted-foreground">
-                {status === 'waiting' ? 'Waiting for backend connection...' : 'Connecting to Google...'}
+                {isWaiting ? 'Waiting for backend connection...' : 'Connecting to Google...'}
               </p>
               <p className="text-xs text-muted-foreground">This may take a few moments</p>
             </div>

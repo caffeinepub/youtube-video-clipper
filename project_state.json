@@ -1,30 +1,40 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "New project",
+  "summary": "App with YouTube connection feature that has a known connectivity bug.",
   "architectural_notes": [],
-  "known_issues": [],
+  "known_issues": [
+    "YouTube connection shows as connected then immediately reports as not connected (false connect state)"
+  ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-fix-the-oauthcallback-page-so-it-does-not-show-connection-failed-actor-not-available-when-the-actor-is-not-yet-initialized-the-page-should-wait-for-the-actor-to-become-available-with-a-loading-state-before-attempting-to-exchange-the-oauth-authorization-code-rather-than-failing-immediately-if-the-actor-is-null-or-undefined",
-      "title": "Fix the OAuthCallback page so it does not show 'Connection Failed / Actor not available' when the actor is not yet initialized. The page should wait for the actor to become available (with a loading state) before attempting to exchange the OAuth authorization code, rather than failing immediately if the actor is null or undefined.",
+      "id": "feature-fix-the-youtube-google-oauth-connection-flow-so-that-after-a-successful-oauth-callback-the-connection-state-is-correctly-persisted-and-reflected-in-the-ui-as-connected-the-current-bug-causes-the-app-to-briefly-show-a-connected-state-and-then-revert-to-showing-disconnected-even-though-the-oauth-credentials-were-processed",
+      "title": "Fix the YouTube/Google OAuth connection flow so that after a successful OAuth callback the connection state is correctly persisted and reflected in the UI as connected. The current bug causes the app to briefly show a connected state and then revert to showing disconnected, even though the OAuth credentials were processed.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-ensure-the-actor-initialization-in-useactor-hook-and-the-oauthcallback-page-are-properly-synchronized-the-oauthcallback-should-re-attempt-or-wait-using-react-query-s-enabled-flag-or-a-polling-retry-strategy-until-the-authenticated-actor-is-ready-before-proceeding-with-the-oauth-callback-processing",
-      "title": "Ensure the actor initialization in useActor hook and the OAuthCallback page are properly synchronized — the OAuthCallback should re-attempt or wait using React Query's enabled flag or a polling/retry strategy until the authenticated actor is ready before proceeding with the OAuth callback processing.",
+      "id": "feature-fix-the-oauthcallback-page-to-reliably-wait-for-backend-actor-initialization-before-processing-and-storing-oauth-credentials-if-the-actor-is-not-ready-within-the-timeout-window-surface-a-clear-actionable-error-rather-than-silently-failing-or-incorrectly-reporting-the-connection-as-failed",
+      "title": "Fix the OAuthCallback page to reliably wait for backend actor initialization before processing and storing OAuth credentials. If the actor is not ready within the timeout window, surface a clear, actionable error rather than silently failing or incorrectly reporting the connection as failed.",
       "reqIds": [
         "REQ-2"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-ensure-the-useyoutubechannel-hook-s-connection-status-check-query-is-invalidated-and-refetched-after-the-oauth-credential-save-mutation-completes-successfully-so-the-channelconnection-component-immediately-reads-the-correct-connected-state-from-the-backend",
+      "title": "Ensure the useYouTubeChannel hook's connection status check query is invalidated and refetched after the OAuth credential save mutation completes successfully, so the ChannelConnection component immediately reads the correct connected state from the backend.",
+      "reqIds": [
+        "REQ-3"
       ],
       "version": 1
     }
   ],
   "new_feature_requests": [],
-  "projectName": "Fix OAuth callback 'Actor not available' connection failure",
+  "projectName": "Beast Clipping",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

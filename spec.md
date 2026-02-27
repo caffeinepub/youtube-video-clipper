@@ -1,12 +1,12 @@
 # Specification
 
 ## Summary
-**Goal:** Fix the OAuthCallback page so it waits for the actor to initialize before attempting the OAuth code exchange, instead of immediately failing with "Actor not available."
+**Goal:** Fix the YouTube/Google OAuth connection flow so that after a successful OAuth callback the connection state is correctly persisted and remains connected in the UI.
 
 **Planned changes:**
-- Modify `frontend/src/pages/OAuthCallback.tsx` to show a loading indicator while the actor is initializing
-- Add a wait/retry mechanism (e.g., using React Query's `enabled` flag or a polling strategy) so the OAuth code exchange is only attempted once the actor is confirmed available
-- If the actor becomes available within a reasonable timeout, proceed with the OAuth flow normally
-- If the actor remains unavailable after the timeout, show a clear error with a retry option instead of immediately failing
+- Fix the OAuthCallback page to wait for backend actor initialization before processing and storing OAuth credentials, and surface a clear error if the actor is not ready in time.
+- After the `storeGoogleOAuthCredentials` mutation succeeds, invalidate and refetch all YouTube connection-related React Query cache entries so the UI immediately reflects the connected state.
+- Ensure the `ChannelConnection` component correctly reads and displays the persisted OAuth connection status from the backend without reverting to disconnected.
+- Redirect to the main page after successful credential storage with the connection state already set to connected.
 
-**User-visible outcome:** A logged-in user completing the Google OAuth redirect flow will no longer see the "Connection Failed / Actor not available" error. Instead, they will see a loading state while the actor initializes, and the OAuth connection will complete successfully once the actor is ready.
+**User-visible outcome:** After completing the Google OAuth consent flow, the YouTube channel shows as connected and remains connected — including after a page refresh — without flickering back to a disconnected state.

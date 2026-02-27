@@ -2,9 +2,10 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-fix-the-oauthcallback-page-so-it-does-not-show-connection-failed-actor-not-available-when-the-actor-is-not-yet-initialized-the-page-should-wait-for-the-actor-to-become-available-with-a-loading-state-before-attempting-to-exchange-the-oauth-authorization-code-rather-than-failing-immediately-if-the-actor-is-null-or-undefined",
-      "featureTitle": "Fix the OAuthCallback page so it does not show 'Connection Failed / Actor not available' when the actor is not yet initialized. The page should wait for the actor to become available (with a loading state) before attempting to exchange the OAuth authorization code, rather than failing immediately if the actor is null or undefined.",
+      "featureId": "feature-fix-the-youtube-google-oauth-connection-flow-so-that-after-a-successful-oauth-callback-the-connection-state-is-correctly-persisted-and-reflected-in-the-ui-as-connected-the-current-bug-causes-the-app-to-briefly-show-a-connected-state-and-then-revert-to-showing-disconnected-even-though-the-oauth-credentials-were-processed",
+      "featureTitle": "Fix the YouTube/Google OAuth connection flow so that after a successful OAuth callback the connection state is correctly persisted and reflected in the UI as connected. The current bug causes the app to briefly show a connected state and then revert to showing disconnected, even though the OAuth credentials were processed.",
       "files": [
+        "frontend/src/hooks/useYouTubeChannel.ts",
         "frontend/src/pages/OAuthCallback.tsx"
       ],
       "components": [
@@ -22,9 +23,10 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-ensure-the-actor-initialization-in-useactor-hook-and-the-oauthcallback-page-are-properly-synchronized-the-oauthcallback-should-re-attempt-or-wait-using-react-query-s-enabled-flag-or-a-polling-retry-strategy-until-the-authenticated-actor-is-ready-before-proceeding-with-the-oauth-callback-processing",
-      "featureTitle": "Ensure the actor initialization in useActor hook and the OAuthCallback page are properly synchronized — the OAuthCallback should re-attempt or wait using React Query's enabled flag or a polling/retry strategy until the authenticated actor is ready before proceeding with the OAuth callback processing.",
+      "featureId": "feature-fix-the-oauthcallback-page-to-reliably-wait-for-backend-actor-initialization-before-processing-and-storing-oauth-credentials-if-the-actor-is-not-ready-within-the-timeout-window-surface-a-clear-actionable-error-rather-than-silently-failing-or-incorrectly-reporting-the-connection-as-failed",
+      "featureTitle": "Fix the OAuthCallback page to reliably wait for backend actor initialization before processing and storing OAuth credentials. If the actor is not ready within the timeout window, surface a clear, actionable error rather than silently failing or incorrectly reporting the connection as failed.",
       "files": [
+        "frontend/src/hooks/useQueries.ts",
         "frontend/src/pages/OAuthCallback.tsx"
       ],
       "components": [
@@ -38,6 +40,27 @@
       ],
       "testIds": [
         "REQ-2"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-the-useyoutubechannel-hook-s-connection-status-check-query-is-invalidated-and-refetched-after-the-oauth-credential-save-mutation-completes-successfully-so-the-channelconnection-component-immediately-reads-the-correct-connected-state-from-the-backend",
+      "featureTitle": "Ensure the useYouTubeChannel hook's connection status check query is invalidated and refetched after the OAuth credential save mutation completes successfully, so the ChannelConnection component immediately reads the correct connected state from the backend.",
+      "files": [
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/hooks/useYouTubeChannel.ts"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "http-outcalls@3.0.0"
+      ],
+      "testIds": [
+        "REQ-3"
       ],
       "confidence": "high"
     }

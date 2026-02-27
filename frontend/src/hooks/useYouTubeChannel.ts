@@ -1,13 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { useGetCallerUserProfile } from './useQueries';
 import { toast } from 'sonner';
 
 interface ChannelStatus {
   isConnected: boolean;
   channelName?: string;
   channelId?: string;
-  email?: string;
 }
 
 const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
@@ -16,7 +14,6 @@ const REDIRECT_URI = `${window.location.origin}/oauth/callback`;
 export function useYouTubeChannel() {
   const { actor, isFetching: actorFetching } = useActor();
   const queryClient = useQueryClient();
-  const { data: userProfile } = useGetCallerUserProfile();
 
   const channelQuery = useQuery<ChannelStatus>({
     queryKey: ['youtubeChannel'],
@@ -24,22 +21,30 @@ export function useYouTubeChannel() {
       if (!actor) {
         throw new Error('Actor not available');
       }
-      
-      const hasOAuth = await actor.hasGoogleOAuthCredentials();
-      const isConnected = await actor.isYouTubeChannelConnected();
-      
-      if (hasOAuth && isConnected && userProfile?.googleOAuthCredentials) {
+
+      // Use backend as the single source of truth — do NOT rely on cached userProfile
+      const [hasOAuth, isYTConnected] = await Promise.all([
+        actor.hasGoogleOAuthCredentials(),
+        actor.isYouTubeChannelConnected(),
+      ]);
+
+      console.log('[useYouTubeChannel] hasOAuth:', hasOAuth, 'isYTConnected:', isYTConnected);
+
+      if (hasOAuth || isYTConnected) {
+        // Fetch fresh profile to get channel name
+        const profile = await actor.getCallerUserProfile();
         return {
           isConnected: true,
-          channelName: userProfile.youtubeAuth?.channelName || 'My Channel',
-          channelId: userProfile.youtubeAuth?.channelId,
-          email: userProfile.googleOAuthCredentials.idToken ? 'Connected' : undefined,
+          channelName: profile?.youtubeAuth?.channelName || 'My Channel',
+          channelId: profile?.youtubeAuth?.channelId,
         };
       }
-      
+
       return { isConnected: false };
     },
     enabled: !!actor && !actorFetching,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const connectMutation = useMutation({
@@ -53,18 +58,17 @@ export function useYouTubeChannel() {
       }
 
       console.log('[useYouTubeChannel] Initiating OAuth flow with Client ID:', GOOGLE_CLIENT_ID.substring(0, 20) + '...');
-      
-      // Build OAuth URL with required scopes for YouTube
+
       const scopes = [
         'https://www.googleapis.com/auth/youtube.upload',
         'https://www.googleapis.com/auth/youtube',
         'https://www.googleapis.com/auth/userinfo.email',
         'https://www.googleapis.com/auth/userinfo.profile',
       ].join(' ');
-      
+
       const state = Math.random().toString(36).substring(7);
       sessionStorage.setItem('oauth_state', state);
-      
+
       const authUrl = new URL('https://accounts.google.com/o/oauth2/v2/auth');
       authUrl.searchParams.set('client_id', GOOGLE_CLIENT_ID);
       authUrl.searchParams.set('redirect_uri', REDIRECT_URI);
@@ -73,10 +77,9 @@ export function useYouTubeChannel() {
       authUrl.searchParams.set('access_type', 'offline');
       authUrl.searchParams.set('prompt', 'consent');
       authUrl.searchParams.set('state', state);
-      
+
       console.log('[useYouTubeChannel] Redirecting to:', authUrl.toString());
-      
-      // Redirect to Google OAuth
+
       window.location.href = authUrl.toString();
     },
     onError: (error) => {
@@ -92,19 +95,16 @@ export function useYouTubeChannel() {
       if (!actor) {
         throw new Error('Actor not available');
       }
-      
-      // Disconnect by connecting with empty/expired data
-      await actor.connectYouTubeChannel(
-        '',
-        '',
-        '',
-        '',
-        BigInt(0)
-      );
+
+      // Disconnect by setting expired/empty YouTube auth
+      await actor.connectYouTubeChannel('', '', '', '', BigInt(0));
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['youtubeChannel'] });
-      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ['youtubeChannel'] });
+      await queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      await queryClient.invalidateQueries({ queryKey: ['hasGoogleOAuth'] });
+      await queryClient.invalidateQueries({ queryKey: ['isYouTubeConnected'] });
+      await queryClient.refetchQueries({ queryKey: ['youtubeChannel'] });
       toast.success('Google account disconnected');
     },
     onError: (error) => {
@@ -117,7 +117,7 @@ export function useYouTubeChannel() {
 
   return {
     channelStatus: channelQuery.data,
-    isLoading: channelQuery.isLoading,
+    isLoading: channelQuery.isLoading || channelQuery.isFetching,
     error: connectMutation.error?.message || disconnectMutation.error?.message,
     connectChannel: connectMutation.mutateAsync,
     disconnectChannel: disconnectMutation.mutateAsync,
