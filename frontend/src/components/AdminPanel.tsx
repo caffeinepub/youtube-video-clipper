@@ -1,202 +1,173 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { useAdminStats } from '../hooks/useAdminStats';
-import { BarChart3, TrendingUp, Video, AlertCircle, RefreshCw, ChevronDown, ChevronUp, Bug, Users, MessageSquare } from 'lucide-react';
-import { useQueryClient } from '@tanstack/react-query';
-import AdminDebugPanel from './AdminDebugPanel';
-import AdminManagement from './AdminManagement';
+import React, { useState } from 'react';
+import {
+  Shield,
+  Users,
+  Activity,
+  MessageSquare,
+  Settings,
+  ChevronDown,
+  ChevronUp,
+  Lock,
+} from 'lucide-react';
+import { useIsOwner } from '../hooks/useIsOwner';
+import { useGetOwnRole } from '../hooks/useGetOwnRole';
 import UserStatusManagement from './UserStatusManagement';
+import ActivityLogTable from './ActivityLogTable';
+import AdminManagement from './AdminManagement';
+import AdminMessaging from './AdminMessaging';
 import FeedbackSubmissions from './FeedbackSubmissions';
-import { useState } from 'react';
+import AppAnalytics from './AppAnalytics';
+import SystemControls from './SystemControls';
+import AdminErrorBoundary from './AdminErrorBoundary';
+
+interface SectionProps {
+  title: string;
+  icon: React.ReactNode;
+  children: React.ReactNode;
+  defaultOpen?: boolean;
+  badge?: string;
+}
+
+function CollapsibleSection({ title, icon, children, defaultOpen = false, badge }: SectionProps) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <div className="glass-card overflow-hidden">
+      <button
+        onClick={() => setOpen(!open)}
+        className="w-full flex items-center justify-between p-4 hover:bg-white/3 transition-colors"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-8 h-8 rounded-lg bg-indigo-500/15 flex items-center justify-center">
+            {icon}
+          </div>
+          <span className="text-white font-semibold text-sm">{title}</span>
+          {badge && (
+            <span className="bg-indigo-500/20 text-indigo-300 text-xs px-2 py-0.5 rounded-full border border-indigo-500/30">
+              {badge}
+            </span>
+          )}
+        </div>
+        {open ? (
+          <ChevronUp className="w-4 h-4 text-muted-foreground" />
+        ) : (
+          <ChevronDown className="w-4 h-4 text-muted-foreground" />
+        )}
+      </button>
+      {open && (
+        <div className="border-t border-white/8 p-4">
+          {children}
+        </div>
+      )}
+    </div>
+  );
+}
 
 export default function AdminPanel() {
-  const { totalClips, trendingAnalytics, isLoading, error } = useAdminStats();
-  const queryClient = useQueryClient();
-  const [debugOpen, setDebugOpen] = useState(true);
-  const [userStatusOpen, setUserStatusOpen] = useState(true);
-  const [feedbackOpen, setFeedbackOpen] = useState(true);
+  const { isOwner } = useIsOwner();
+  const { data: ownRole, isLoading: roleLoading } = useGetOwnRole();
 
-  const handleRetry = () => {
-    queryClient.invalidateQueries({ queryKey: ['adminStats'] });
-  };
+  // Normalize role to string
+  const roleStr = ownRole
+    ? (typeof ownRole === 'object' ? Object.keys(ownRole)[0] : String(ownRole))
+    : null;
 
-  if (isLoading) {
+  const isAdmin = roleStr === 'admin' || roleStr === 'owner' || isOwner;
+
+  if (roleLoading) {
     return (
-      <div className="container mx-auto px-4 py-8 space-y-6">
-        <div>
-          <Skeleton className="h-10 w-64 mb-2" />
-          <Skeleton className="h-5 w-96" />
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-          <Skeleton className="h-32" />
-        </div>
-
-        <Skeleton className="h-96" />
+      <div className="flex items-center justify-center py-20">
+        <div className="w-8 h-8 border-2 border-indigo-500 border-t-transparent rounded-full animate-spin" />
       </div>
     );
   }
 
-  if (error) {
+  if (!isAdmin) {
     return (
-      <div className="container mx-auto px-4 py-8">
-        <Alert variant="destructive">
-          <AlertCircle className="h-4 w-4" />
-          <AlertTitle>Error Loading Admin Panel</AlertTitle>
-          <AlertDescription className="mt-2 space-y-2">
-            <p>Failed to load admin statistics. Please try again.</p>
-            <p className="text-xs font-mono">{error instanceof Error ? error.message : String(error)}</p>
-            <Button onClick={handleRetry} variant="outline" size="sm" className="mt-2">
-              <RefreshCw className="w-4 h-4 mr-2" />
-              Retry
-            </Button>
-          </AlertDescription>
-        </Alert>
+      <div className="flex flex-col items-center justify-center py-20 text-center">
+        <div className="w-16 h-16 rounded-2xl bg-red-500/10 flex items-center justify-center mb-4">
+          <Lock className="w-8 h-8 text-red-400" />
+        </div>
+        <h2 className="text-white font-bold text-xl mb-2">Access Denied</h2>
+        <p className="text-muted-foreground text-sm max-w-sm">
+          You don't have permission to access the Admin Panel. Contact an administrator if you believe this is an error.
+        </p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-foreground mb-2">Admin Panel</h1>
-        <p className="text-muted-foreground">Manage and monitor your Beast Clipping platform</p>
-      </div>
+    <AdminErrorBoundary>
+      <div className="space-y-4">
+        {/* Header */}
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center indigo-glow-sm">
+            <Shield className="w-5 h-5 text-indigo-400" />
+          </div>
+          <div>
+            <h1 className="text-white font-bold text-xl font-display">Admin Panel</h1>
+            <p className="text-muted-foreground text-xs">System management and analytics</p>
+          </div>
+        </div>
 
-      {/* Debug Panel - Collapsible */}
-      <Collapsible open={debugOpen} onOpenChange={setDebugOpen}>
-        <CollapsibleTrigger asChild>
-          <Button variant="outline" className="w-full justify-between">
-            <span className="flex items-center gap-2">
-              <Bug className="w-4 h-4" />
-              Authentication Debug Panel
-            </span>
-            {debugOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="mt-4">
-          <AdminDebugPanel />
-        </CollapsibleContent>
-      </Collapsible>
+        {/* Analytics */}
+        <CollapsibleSection
+          title="Analytics & Stats"
+          icon={<Activity className="w-4 h-4 text-indigo-400" />}
+          defaultOpen={true}
+          badge="Live"
+        >
+          <AppAnalytics />
+        </CollapsibleSection>
 
-      {/* Admin Management Section */}
-      <AdminManagement />
+        {/* System Controls */}
+        <CollapsibleSection
+          title="System Controls"
+          icon={<Settings className="w-4 h-4 text-orange-400" />}
+        >
+          <SystemControls />
+        </CollapsibleSection>
 
-      {/* User Status Management Section - Collapsible */}
-      <Collapsible open={userStatusOpen} onOpenChange={setUserStatusOpen}>
-        <CollapsibleTrigger asChild>
-          <Button variant="outline" className="w-full justify-between">
-            <span className="flex items-center gap-2">
-              <Users className="w-4 h-4" />
-              User Status Management
-            </span>
-            {userStatusOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="mt-4">
+        {/* User Management */}
+        <CollapsibleSection
+          title="User & Clip Management"
+          icon={<Users className="w-4 h-4 text-indigo-400" />}
+        >
           <UserStatusManagement />
-        </CollapsibleContent>
-      </Collapsible>
+        </CollapsibleSection>
 
-      {/* Feedback Submissions Section - Collapsible */}
-      <Collapsible open={feedbackOpen} onOpenChange={setFeedbackOpen}>
-        <CollapsibleTrigger asChild>
-          <Button variant="outline" className="w-full justify-between">
-            <span className="flex items-center gap-2">
-              <MessageSquare className="w-4 h-4" />
-              Feedback Submissions
-            </span>
-            {feedbackOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent className="mt-4">
+        {/* Activity Logs */}
+        <CollapsibleSection
+          title="Activity Logs"
+          icon={<Activity className="w-4 h-4 text-emerald-400" />}
+          badge="Auto-refresh"
+        >
+          <ActivityLogTable />
+        </CollapsibleSection>
+
+        {/* Admin Management */}
+        <CollapsibleSection
+          title="Admin Management"
+          icon={<Shield className="w-4 h-4 text-purple-400" />}
+        >
+          <AdminManagement />
+        </CollapsibleSection>
+
+        {/* Messaging */}
+        <CollapsibleSection
+          title="Support Messaging"
+          icon={<MessageSquare className="w-4 h-4 text-blue-400" />}
+        >
+          <AdminMessaging />
+        </CollapsibleSection>
+
+        {/* Feedback */}
+        <CollapsibleSection
+          title="Feedback Submissions"
+          icon={<MessageSquare className="w-4 h-4 text-pink-400" />}
+        >
           <FeedbackSubmissions />
-        </CollapsibleContent>
-      </Collapsible>
-
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Clips</CardTitle>
-            <Video className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalClips ? Number(totalClips) : 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">All saved video clips</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Trending Clips</CardTitle>
-            <TrendingUp className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{trendingAnalytics?.length || 0}</div>
-            <p className="text-xs text-muted-foreground mt-1">Top performing clips</p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Analytics</CardTitle>
-            <BarChart3 className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">Active</div>
-            <p className="text-xs text-muted-foreground mt-1">System monitoring</p>
-          </CardContent>
-        </Card>
+        </CollapsibleSection>
       </div>
-
-      {/* Trending Clips Analytics Table */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Trending Clips Analytics</CardTitle>
-          <CardDescription>Top performing clips ranked by engagement score</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {trendingAnalytics && trendingAnalytics.length > 0 ? (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">Rank</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead className="text-right">Score</TableHead>
-                    <TableHead className="text-right">Trending Score</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {trendingAnalytics.map((clip, index) => (
-                    <TableRow key={clip.id}>
-                      <TableCell className="font-medium">#{index + 1}</TableCell>
-                      <TableCell className="max-w-md truncate">{clip.title}</TableCell>
-                      <TableCell className="text-right">{clip.scoreMetrics.toFixed(1)}</TableCell>
-                      <TableCell className="text-right font-bold text-primary">
-                        {clip.trendingScore.toFixed(1)}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-          ) : (
-            <div className="text-center py-8 text-muted-foreground">
-              <TrendingUp className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No trending clips data available yet</p>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    </AdminErrorBoundary>
   );
 }

@@ -1,36 +1,67 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "App with YouTube integration and role-based access control, including banned/suspended user status screens.",
+  "summary": "Premium dark-mode full-stack dashboard with Tailwind CSS glassmorphism and indigo accents. Features a responsive layout (desktop sidebar, mobile bottom nav), vertical clip player, AI caption editor, YouTube scheduler, trending creator feed, manager CRUD view, and a gated admin panel with user/clip management, system controls, analytics, and support messaging.",
   "architectural_notes": [
-    "YouTube integration requires connection fix — has been persistently failing across multiple builds"
+    "Dark background color: #0B0E14 with Tailwind CSS, glassmorphism UI, and indigo accent colors",
+    "Admin panel is access-gated (role-based visibility)"
   ],
-  "known_issues": [
-    "YouTube connection is not working despite previous fix attempts"
-  ],
-  "isFixRequest": true,
+  "known_issues": [],
+  "isFixRequest": false,
   "existing_features": [
     {
-      "id": "feature-remove-any-role-based-access-restrictions-from-youtube-related-features-channel-connection-video-url-input-youtube-player-clip-suggestions-clip-creation-post-to-youtube-all-authenticated-users-regardless-of-role-owner-admin-user-friend-must-be-able-to-see-and-use-these-features",
-      "title": "Remove any role-based access restrictions from YouTube-related features (channel connection, video URL input, YouTube player, clip suggestions, clip creation, post-to-YouTube). All authenticated users regardless of role (owner, admin, user, friend) must be able to see and use these features.",
+      "id": "feature-apply-a-consistent-premium-dark-mode-visual-theme-across-the-entire-application-base-background-color-0b0e14-glassmorphism-card-panel-surfaces-semi-transparent-with-backdrop-blur-and-subtle-border-indigo-accent-color-for-interactive-elements-buttons-badges-and-highlights-use-space-grotesk-and-inter-fonts-ensure-all-existing-and-new-components-inherit-this-theme",
+      "title": "Apply a consistent premium dark-mode visual theme across the entire application: base background color #0B0E14, glassmorphism card/panel surfaces (semi-transparent with backdrop-blur and subtle border), indigo accent color for interactive elements, buttons, badges, and highlights. Use Space Grotesk and Inter fonts. Ensure all existing and new components inherit this theme.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-when-an-authenticated-user-s-account-status-is-banned-or-suspended-display-a-full-screen-error-blocking-page-instead-of-the-normal-app-ui-the-screen-must-clearly-communicate-that-the-account-is-banned-or-suspended-and-prevent-access-to-all-app-features",
-      "title": "When an authenticated user's account status is 'banned' or 'suspended', display a full-screen error/blocking page instead of the normal app UI. The screen must clearly communicate that the account is banned or suspended and prevent access to all app features.",
+      "id": "feature-implement-a-responsive-appshell-layout-on-desktop-md-render-a-fixed-sidebar-sidenavigation-showing-user-profile-avatar-display-name-greeting-e-g-good-morning-name-role-badge-and-nav-links-on-mobile-hide-the-sidebar-and-show-a-persistent-bottom-navigation-bar-bottomnavigation-with-icon-label-nav-items-both-components-must-be-role-aware-and-reflect-authentication-state",
+      "title": "Implement a responsive AppShell layout: on desktop (md+), render a fixed sidebar (SideNavigation) showing user profile avatar, display name, greeting (e.g., 'Good morning, [Name]'), role badge, and nav links. On mobile, hide the sidebar and show a persistent bottom navigation bar (BottomNavigation) with icon+label nav items. Both components must be role-aware and reflect authentication state.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-fix-the-youtube-oauth-connection-flow-so-that-after-a-user-completes-the-google-oauth-callback-the-channel-remains-connected-and-does-not-revert-to-a-disconnected-state-ensure-the-oauth-credentials-are-correctly-stored-in-the-backend-the-actor-is-fully-initialized-before-storing-credentials-and-all-relevant-react-query-caches-channel-connection-status-oauth-credential-status-are-invalidated-after-a-successful-credential-save-so-the-ui-reflects-the-connected-state",
-      "title": "Fix the YouTube OAuth connection flow so that after a user completes the Google OAuth callback, the channel remains connected and does not revert to a disconnected state. Ensure the OAuth credentials are correctly stored in the backend, the actor is fully initialized before storing credentials, and all relevant React Query caches (channel connection status, OAuth credential status) are invalidated after a successful credential save so the UI reflects the connected state.",
+      "id": "feature-build-a-vertical-clip-preview-component-that-displays-the-currently-selected-or-most-recently-created-clip-in-a-9-16-mobile-ratio-aspect-ratio-container-it-should-show-the-clip-thumbnail-if-available-title-time-range-duration-and-viral-score-badge-this-component-should-be-prominently-placed-on-the-main-dashboard-home-view",
+      "title": "Build a Vertical Clip Preview component that displays the currently selected or most recently created clip in a 9:16 (mobile-ratio) aspect ratio container. It should show the clip thumbnail (if available), title, time range, duration, and viral score badge. This component should be prominently placed on the main dashboard/home view.",
       "reqIds": [
         "REQ-3"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-enhance-the-ai-caption-editor-to-be-a-fully-editable-textarea-with-character-count-markdown-friendly-formatting-hints-and-a-glassmorphism-card-wrapper-ensure-the-youtube-upload-scheduler-page-allows-users-to-select-a-saved-clip-pick-a-scheduled-date-time-view-and-delete-scheduled-uploads-and-shows-a-connected-youtube-channel-status-badge-both-editors-must-be-accessible-from-the-main-dashboard-and-or-dedicated-pages",
+      "title": "Enhance the AI caption editor to be a fully editable textarea with character count, markdown-friendly formatting hints, and a glassmorphism card wrapper. Ensure the YouTube upload scheduler page allows users to select a saved clip, pick a scheduled date/time, view and delete scheduled uploads, and shows a connected YouTube channel status badge. Both editors must be accessible from the main dashboard and/or dedicated pages.",
+      "reqIds": [
+        "REQ-4"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-or-enhance-the-trending-in-niche-creator-feed-page-trendingpage-to-display-a-ranked-leaderboard-of-trending-clips-with-creator-info-trend-scores-and-thumbnails-in-a-social-feed-style-grid-layout-include-a-sidebar-or-section-showing-top-trending-analytics-use-glassmorphism-cards-with-indigo-accent-highlights-for-top-ranked-entries",
+      "title": "Build or enhance the 'Trending in Niche' creator feed page (TrendingPage) to display a ranked leaderboard of trending clips with creator info, trend scores, and thumbnails in a social-feed style grid layout. Include a sidebar or section showing top trending analytics. Use glassmorphism cards with indigo accent highlights for top-ranked entries.",
+      "reqIds": [
+        "REQ-5"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-implement-the-manager-view-contentmanager-page-as-a-full-crud-interface-for-content-entries-the-page-must-be-accessible-to-users-with-manager-admin-or-owner-roles-it-should-display-a-table-card-list-of-content-entries-with-inline-or-modal-based-edit-forms-add-new-entry-form-and-delete-confirmation-dialogs-use-glassmorphism-card-styling-throughout",
+      "title": "Implement the Manager View (ContentManager page) as a full CRUD interface for content entries. The page must be accessible to users with 'manager', 'admin', or 'owner' roles. It should display a table/card list of content entries with inline or modal-based edit forms, add new entry form, and delete confirmation dialogs. Use glassmorphism card styling throughout.",
+      "reqIds": [
+        "REQ-6"
+      ],
+      "version": 1
+    },
+    {
+      "id": "feature-build-the-admin-panel-adminpanel-component-and-supporting-components-as-a-gated-dashboard-section-visible-only-to-admin-and-owner-roles-it-must-include-1-user-clip-management-a-searchable-user-table-with-ban-unban-toggles-and-a-batch-clip-deletion-tool-that-selects-multiple-clips-by-user-id-and-deletes-them-in-bulk-2-system-controls-buttons-to-trigger-restartserver-and-shutdownserver-backend-calls-with-confirmation-dialogs-3-analytics-real-time-activity-log-table-polling-a-click-tracking-counter-display-and-a-videos-per-hour-bar-chart-using-recharts-4-support-messaging-a-form-to-send-a-direct-message-to-a-user-by-their-user-id",
+      "title": "Build the Admin Panel (AdminPanel component and supporting components) as a gated dashboard section visible only to admin and owner roles. It must include: (1) User & Clip Management — a searchable user table with Ban/Unban toggles and a batch clip deletion tool that selects multiple clips by user ID and deletes them in bulk. (2) System Controls — buttons to trigger restartServer and shutdownServer backend calls with confirmation dialogs. (3) Analytics — real-time activity log table (polling), a click-tracking counter display, and a 'Videos Per Hour' bar chart using Recharts. (4) Support Messaging — a form to send a direct message to a user by their User ID.",
+      "reqIds": [
+        "REQ-8"
       ],
       "version": 1
     }
@@ -38,25 +69,77 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "All roles can access YouTube features",
+      "summary": "Responsive layout: desktop sidebar with user profile/greeting, mobile persistent bottom navigation",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Show error screen to users with banned or suspended status",
+      "summary": "Vertical clip player with mobile-ratio preview",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Fix YouTube connection issue",
+      "summary": "Editable AI caption box and YouTube upload scheduler editors",
       "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-4",
+      "summary": "Trending in Niche social creator feed",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-5",
+      "summary": "Manager View: CRUD UI for manual content updates",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-6",
+      "summary": "Gated Admin Panel: User/Clip management with ban/unban tools and batch deletion",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-7",
+      "summary": "Admin Panel: System controls (server restart/shutdown)",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-8",
+      "summary": "Admin Panel: Analytics with real-time activity logs, click tracking, and Videos Per Hour charts",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-9",
+      "summary": "Admin Panel: Direct User ID messaging support tool",
+      "reqIds": [],
+      "status": "pending"
+    },
+    {
+      "id": "AR-16",
+      "summary": "Add backend support for system control commands: a 'server restart' action and a 'server shutdown' action callable only by the owner principal. These should log the action to the activity log with timestamp and caller principal. The restart action resets relevant mutable state counters (e.g., messageCounter) while preserving core data. The shutdown action records the event. Both return a confirmation text result.",
+      "reqIds": [
+        "REQ-7"
+      ],
+      "status": "pending"
+    },
+    {
+      "id": "AR-18",
+      "summary": "Add backend support for batch clip deletion by admin: a function deleteClipsByUser(userId: Text) that deletes all clips belonging to a specific user, callable only by admin or owner principals. Also add a getClickStats() function that returns the total number of clip interactions/downloads logged, and a getVideosPerHour() function that returns an array of {hour: Int, count: Nat} records for the last 24 hours based on activityLogs.",
+      "reqIds": [
+        "REQ-9"
+      ],
       "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "Beast Clipping",
+  "projectName": "Premium Dark-Mode Full-Stack Dashboard",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

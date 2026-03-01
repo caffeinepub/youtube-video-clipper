@@ -1,76 +1,215 @@
 {
   "kind": "build_request",
-  "title": "All-role YouTube access, banned/suspended error screens, and YouTube OAuth fix",
-  "projectName": "Beast Clipping",
+  "title": "Premium Dark-Mode Full-Stack Dashboard with Admin Panel",
+  "projectName": "Beast Clipping Dashboard",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Remove any role-based access restrictions from YouTube-related features (channel connection, video URL input, YouTube player, clip suggestions, clip creation, post-to-YouTube). All authenticated users regardless of role (owner, admin, user, friend) must be able to see and use these features.",
+      "text": "Apply a consistent premium dark-mode visual theme across the entire application: base background color #0B0E14, glassmorphism card/panel surfaces (semi-transparent with backdrop-blur and subtle border), indigo accent color for interactive elements, buttons, badges, and highlights. Use Space Grotesk and Inter fonts. Ensure all existing and new components inherit this theme.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-6"
         ],
         "quotes": [
-          "Make it so all roles can access the YouTube stuff"
+          "premium dark-mode full-stack dashboard (#0B0E14) using Tailwind CSS with glassmorphism and indigo accents"
         ]
       },
       "acceptanceCriteria": [
-        "A user with role 'user' can see and interact with the ChannelConnection, VideoUrlForm, YouTubePlayer, ClipSuggestions, ClipTimestampControls, and ClipList components",
-        "A user with role 'friend' can see and interact with the same YouTube-related components",
-        "No YouTube-related UI element is hidden or disabled based on role checks alone"
+        "Root background is #0B0E14",
+        "Cards and panels use glassmorphism style (bg-white/5 or similar, backdrop-blur, border border-white/10)",
+        "Indigo is the primary accent color for buttons, active states, and badges",
+        "Tailwind config reflects these tokens globally",
+        "No light-mode elements or conflicting color schemes are visible"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "When an authenticated user's account status is 'banned' or 'suspended', display a full-screen error/blocking page instead of the normal app UI. The screen must clearly communicate that the account is banned or suspended and prevent access to all app features.",
+      "text": "Implement a responsive AppShell layout: on desktop (md+), render a fixed sidebar (SideNavigation) showing user profile avatar, display name, greeting (e.g., 'Good morning, [Name]'), role badge, and nav links. On mobile, hide the sidebar and show a persistent bottom navigation bar (BottomNavigation) with icon+label nav items. Both components must be role-aware and reflect authentication state.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-6"
         ],
         "quotes": [
-          "make it so that banned and suspended shows a error screen to the people with the status"
+          "Desktop: Sidebar with user profile/greeting.",
+          "Mobile: Persistent bottom navigation."
         ]
       },
       "acceptanceCriteria": [
-        "A user whose backend status is 'banned' sees a dedicated error screen explaining their account is banned",
-        "A user whose backend status is 'suspended' sees a dedicated error screen explaining their account is suspended",
-        "The error screen prevents access to all other app functionality (no navigation around it)",
-        "The error screen is shown immediately after login if the status is banned or suspended",
-        "Users with active (non-banned, non-suspended) status see the normal app UI"
+        "Desktop sidebar is visible on screens md and above, hidden on smaller screens",
+        "Sidebar displays user avatar, display name, a time-based greeting, and role badge",
+        "Mobile bottom nav is visible only on small screens and is always fixed to the bottom",
+        "Navigation items are role-filtered (admin/owner items only shown to those roles)",
+        "Active route is visually highlighted in both sidebar and bottom nav"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Fix the YouTube OAuth connection flow so that after a user completes the Google OAuth callback, the channel remains connected and does not revert to a disconnected state. Ensure the OAuth credentials are correctly stored in the backend, the actor is fully initialized before storing credentials, and all relevant React Query caches (channel connection status, OAuth credential status) are invalidated after a successful credential save so the UI reflects the connected state.",
-      "target": "both",
+      "text": "Build a Vertical Clip Preview component that displays the currently selected or most recently created clip in a 9:16 (mobile-ratio) aspect ratio container. It should show the clip thumbnail (if available), title, time range, duration, and viral score badge. This component should be prominently placed on the main dashboard/home view.",
+      "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-latest"
+          "msg-6"
         ],
         "quotes": [
-          "fix the YouTube connection because it still isn't working"
+          "Vertical Preview: Mobile-ratio clip player."
         ]
       },
       "acceptanceCriteria": [
-        "After completing the Google OAuth flow, the ChannelConnection component shows the connected channel info and does not revert to disconnected",
-        "The OAuthCallback page waits for the backend actor to be fully ready before attempting to store credentials",
-        "On successful credential storage, the useYouTubeChannel and OAuth credential status queries are invalidated and refetched",
-        "The backend correctly persists OAuth credentials across calls so isYouTubeConnected returns true after credentials are saved",
-        "No race condition exists between actor initialization and credential storage in the OAuth callback"
+        "Preview container enforces a 9:16 aspect ratio",
+        "Clip title, start/end timestamps, and duration are displayed",
+        "Viral score badge is shown with color coding",
+        "Component renders a placeholder state when no clip is selected",
+        "Component is rendered on the main dashboard page"
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "text": "Enhance the AI caption editor to be a fully editable textarea with character count, markdown-friendly formatting hints, and a glassmorphism card wrapper. Ensure the YouTube upload scheduler page allows users to select a saved clip, pick a scheduled date/time, view and delete scheduled uploads, and shows a connected YouTube channel status badge. Both editors must be accessible from the main dashboard and/or dedicated pages.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Editors: Editable AI caption box and YouTube upload scheduler."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Caption editor textarea is editable with live character count",
+        "Caption editor card uses glassmorphism styling",
+        "Scheduler page lists existing scheduled uploads with delete option",
+        "Scheduler allows selecting a clip and a future datetime",
+        "YouTube channel connection status is visible on the scheduler page"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Build or enhance the 'Trending in Niche' creator feed page (TrendingPage) to display a ranked leaderboard of trending clips with creator info, trend scores, and thumbnails in a social-feed style grid layout. Include a sidebar or section showing top trending analytics. Use glassmorphism cards with indigo accent highlights for top-ranked entries.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Social: 'Trending in Niche' creator feed."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Trending page shows a ranked list/grid of clips with trend scores",
+        "Each clip card displays title, creator identifier, score, and rank badge",
+        "Top 3 entries are visually distinguished (e.g., gold/silver/bronze indigo accent)",
+        "Loading skeleton states are shown while data is fetching",
+        "Empty state is handled gracefully"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Implement the Manager View (ContentManager page) as a full CRUD interface for content entries. The page must be accessible to users with 'manager', 'admin', or 'owner' roles. It should display a table/card list of content entries with inline or modal-based edit forms, add new entry form, and delete confirmation dialogs. Use glassmorphism card styling throughout.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Manager View: Simple CRUD UI for manual content updates."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Content entries are listed in a table or card grid",
+        "Each entry has Edit and Delete action buttons",
+        "A form or modal is available to add new content entries",
+        "Delete action shows a confirmation dialog before proceeding",
+        "Page is gated to manager/admin/owner roles; other users see an access denied message",
+        "All mutations use existing useContentEntries hooks"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Add backend support for system control commands: a 'server restart' action and a 'server shutdown' action callable only by the owner principal. These should log the action to the activity log with timestamp and caller principal. The restart action resets relevant mutable state counters (e.g., messageCounter) while preserving core data. The shutdown action records the event. Both return a confirmation text result.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "System Controls: Server Restart/Shutdown buttons."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend exposes restartServer() and shutdownServer() public shared functions",
+        "Both functions are owner-only; unauthorized callers receive an error",
+        "Each call appends an entry to the activityLogs stable map with action name, caller, and timestamp",
+        "restartServer resets mutable counters/state as appropriate without erasing clip/user data",
+        "Functions return a descriptive confirmation string"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Build the Admin Panel (AdminPanel component and supporting components) as a gated dashboard section visible only to admin and owner roles. It must include: (1) User & Clip Management — a searchable user table with Ban/Unban toggles and a batch clip deletion tool that selects multiple clips by user ID and deletes them in bulk. (2) System Controls — buttons to trigger restartServer and shutdownServer backend calls with confirmation dialogs. (3) Analytics — real-time activity log table (polling), a click-tracking counter display, and a 'Videos Per Hour' bar chart using Recharts. (4) Support Messaging — a form to send a direct message to a user by their User ID.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "Admin Panel (Gated):",
+          "User/Clip Management: Ban/Unban tools and batch deletion.",
+          "System Controls: Server Restart/Shutdown buttons.",
+          "Analytics: Real-time activity logs, click tracking, and 'Videos Per Hour' charts.",
+          "Support: Direct User ID messaging."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Admin panel route/page is only accessible to admin and owner roles",
+        "User management table lists all users with current status and role, with Ban/Unban toggle buttons",
+        "Batch deletion UI allows selecting multiple clips associated with a user and deleting them",
+        "System Controls section shows Restart and Shutdown buttons, each with a confirmation dialog before calling the backend",
+        "Activity log table auto-refreshes every 15 seconds and is searchable",
+        "A 'Videos Per Hour' bar chart displays clip creation counts grouped by hour using Recharts",
+        "Click tracking stat (total clip views/interactions) is displayed as a counter card",
+        "Support messaging form accepts a User ID and message text and sends via useSendAdminMessage hook"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Add backend support for batch clip deletion by admin: a function deleteClipsByUser(userId: Text) that deletes all clips belonging to a specific user, callable only by admin or owner principals. Also add a getClickStats() function that returns the total number of clip interactions/downloads logged, and a getVideosPerHour() function that returns an array of {hour: Int, count: Nat} records for the last 24 hours based on activityLogs.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-6"
+        ],
+        "quotes": [
+          "batch deletion",
+          "click tracking",
+          "'Videos Per Hour' charts"
+        ]
+      },
+      "acceptanceCriteria": [
+        "deleteClipsByUser(userId) removes all clips in the clips map with matching userId and is admin/owner gated",
+        "getClickStats() returns a Nat count of download/post activity log entries",
+        "getVideosPerHour() returns an array of hour-bucket records covering the last 24 hours with clip creation counts",
+        "All three functions are exposed as public shared query or update functions as appropriate",
+        "Unauthorized callers receive an error result"
       ]
     }
   ],
   "constraints": [
+    "All Motoko logic must remain in the single backend/main.mo actor file",
     "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
-    "The banned/suspended error screen must be enforced at the app layout level so it cannot be bypassed by direct navigation"
+    "Use existing hooks (useContentEntries, useSendAdminMessage, useActivityLogs, useSetUserStatus, useClips, etc.) rather than duplicating logic",
+    "Admin panel and system controls must be gated behind owner/admin role checks on both frontend and backend",
+    "Background base color must be #0B0E14 throughout"
   ],
   "nonGoals": [
-    "Adding new YouTube features beyond what already exists",
-    "Changing the admin panel's ability to set user status",
-    "Modifying the role permission model beyond removing YouTube access restrictions"
+    "Real-time WebSocket or push notification features",
+    "External email or SMS notifications",
+    "Third-party social media API integrations (Twitter, Instagram, etc.)",
+    "Actual server process termination on shutdown — only log the event in backend",
+    "Light mode or theme toggling",
+    "Monetization or payment features"
   ],
   "imageRequirements": {
     "required": [],

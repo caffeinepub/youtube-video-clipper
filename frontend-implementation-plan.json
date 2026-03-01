@@ -1,117 +1,215 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "All-role YouTube access, banned/suspended error screens, and YouTube OAuth fix",
+  "title": "Premium Dark-Mode Full-Stack Dashboard with Admin Panel",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Remove role-based access restrictions from all YouTube-related features so users of any role (owner, admin, user, friend) can access them",
+      "summary": "Apply consistent premium dark-mode visual theme (#0B0E14 base, glassmorphism cards, indigo accents, Space Grotesk/Inter fonts) across all components",
       "acceptanceCriteria": [
-        "A user with role 'user' can see and interact with the ChannelConnection, VideoUrlForm, YouTubePlayer, ClipSuggestions, ClipTimestampControls, and ClipList components",
-        "A user with role 'friend' can see and interact with the same YouTube-related components",
-        "No YouTube-related UI element is hidden or disabled based on role checks alone"
+        "Root background is #0B0E14",
+        "Cards and panels use glassmorphism style (bg-white/5 or similar, backdrop-blur, border border-white/10)",
+        "Indigo is the primary accent color for buttons, active states, and badges",
+        "Tailwind config reflects these tokens globally",
+        "No light-mode elements or conflicting color schemes are visible"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/tailwind.config.js",
           "operation": "modify",
-          "description": "Remove any conditional rendering or role-based guards around YouTube-related components (VideoUrlForm, YouTubePlayer, ClipTimestampControls, ClipSuggestions, ChannelConnection, ClipList). Ensure all authenticated users see these components regardless of role."
+          "description": "Update Tailwind configuration to define #0B0E14 as the base background color token, add indigo accent colors as primary theme tokens, ensure Space Grotesk and Inter fonts are properly configured, and add glassmorphism-specific utilities (backdrop-blur classes, semi-transparent backgrounds with white/5 opacity)."
         },
         {
-          "path": "frontend/src/components/Layout.tsx",
+          "path": "frontend/src/index.css",
           "operation": "modify",
-          "description": "Review and remove any role-based navigation restrictions that might prevent users from accessing YouTube features. Ensure the main app layout does not hide YouTube functionality based on user role."
+          "description": "Set the root body background to #0B0E14, update CSS custom properties to use indigo accents for interactive elements, ensure glassmorphism card styles are defined globally (e.g., .glass-card with backdrop-blur and border-white/10), and verify font imports for Space Grotesk and Inter are present."
         },
         {
-          "path": "frontend/src/components/ChannelConnection.tsx",
+          "path": "frontend/src/components/AppShell.tsx",
           "operation": "modify",
-          "description": "Remove any role checks that restrict who can connect or disconnect a YouTube channel. All authenticated users should be able to use the connection functionality."
-        },
-        {
-          "path": "frontend/src/components/ClipCard.tsx",
-          "operation": "modify",
-          "description": "Remove any role-based restrictions on clip actions (delete, download, post to YouTube). Ensure all authenticated users can perform these actions on their clips."
-        },
-        {
-          "path": "frontend/src/components/ClipList.tsx",
-          "operation": "modify",
-          "description": "Remove any role-based filtering or display logic that would hide clips from non-admin users. All authenticated users should see the full clip list."
-        },
-        {
-          "path": "frontend/src/components/ClipSuggestions.tsx",
-          "operation": "modify",
-          "description": "Remove any role checks that restrict who can view or select clip suggestions. All authenticated users should see AI-generated and trending suggestions."
-        },
-        {
-          "path": "frontend/src/components/ClipTimestampControls.tsx",
-          "operation": "modify",
-          "description": "Remove any role-based restrictions on the clip creation form. All authenticated users should be able to set timestamps and create clips."
-        },
-        {
-          "path": "frontend/src/components/VideoUrlForm.tsx",
-          "operation": "modify",
-          "description": "Remove any role checks that prevent users from entering YouTube URLs or triggering AI clip generation. All authenticated users should be able to load videos."
+          "description": "Apply #0B0E14 background color to the main layout wrapper, ensure the content area and shell containers use the premium dark theme with proper contrast for readability."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Display a full-screen blocking error page for users with 'banned' or 'suspended' account status",
+      "summary": "Implement responsive AppShell layout: fixed sidebar (SideNavigation) on desktop with user profile/greeting/role badge, persistent bottom navigation (BottomNavigation) on mobile, both role-aware",
       "acceptanceCriteria": [
-        "A user whose backend status is 'banned' sees a dedicated error screen explaining their account is banned",
-        "A user whose backend status is 'suspended' sees a dedicated error screen explaining their account is suspended",
-        "The error screen prevents access to all other app functionality (no navigation around it)",
-        "The error screen is shown immediately after login if the status is banned or suspended",
-        "Users with active (non-banned, non-suspended) status see the normal app UI"
+        "Desktop sidebar is visible on screens md and above, hidden on smaller screens",
+        "Sidebar displays user avatar, display name, a time-based greeting, and role badge",
+        "Mobile bottom nav is visible only on small screens and is always fixed to the bottom",
+        "Navigation items are role-filtered (admin/owner items only shown to those roles)",
+        "Active route is visually highlighted in both sidebar and bottom nav"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/AccountStatusGuard.tsx",
-          "operation": "create",
-          "description": "Create a new component that fetches the current user's profile and checks their status. If status is 'banned' or 'suspended', render a full-screen error page with appropriate messaging and prevent access to children. If status is 'active' or 'inactive', render children normally. Include loading state while fetching profile."
-        },
-        {
-          "path": "frontend/src/components/AccountStatusErrorScreen.tsx",
-          "operation": "create",
-          "description": "Create a presentational component that displays a full-screen centered error message for banned or suspended accounts. Accept status ('banned' or 'suspended') as a prop and render appropriate messaging, icon, and logout button. Use shadcn/ui Card and Alert components for styling."
-        },
-        {
-          "path": "frontend/src/App.tsx",
+          "path": "frontend/src/components/SideNavigation.tsx",
           "operation": "modify",
-          "description": "Wrap the main app content (HomePage and all routes) inside the AccountStatusGuard component, but place it inside the authentication check. Only authenticated users should have their status checked. The guard must be at the layout level to prevent bypassing via direct navigation."
+          "description": "Enhance SideNavigation to display a time-based greeting (e.g., 'Good morning, [Name]') above or below the user profile info. Ensure the user avatar, display name, and role badge (via UserRoleBadge component) are prominently displayed. Apply glassmorphism card styling to the sidebar container. Verify the component is hidden on mobile (below md breakpoint) and visible on desktop."
+        },
+        {
+          "path": "frontend/src/components/BottomNavigation.tsx",
+          "operation": "modify",
+          "description": "Ensure BottomNavigation is fixed to the bottom of the viewport on mobile screens only (below md breakpoint), hidden on desktop. Apply glassmorphism styling (backdrop-blur, semi-transparent background) to the bottom nav bar. Verify role-filtering logic for nav items and that the active route is highlighted with the indigo accent color."
+        },
+        {
+          "path": "frontend/src/components/AppShell.tsx",
+          "operation": "modify",
+          "description": "Wire SideNavigation to render conditionally on desktop (md+) and BottomNavigation to render on mobile (<md). Ensure the main content area has appropriate padding/margins to account for the fixed sidebar and bottom nav without overlap."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Fix YouTube OAuth connection flow to persist channel connection and prevent reversion to disconnected state after callback",
+      "summary": "Build Vertical Clip Preview component displaying selected/recent clip in 9:16 aspect ratio with title, time range, duration, and viral score badge",
       "acceptanceCriteria": [
-        "After completing the Google OAuth flow, the ChannelConnection component shows the connected channel info and does not revert to disconnected",
-        "The OAuthCallback page waits for the backend actor to be fully ready before attempting to store credentials",
-        "On successful credential storage, the useYouTubeChannel and OAuth credential status queries are invalidated and refetched",
-        "The backend correctly persists OAuth credentials across calls so isYouTubeConnected returns true after credentials are saved",
-        "No race condition exists between actor initialization and credential storage in the OAuth callback"
+        "Preview container enforces a 9:16 aspect ratio",
+        "Clip title, start/end timestamps, and duration are displayed",
+        "Viral score badge is shown with color coding",
+        "Component renders a placeholder state when no clip is selected",
+        "Component is rendered on the main dashboard page"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/pages/OAuthCallback.tsx",
+          "path": "frontend/src/components/VerticalClipPreview.tsx",
           "operation": "modify",
-          "description": "Enhance the actor readiness check to ensure the backend actor is fully initialized before calling storeGoogleOAuthCredentials. Add explicit polling or retry logic if the actor is not ready. After successful credential storage, invalidate both 'youtubeChannel' and 'hasGoogleOAuthCredentials' query keys to force refetch. Add more detailed error logging for debugging OAuth issues."
+          "description": "Enhance VerticalClipPreview to enforce a strict 9:16 aspect ratio container using Tailwind aspect-ratio utilities. Display the clip thumbnail (if available) as a background image or img element. Show clip title, formatted start/end timestamps (MM:SS format), calculated duration, and a ViralScoreBadge component. Apply glassmorphism card styling with indigo accent borders. Render a placeholder state (e.g., dashed border, centered icon/text) when no clip is selected."
         },
         {
-          "path": "frontend/src/hooks/useYouTubeChannel.ts",
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Review the initiateGoogleOAuth mutation to ensure it correctly handles the OAuth flow state. After the OAuth callback completes successfully, ensure the isYouTubeChannelConnected query is invalidated and refetched. Add dependency on the actor being ready before enabling queries."
+          "description": "Wire VerticalClipPreview into the HomePage component layout. Position it prominently (e.g., in a sidebar column or featured section above the clip list). Pass the currently selected clip suggestion or the most recently created clip as props to VerticalClipPreview. Ensure it is always visible on the main dashboard view."
+        }
+      ]
+    },
+    {
+      "id": "REQ-4",
+      "summary": "Enhance AI caption editor (editable textarea with character count, markdown hints, glassmorphism card) and YouTube upload scheduler page (select clip, schedule datetime, list/delete scheduled uploads, channel status badge)",
+      "acceptanceCriteria": [
+        "Caption editor textarea is editable with live character count",
+        "Caption editor card uses glassmorphism styling",
+        "Scheduler page lists existing scheduled uploads with delete option",
+        "Scheduler allows selecting a clip and a future datetime",
+        "YouTube channel connection status is visible on the scheduler page"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/CaptionEditor.tsx",
+          "operation": "modify",
+          "description": "Enhance CaptionEditor to wrap the textarea in a glassmorphism card (backdrop-blur, bg-white/5, border-white/10). Add a live character count display below or beside the textarea. Include markdown formatting hints (e.g., placeholder text or a tooltip with examples like **bold**, *italic*). Apply indigo accent styling to focus states and borders."
         },
         {
-          "path": "frontend/src/hooks/useQueries.ts",
+          "path": "frontend/src/pages/Scheduler.tsx",
           "operation": "modify",
-          "description": "Review the storeGoogleOAuthCredentials mutation and ensure it invalidates all relevant query keys on success: 'youtubeChannel', 'hasGoogleOAuthCredentials', and 'currentUserProfile'. Add error handling for race conditions or actor initialization failures. Ensure mutations wait for actor readiness before executing."
+          "description": "Enhance Scheduler page to prominently display YouTube channel connection status badge (via ChannelConnection component or inline status indicator). Ensure the clip selection dropdown and datetime picker use glassmorphism card styling with indigo accents. Verify the scheduled uploads list shows delete buttons with confirmation dialogs. Add loading skeletons for pending data fetches. Ensure all UI elements follow the premium dark-mode theme."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Build/enhance Trending in Niche creator feed page (TrendingPage) with ranked leaderboard, trend scores, thumbnails in social-feed grid, glassmorphism cards, indigo highlights for top entries",
+      "acceptanceCriteria": [
+        "Trending page shows a ranked list/grid of clips with trend scores",
+        "Each clip card displays title, creator identifier, score, and rank badge",
+        "Top 3 entries are visually distinguished (e.g., gold/silver/bronze indigo accent)",
+        "Loading skeleton states are shown while data is fetching",
+        "Empty state is handled gracefully"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/TrendingPage.tsx",
+          "operation": "modify",
+          "description": "Enhance TrendingPage to render a ranked leaderboard/grid of trending clips using data from useTrendingClips and useAdminStats hooks. Each clip card should display title, creator info (via user profile or principal), trend score, and a rank badge (1st, 2nd, 3rd, etc.). Apply glassmorphism card styling to each entry. Distinguish top 3 entries with indigo accent borders or glow effects (e.g., ring-2 ring-indigo-500 for 1st place). Show loading skeleton states while data is fetching. Render an empty state with a centered message and icon when no trending clips are available."
         },
         {
-          "path": "frontend/src/components/ChannelConnection.tsx",
+          "path": "frontend/src/components/TrendingSidebar.tsx",
           "operation": "modify",
-          "description": "Ensure the component correctly reflects connection state by using both isYouTubeChannelConnected and hasGoogleOAuthCredentials queries. Add a refetch mechanism or polling after returning from OAuth callback to immediately show connected state. Display loading state during refetch to prevent UI flicker."
+          "description": "Enhance TrendingSidebar to display top trending analytics items in a compact, visually appealing format using glassmorphism card styling. Ensure the sidebar integrates seamlessly with the TrendingPage layout (e.g., as a sticky sidebar column). Apply indigo accent highlights to top-ranked entries."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Implement Manager View (ContentManager page) as full CRUD interface for content entries, accessible to manager/admin/owner roles, with glassmorphism card styling",
+      "acceptanceCriteria": [
+        "Content entries are listed in a table or card grid",
+        "Each entry has Edit and Delete action buttons",
+        "A form or modal is available to add new content entries",
+        "Delete action shows a confirmation dialog before proceeding",
+        "Page is gated to manager/admin/owner roles; other users see an access denied message",
+        "All mutations use existing useContentEntries hooks"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/pages/ContentManager.tsx",
+          "operation": "modify",
+          "description": "Enhance ContentManager page to wrap content entry cards/table in glassmorphism styling (backdrop-blur, bg-white/5, border-white/10). Ensure each entry displays Edit and Delete action buttons with indigo accent hover states. Add a 'Create New Entry' button at the top of the page that opens a form or modal for adding new content. Implement delete confirmation dialogs using a modal or alert component. Verify role-gating logic shows an AccessDeniedScreen or similar error message for users without manager/admin/owner roles. Use existing useContentEntries hooks (useCreateContentEntry, useUpdateContentEntry, useDeleteContentEntry) for all mutations."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Build Admin Panel (AdminPanel component) as gated dashboard section (admin/owner only) with: User & Clip Management (searchable user table, Ban/Unban, batch clip deletion), System Controls (restart/shutdown buttons with confirmation), Analytics (activity log table, click tracking, Videos Per Hour chart), Support Messaging (direct user message form)",
+      "acceptanceCriteria": [
+        "Admin panel route/page is only accessible to admin and owner roles",
+        "User management table lists all users with current status and role, with Ban/Unban toggle buttons",
+        "Batch deletion UI allows selecting multiple clips associated with a user and deleting them",
+        "System Controls section shows Restart and Shutdown buttons, each with a confirmation dialog before calling the backend",
+        "Activity log table auto-refreshes every 15 seconds and is searchable",
+        "A 'Videos Per Hour' bar chart displays clip creation counts grouped by hour using Recharts",
+        "Click tracking stat (total clip views/interactions) is displayed as a counter card",
+        "Support messaging form accepts a User ID and message text and sends via useSendAdminMessage hook"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/AdminPanel.tsx",
+          "operation": "modify",
+          "description": "Enhance AdminPanel to gate the entire component behind admin/owner role checks (use useGetOwnRole or useIsOwner hooks). Apply glassmorphism card styling to all sections. Ensure UserStatusManagement component is rendered with searchable user table, Ban/Unban toggles via useSetUserStatus hook, and batch clip deletion UI (e.g., checkboxes per user or per clip, with a 'Delete Selected Clips' button that calls the backend deleteClipsByUser method). Ensure ActivityLogTable is rendered with auto-refresh (polling every 15 seconds via useActivityLogs). Render a 'Videos Per Hour' bar chart using Recharts with data from a new hook or backend method (getVideosPerHour). Display a click tracking counter card showing total interactions via a new hook (useClickStats). Ensure AdminMessaging component is rendered for direct user messaging. Apply indigo accent colors to all interactive elements and buttons."
+        },
+        {
+          "path": "frontend/src/components/UserStatusManagement.tsx",
+          "operation": "modify",
+          "description": "Enhance UserStatusManagement to add batch clip deletion functionality. For each user in the table, add a checkbox or 'Delete Clips' button that triggers a confirmation dialog and calls the backend deleteClipsByUser method via a new mutation hook (useDeleteClipsByUser). Apply glassmorphism card styling to the table container. Ensure Ban/Unban toggle buttons use indigo accent colors and update user status via useSetUserStatus hook."
+        },
+        {
+          "path": "frontend/src/components/SystemControls.tsx",
+          "operation": "create",
+          "description": "Create a new SystemControls component that renders Restart and Shutdown action buttons for admin/owner users. Each button should trigger a confirmation dialog (using a modal or alert component) before calling the backend serverRestartAction() or serverShutdownAction() methods. Display the backend response message (success/error) using a toast notification. Apply glassmorphism card styling with indigo accent buttons. Use new mutation hooks (useServerRestart, useServerShutdown) to call the backend methods."
+        },
+        {
+          "path": "frontend/src/components/AppAnalytics.tsx",
+          "operation": "modify",
+          "description": "Enhance AppAnalytics to add a 'Videos Per Hour' bar chart using Recharts. Fetch data from a new hook (useVideosPerHour) that calls the backend getVideosPerHour() method. Display the chart in a glassmorphism card with indigo accent bars. Add a click tracking counter card that fetches data from a new hook (useClickStats) calling the backend getClickStats() method. Apply consistent dark-mode styling with indigo accents."
+        },
+        {
+          "path": "frontend/src/hooks/useDeleteClipsByUser.ts",
+          "operation": "create",
+          "description": "Create a new mutation hook useDeleteClipsByUser that calls the backend deleteClipsByUser(userId) method. Invalidate relevant query caches (clips, activity logs) on success and show toast notifications for success/error states."
+        },
+        {
+          "path": "frontend/src/hooks/useServerRestart.ts",
+          "operation": "create",
+          "description": "Create a new mutation hook useServerRestart that calls the backend serverRestartAction() method. Show toast notification with the backend response message. Invalidate activity logs query cache on success."
+        },
+        {
+          "path": "frontend/src/hooks/useServerShutdown.ts",
+          "operation": "create",
+          "description": "Create a new mutation hook useServerShutdown that calls the backend serverShutdownAction() method. Show toast notification with the backend response message. Invalidate activity logs query cache on success."
+        },
+        {
+          "path": "frontend/src/hooks/useVideosPerHour.ts",
+          "operation": "create",
+          "description": "Create a new query hook useVideosPerHour that fetches video upload statistics from the backend getVideosPerHour() method. Return an array of {hour: number, count: number} records for the last 24 hours. Enable the query only when the actor is available."
+        },
+        {
+          "path": "frontend/src/hooks/useClickStats.ts",
+          "operation": "create",
+          "description": "Create a new query hook useClickStats that fetches click/interaction statistics from the backend getClickStats() method. Return the total count as a number. Enable the query only when the actor is available."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Wire the AdminPanel component into the main app routing. Add a new route (e.g., /admin) that renders the AdminPanel component. Ensure the route is gated behind admin/owner role checks (use a route guard or conditional rendering based on useGetOwnRole). Add a navigation link to the Admin Panel in the SideNavigation and BottomNavigation components for admin/owner users only."
         }
       ]
     }
