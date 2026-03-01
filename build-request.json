@@ -1,215 +1,118 @@
 {
   "kind": "build_request",
-  "title": "Premium Dark-Mode Full-Stack Dashboard with Admin Panel",
-  "projectName": "Beast Clipping Dashboard",
+  "title": "YouTube Fix, Bug Report Button, In-App Messaging Tabs, User ID Messaging, Global Reply, and Admin Pause/Resume",
+  "projectName": "Beast Clipping",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Apply a consistent premium dark-mode visual theme across the entire application: base background color #0B0E14, glassmorphism card/panel surfaces (semi-transparent with backdrop-blur and subtle border), indigo accent color for interactive elements, buttons, badges, and highlights. Use Space Grotesk and Inter fonts. Ensure all existing and new components inherit this theme.",
-      "target": "frontend",
+      "text": "Fix the YouTube posting integration: diagnose and resolve the infinite loading spinner in the YouTube post flow. Ensure that when a user clicks 'Post to YouTube' on a ClipCard, the request completes (success or error) and the spinner is dismissed. Verify that the clip is actually submitted to the connected YouTube channel via the backend HTTP outcall, and that success/failure toast notifications are shown.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "premium dark-mode full-stack dashboard (#0B0E14) using Tailwind CSS with glassmorphism and indigo accents"
+          "Stop the infinite loading spinner and enable posting to channels."
         ]
       },
       "acceptanceCriteria": [
-        "Root background is #0B0E14",
-        "Cards and panels use glassmorphism style (bg-white/5 or similar, backdrop-blur, border border-white/10)",
-        "Indigo is the primary accent color for buttons, active states, and badges",
-        "Tailwind config reflects these tokens globally",
-        "No light-mode elements or conflicting color schemes are visible"
+        "Clicking 'Post to YouTube' no longer shows an infinite spinner — the button resolves within a reasonable timeout.",
+        "A successful post shows a success toast; a failed post shows an error toast with a human-readable message.",
+        "The clip is submitted to the user's connected YouTube channel via the backend.",
+        "If no YouTube channel is connected, a clear error message is shown instead of a spinner."
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Implement a responsive AppShell layout: on desktop (md+), render a fixed sidebar (SideNavigation) showing user profile avatar, display name, greeting (e.g., 'Good morning, [Name]'), role badge, and nav links. On mobile, hide the sidebar and show a persistent bottom navigation bar (BottomNavigation) with icon+label nav items. Both components must be role-aware and reflect authentication state.",
+      "text": "Re-add the 'Report a Bug / Request a Feature' button to the main UI. The button should open the existing FeedbackModal component. It must be visible to all authenticated users and placed in a consistent, discoverable location (e.g., the SideNavigation sidebar and/or the AppShell bottom navigation on mobile).",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Desktop: Sidebar with user profile/greeting.",
-          "Mobile: Persistent bottom navigation."
+          "Re-add the 'Report a Bug / Request a Feature' button to the UI."
         ]
       },
       "acceptanceCriteria": [
-        "Desktop sidebar is visible on screens md and above, hidden on smaller screens",
-        "Sidebar displays user avatar, display name, a time-based greeting, and role badge",
-        "Mobile bottom nav is visible only on small screens and is always fixed to the bottom",
-        "Navigation items are role-filtered (admin/owner items only shown to those roles)",
-        "Active route is visually highlighted in both sidebar and bottom nav"
+        "A 'Report a Bug / Request a Feature' button is visible to all authenticated users in the sidebar (desktop) and bottom nav or floating button (mobile).",
+        "Clicking the button opens the FeedbackModal dialog.",
+        "The modal allows submission of a bug report or feature request as before."
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Build a Vertical Clip Preview component that displays the currently selected or most recently created clip in a 9:16 (mobile-ratio) aspect ratio container. It should show the clip thumbnail (if available), title, time range, duration, and viral score badge. This component should be prominently placed on the main dashboard/home view.",
+      "text": "Update the UserMessages component so that each message item opens in a new internal tab within the app (using the existing TanStack Router tab or an in-app tab mechanism), rather than navigating away or opening an external browser tab. Additionally, replace any external download links in the app with an in-app download mechanism: when a user triggers a file/clip download, use the useDownloadClip hook to fetch the URL and initiate a browser download directly (e.g., via a temporary anchor element with the `download` attribute), without redirecting to an external website.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Vertical Preview: Mobile-ratio clip player."
+          "Open all messages in a new internal tab and enable in-app file downloads."
         ]
       },
       "acceptanceCriteria": [
-        "Preview container enforces a 9:16 aspect ratio",
-        "Clip title, start/end timestamps, and duration are displayed",
-        "Viral score badge is shown with color coding",
-        "Component renders a placeholder state when no clip is selected",
-        "Component is rendered on the main dashboard page"
+        "Clicking a message opens it in a new in-app tab or detail panel without leaving the application.",
+        "Downloading a clip does not redirect to an external website — the file download is triggered directly in the browser via a programmatic anchor click.",
+        "The download button in ClipCard uses the useDownloadClip hook result to trigger the download without navigation."
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Enhance the AI caption editor to be a fully editable textarea with character count, markdown-friendly formatting hints, and a glassmorphism card wrapper. Ensure the YouTube upload scheduler page allows users to select a saved clip, pick a scheduled date/time, view and delete scheduled uploads, and shows a connected YouTube channel status badge. Both editors must be accessible from the main dashboard and/or dedicated pages.",
-      "target": "frontend",
+      "text": "Update the messaging system so that all messages display and are sent using the user's generated User ID (the 8-character alphanumeric ID from userIdGenerator.ts) rather than raw principal strings. In the backend, store and index messages by principal but surface the short User ID in all frontend displays. Additionally, add a global 'Reply' feature to UserMessages so that any authenticated user can reply to a message they received — the reply should be sent back to the original sender using their User ID, and the reply should be stored and visible in the conversation.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Editors: Editable AI caption box and YouTube upload scheduler."
+          "Use 'User IDs' for all messages and enable a global 'Reply' feature."
         ]
       },
       "acceptanceCriteria": [
-        "Caption editor textarea is editable with live character count",
-        "Caption editor card uses glassmorphism styling",
-        "Scheduler page lists existing scheduled uploads with delete option",
-        "Scheduler allows selecting a clip and a future datetime",
-        "YouTube channel connection status is visible on the scheduler page"
+        "All message displays (sent and received) show the short User ID (8-char alphanumeric) instead of full principal strings.",
+        "The send-message form identifies senders by their User ID label.",
+        "Every message in UserMessages has a 'Reply' button/input that allows the recipient to send a reply back to the original sender.",
+        "Replies are stored in the backend and visible in the message thread.",
+        "The backend AdminMessage type or a new Message type supports a reply/thread structure."
       ]
     },
     {
       "id": "REQ-5",
-      "text": "Build or enhance the 'Trending in Niche' creator feed page (TrendingPage) to display a ranked leaderboard of trending clips with creator info, trend scores, and thumbnails in a social-feed style grid layout. Include a sidebar or section showing top trending analytics. Use glassmorphism cards with indigo accent highlights for top-ranked entries.",
-      "target": "frontend",
+      "text": "Add a Pause/Resume application switch to the Admin Panel (AdminPanel.tsx / SystemControls.tsx area). When the app is 'Paused', non-admin/non-owner users see a maintenance/paused screen and cannot use the app. Toggling this switch must require the user to be authenticated as an Admin or Owner — if an unauthenticated or non-admin user tries to access the toggle, they must be shown an admin login prompt. The current pause state must be persisted in the backend (stable variable). A 'Resume' action restores normal access. The existing SystemControls component should be updated or extended to include this toggle.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-6"
+          "msg-1"
         ],
         "quotes": [
-          "Social: 'Trending in Niche' creator feed."
+          "Add a Pause/Resume switch that requires an Admin login to toggle."
         ]
       },
       "acceptanceCriteria": [
-        "Trending page shows a ranked list/grid of clips with trend scores",
-        "Each clip card displays title, creator identifier, score, and rank badge",
-        "Top 3 entries are visually distinguished (e.g., gold/silver/bronze indigo accent)",
-        "Loading skeleton states are shown while data is fetching",
-        "Empty state is handled gracefully"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Implement the Manager View (ContentManager page) as a full CRUD interface for content entries. The page must be accessible to users with 'manager', 'admin', or 'owner' roles. It should display a table/card list of content entries with inline or modal-based edit forms, add new entry form, and delete confirmation dialogs. Use glassmorphism card styling throughout.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Manager View: Simple CRUD UI for manual content updates."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Content entries are listed in a table or card grid",
-        "Each entry has Edit and Delete action buttons",
-        "A form or modal is available to add new content entries",
-        "Delete action shows a confirmation dialog before proceeding",
-        "Page is gated to manager/admin/owner roles; other users see an access denied message",
-        "All mutations use existing useContentEntries hooks"
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Add backend support for system control commands: a 'server restart' action and a 'server shutdown' action callable only by the owner principal. These should log the action to the activity log with timestamp and caller principal. The restart action resets relevant mutable state counters (e.g., messageCounter) while preserving core data. The shutdown action records the event. Both return a confirmation text result.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "System Controls: Server Restart/Shutdown buttons."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Backend exposes restartServer() and shutdownServer() public shared functions",
-        "Both functions are owner-only; unauthorized callers receive an error",
-        "Each call appends an entry to the activityLogs stable map with action name, caller, and timestamp",
-        "restartServer resets mutable counters/state as appropriate without erasing clip/user data",
-        "Functions return a descriptive confirmation string"
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "text": "Build the Admin Panel (AdminPanel component and supporting components) as a gated dashboard section visible only to admin and owner roles. It must include: (1) User & Clip Management — a searchable user table with Ban/Unban toggles and a batch clip deletion tool that selects multiple clips by user ID and deletes them in bulk. (2) System Controls — buttons to trigger restartServer and shutdownServer backend calls with confirmation dialogs. (3) Analytics — real-time activity log table (polling), a click-tracking counter display, and a 'Videos Per Hour' bar chart using Recharts. (4) Support Messaging — a form to send a direct message to a user by their User ID.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "Admin Panel (Gated):",
-          "User/Clip Management: Ban/Unban tools and batch deletion.",
-          "System Controls: Server Restart/Shutdown buttons.",
-          "Analytics: Real-time activity logs, click tracking, and 'Videos Per Hour' charts.",
-          "Support: Direct User ID messaging."
-        ]
-      },
-      "acceptanceCriteria": [
-        "Admin panel route/page is only accessible to admin and owner roles",
-        "User management table lists all users with current status and role, with Ban/Unban toggle buttons",
-        "Batch deletion UI allows selecting multiple clips associated with a user and deleting them",
-        "System Controls section shows Restart and Shutdown buttons, each with a confirmation dialog before calling the backend",
-        "Activity log table auto-refreshes every 15 seconds and is searchable",
-        "A 'Videos Per Hour' bar chart displays clip creation counts grouped by hour using Recharts",
-        "Click tracking stat (total clip views/interactions) is displayed as a counter card",
-        "Support messaging form accepts a User ID and message text and sends via useSendAdminMessage hook"
-      ]
-    },
-    {
-      "id": "REQ-9",
-      "text": "Add backend support for batch clip deletion by admin: a function deleteClipsByUser(userId: Text) that deletes all clips belonging to a specific user, callable only by admin or owner principals. Also add a getClickStats() function that returns the total number of clip interactions/downloads logged, and a getVideosPerHour() function that returns an array of {hour: Int, count: Nat} records for the last 24 hours based on activityLogs.",
-      "target": "backend",
-      "source": {
-        "messageIds": [
-          "msg-6"
-        ],
-        "quotes": [
-          "batch deletion",
-          "click tracking",
-          "'Videos Per Hour' charts"
-        ]
-      },
-      "acceptanceCriteria": [
-        "deleteClipsByUser(userId) removes all clips in the clips map with matching userId and is admin/owner gated",
-        "getClickStats() returns a Nat count of download/post activity log entries",
-        "getVideosPerHour() returns an array of hour-bucket records covering the last 24 hours with clip creation counts",
-        "All three functions are exposed as public shared query or update functions as appropriate",
-        "Unauthorized callers receive an error result"
+        "A Pause/Resume toggle switch is visible in the Admin Panel for admin/owner users.",
+        "Toggling requires the user to be authenticated as admin or owner; otherwise an admin login prompt is shown.",
+        "When the app is paused, regular (non-admin, non-owner) users see a 'App is currently paused' maintenance screen instead of the normal UI.",
+        "Admin and owner users can still access the admin panel while the app is paused.",
+        "The pause state is stored in a stable backend variable and persists across canister upgrades.",
+        "The backend exposes setPauseState(paused: Bool) and getAppStatus() methods, protected by admin authorization."
       ]
     }
   ],
   "constraints": [
-    "All Motoko logic must remain in the single backend/main.mo actor file",
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
-    "Use existing hooks (useContentEntries, useSendAdminMessage, useActivityLogs, useSetUserStatus, useClips, etc.) rather than duplicating logic",
-    "Admin panel and system controls must be gated behind owner/admin role checks on both frontend and backend",
-    "Background base color must be #0B0E14 throughout"
+    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui.",
+    "All Motoko logic must remain in the single backend/main.mo actor.",
+    "Generate migration.mo only if stable state variables are added or changed (e.g., pause state).",
+    "User IDs displayed in the frontend must use the existing userIdGenerator.ts utility — do not introduce a new ID scheme."
   ],
   "nonGoals": [
-    "Real-time WebSocket or push notification features",
-    "External email or SMS notifications",
-    "Third-party social media API integrations (Twitter, Instagram, etc.)",
-    "Actual server process termination on shutdown — only log the event in backend",
-    "Light mode or theme toggling",
-    "Monetization or payment features"
+    "No external email or SMS notifications for paused/resumed state.",
+    "No new third-party OAuth providers beyond the existing Google OAuth for YouTube.",
+    "No real-time WebSocket messaging — polling is acceptable.",
+    "No changes to the Internet Identity authentication flow.",
+    "No redesign of the overall visual theme or layout."
   ],
   "imageRequirements": {
     "required": [],

@@ -14,10 +14,10 @@ import { useGetOwnRole } from '../hooks/useGetOwnRole';
 import UserStatusManagement from './UserStatusManagement';
 import ActivityLogTable from './ActivityLogTable';
 import AdminManagement from './AdminManagement';
-import AdminMessaging from './AdminMessaging';
+import { AdminMessaging } from './AdminMessaging';
 import FeedbackSubmissions from './FeedbackSubmissions';
 import AppAnalytics from './AppAnalytics';
-import SystemControls from './SystemControls';
+import { SystemControls } from './SystemControls';
 import AdminErrorBoundary from './AdminErrorBoundary';
 
 interface SectionProps {

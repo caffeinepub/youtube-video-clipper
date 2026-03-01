@@ -1,67 +1,56 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Premium dark-mode full-stack dashboard with Tailwind CSS glassmorphism and indigo accents. Features a responsive layout (desktop sidebar, mobile bottom nav), vertical clip player, AI caption editor, YouTube scheduler, trending creator feed, manager CRUD view, and a gated admin panel with user/clip management, system controls, analytics, and support messaging.",
+  "summary": "Dashboard/admin app with YouTube integration, messaging system, file downloads, and admin controls.",
   "architectural_notes": [
-    "Dark background color: #0B0E14 with Tailwind CSS, glassmorphism UI, and indigo accent colors",
-    "Admin panel is access-gated (role-based visibility)"
+    "App has a dashboard with admin controls, YouTube integration, messaging system, and file download functionality.",
+    "Admin controls include pause/resume requiring authenticated Admin Panel Access to reactivate."
   ],
-  "known_issues": [],
-  "isFixRequest": false,
+  "known_issues": [
+    "YouTube integration shows infinite spinner but fails to post to channels.",
+    "Report a Bug / Request a Feature button is missing from UI.",
+    "Messages do not use User ID for sending.",
+    "Reply/messaging-back functionality not yet enabled for all users."
+  ],
+  "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-apply-a-consistent-premium-dark-mode-visual-theme-across-the-entire-application-base-background-color-0b0e14-glassmorphism-card-panel-surfaces-semi-transparent-with-backdrop-blur-and-subtle-border-indigo-accent-color-for-interactive-elements-buttons-badges-and-highlights-use-space-grotesk-and-inter-fonts-ensure-all-existing-and-new-components-inherit-this-theme",
-      "title": "Apply a consistent premium dark-mode visual theme across the entire application: base background color #0B0E14, glassmorphism card/panel surfaces (semi-transparent with backdrop-blur and subtle border), indigo accent color for interactive elements, buttons, badges, and highlights. Use Space Grotesk and Inter fonts. Ensure all existing and new components inherit this theme.",
+      "id": "feature-fix-the-youtube-posting-integration-diagnose-and-resolve-the-infinite-loading-spinner-in-the-youtube-post-flow-ensure-that-when-a-user-clicks-post-to-youtube-on-a-clipcard-the-request-completes-success-or-error-and-the-spinner-is-dismissed-verify-that-the-clip-is-actually-submitted-to-the-connected-youtube-channel-via-the-backend-http-outcall-and-that-success-failure-toast-notifications-are-shown",
+      "title": "Fix the YouTube posting integration: diagnose and resolve the infinite loading spinner in the YouTube post flow. Ensure that when a user clicks 'Post to YouTube' on a ClipCard, the request completes (success or error) and the spinner is dismissed. Verify that the clip is actually submitted to the connected YouTube channel via the backend HTTP outcall, and that success/failure toast notifications are shown.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-implement-a-responsive-appshell-layout-on-desktop-md-render-a-fixed-sidebar-sidenavigation-showing-user-profile-avatar-display-name-greeting-e-g-good-morning-name-role-badge-and-nav-links-on-mobile-hide-the-sidebar-and-show-a-persistent-bottom-navigation-bar-bottomnavigation-with-icon-label-nav-items-both-components-must-be-role-aware-and-reflect-authentication-state",
-      "title": "Implement a responsive AppShell layout: on desktop (md+), render a fixed sidebar (SideNavigation) showing user profile avatar, display name, greeting (e.g., 'Good morning, [Name]'), role badge, and nav links. On mobile, hide the sidebar and show a persistent bottom navigation bar (BottomNavigation) with icon+label nav items. Both components must be role-aware and reflect authentication state.",
+      "id": "feature-re-add-the-report-a-bug-request-a-feature-button-to-the-main-ui-the-button-should-open-the-existing-feedbackmodal-component-it-must-be-visible-to-all-authenticated-users-and-placed-in-a-consistent-discoverable-location-e-g-the-sidenavigation-sidebar-and-or-the-appshell-bottom-navigation-on-mobile",
+      "title": "Re-add the 'Report a Bug / Request a Feature' button to the main UI. The button should open the existing FeedbackModal component. It must be visible to all authenticated users and placed in a consistent, discoverable location (e.g., the SideNavigation sidebar and/or the AppShell bottom navigation on mobile).",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-build-a-vertical-clip-preview-component-that-displays-the-currently-selected-or-most-recently-created-clip-in-a-9-16-mobile-ratio-aspect-ratio-container-it-should-show-the-clip-thumbnail-if-available-title-time-range-duration-and-viral-score-badge-this-component-should-be-prominently-placed-on-the-main-dashboard-home-view",
-      "title": "Build a Vertical Clip Preview component that displays the currently selected or most recently created clip in a 9:16 (mobile-ratio) aspect ratio container. It should show the clip thumbnail (if available), title, time range, duration, and viral score badge. This component should be prominently placed on the main dashboard/home view.",
+      "id": "feature-update-the-usermessages-component-so-that-each-message-item-opens-in-a-new-internal-tab-within-the-app-using-the-existing-tanstack-router-tab-or-an-in-app-tab-mechanism-rather-than-navigating-away-or-opening-an-external-browser-tab-additionally-replace-any-external-download-links-in-the-app-with-an-in-app-download-mechanism-when-a-user-triggers-a-file-clip-download-use-the-usedownloadclip-hook-to-fetch-the-url-and-initiate-a-browser-download-directly-e-g-via-a-temporary-anchor-element-with-the-download-attribute-without-redirecting-to-an-external-website",
+      "title": "Update the UserMessages component so that each message item opens in a new internal tab within the app (using the existing TanStack Router tab or an in-app tab mechanism), rather than navigating away or opening an external browser tab. Additionally, replace any external download links in the app with an in-app download mechanism: when a user triggers a file/clip download, use the useDownloadClip hook to fetch the URL and initiate a browser download directly (e.g., via a temporary anchor element with the `download` attribute), without redirecting to an external website.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-enhance-the-ai-caption-editor-to-be-a-fully-editable-textarea-with-character-count-markdown-friendly-formatting-hints-and-a-glassmorphism-card-wrapper-ensure-the-youtube-upload-scheduler-page-allows-users-to-select-a-saved-clip-pick-a-scheduled-date-time-view-and-delete-scheduled-uploads-and-shows-a-connected-youtube-channel-status-badge-both-editors-must-be-accessible-from-the-main-dashboard-and-or-dedicated-pages",
-      "title": "Enhance the AI caption editor to be a fully editable textarea with character count, markdown-friendly formatting hints, and a glassmorphism card wrapper. Ensure the YouTube upload scheduler page allows users to select a saved clip, pick a scheduled date/time, view and delete scheduled uploads, and shows a connected YouTube channel status badge. Both editors must be accessible from the main dashboard and/or dedicated pages.",
+      "id": "feature-update-the-messaging-system-so-that-all-messages-display-and-are-sent-using-the-user-s-generated-user-id-the-8-character-alphanumeric-id-from-useridgenerator-ts-rather-than-raw-principal-strings-in-the-backend-store-and-index-messages-by-principal-but-surface-the-short-user-id-in-all-frontend-displays-additionally-add-a-global-reply-feature-to-usermessages-so-that-any-authenticated-user-can-reply-to-a-message-they-received-the-reply-should-be-sent-back-to-the-original-sender-using-their-user-id-and-the-reply-should-be-stored-and-visible-in-the-conversation",
+      "title": "Update the messaging system so that all messages display and are sent using the user's generated User ID (the 8-character alphanumeric ID from userIdGenerator.ts) rather than raw principal strings. In the backend, store and index messages by principal but surface the short User ID in all frontend displays. Additionally, add a global 'Reply' feature to UserMessages so that any authenticated user can reply to a message they received — the reply should be sent back to the original sender using their User ID, and the reply should be stored and visible in the conversation.",
       "reqIds": [
         "REQ-4"
       ],
       "version": 1
     },
     {
-      "id": "feature-build-or-enhance-the-trending-in-niche-creator-feed-page-trendingpage-to-display-a-ranked-leaderboard-of-trending-clips-with-creator-info-trend-scores-and-thumbnails-in-a-social-feed-style-grid-layout-include-a-sidebar-or-section-showing-top-trending-analytics-use-glassmorphism-cards-with-indigo-accent-highlights-for-top-ranked-entries",
-      "title": "Build or enhance the 'Trending in Niche' creator feed page (TrendingPage) to display a ranked leaderboard of trending clips with creator info, trend scores, and thumbnails in a social-feed style grid layout. Include a sidebar or section showing top trending analytics. Use glassmorphism cards with indigo accent highlights for top-ranked entries.",
+      "id": "feature-add-a-pause-resume-application-switch-to-the-admin-panel-adminpanel-tsx-systemcontrols-tsx-area-when-the-app-is-paused-non-admin-non-owner-users-see-a-maintenance-paused-screen-and-cannot-use-the-app-toggling-this-switch-must-require-the-user-to-be-authenticated-as-an-admin-or-owner-if-an-unauthenticated-or-non-admin-user-tries-to-access-the-toggle-they-must-be-shown-an-admin-login-prompt-the-current-pause-state-must-be-persisted-in-the-backend-stable-variable-a-resume-action-restores-normal-access-the-existing-systemcontrols-component-should-be-updated-or-extended-to-include-this-toggle",
+      "title": "Add a Pause/Resume application switch to the Admin Panel (AdminPanel.tsx / SystemControls.tsx area). When the app is 'Paused', non-admin/non-owner users see a maintenance/paused screen and cannot use the app. Toggling this switch must require the user to be authenticated as an Admin or Owner — if an unauthenticated or non-admin user tries to access the toggle, they must be shown an admin login prompt. The current pause state must be persisted in the backend (stable variable). A 'Resume' action restores normal access. The existing SystemControls component should be updated or extended to include this toggle.",
       "reqIds": [
         "REQ-5"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-implement-the-manager-view-contentmanager-page-as-a-full-crud-interface-for-content-entries-the-page-must-be-accessible-to-users-with-manager-admin-or-owner-roles-it-should-display-a-table-card-list-of-content-entries-with-inline-or-modal-based-edit-forms-add-new-entry-form-and-delete-confirmation-dialogs-use-glassmorphism-card-styling-throughout",
-      "title": "Implement the Manager View (ContentManager page) as a full CRUD interface for content entries. The page must be accessible to users with 'manager', 'admin', or 'owner' roles. It should display a table/card list of content entries with inline or modal-based edit forms, add new entry form, and delete confirmation dialogs. Use glassmorphism card styling throughout.",
-      "reqIds": [
-        "REQ-6"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-build-the-admin-panel-adminpanel-component-and-supporting-components-as-a-gated-dashboard-section-visible-only-to-admin-and-owner-roles-it-must-include-1-user-clip-management-a-searchable-user-table-with-ban-unban-toggles-and-a-batch-clip-deletion-tool-that-selects-multiple-clips-by-user-id-and-deletes-them-in-bulk-2-system-controls-buttons-to-trigger-restartserver-and-shutdownserver-backend-calls-with-confirmation-dialogs-3-analytics-real-time-activity-log-table-polling-a-click-tracking-counter-display-and-a-videos-per-hour-bar-chart-using-recharts-4-support-messaging-a-form-to-send-a-direct-message-to-a-user-by-their-user-id",
-      "title": "Build the Admin Panel (AdminPanel component and supporting components) as a gated dashboard section visible only to admin and owner roles. It must include: (1) User & Clip Management — a searchable user table with Ban/Unban toggles and a batch clip deletion tool that selects multiple clips by user ID and deletes them in bulk. (2) System Controls — buttons to trigger restartServer and shutdownServer backend calls with confirmation dialogs. (3) Analytics — real-time activity log table (polling), a click-tracking counter display, and a 'Videos Per Hour' bar chart using Recharts. (4) Support Messaging — a form to send a direct message to a user by their User ID.",
-      "reqIds": [
-        "REQ-8"
       ],
       "version": 1
     }
@@ -69,77 +58,43 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Responsive layout: desktop sidebar with user profile/greeting, mobile persistent bottom navigation",
+      "summary": "Fix YouTube integration: stop infinite loading spinner and enable posting to channels",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-2",
-      "summary": "Vertical clip player with mobile-ratio preview",
+      "summary": "Re-add 'Report a Bug / Request a Feature' button to the UI",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-3",
-      "summary": "Editable AI caption box and YouTube upload scheduler editors",
+      "summary": "Open all messages in a new internal tab within the app",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-4",
-      "summary": "Trending in Niche social creator feed",
+      "summary": "Enable in-app file downloads (or dedicated download website)",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-5",
-      "summary": "Manager View: CRUD UI for manual content updates",
+      "summary": "Update messaging to use User IDs for sending and enable global Reply feature",
       "reqIds": [],
       "status": "pending"
     },
     {
       "id": "AR-6",
-      "summary": "Gated Admin Panel: User/Clip management with ban/unban tools and batch deletion",
+      "summary": "Add Admin Pause/Resume switch requiring Admin login to toggle",
       "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-7",
-      "summary": "Admin Panel: System controls (server restart/shutdown)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-8",
-      "summary": "Admin Panel: Analytics with real-time activity logs, click tracking, and Videos Per Hour charts",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-9",
-      "summary": "Admin Panel: Direct User ID messaging support tool",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-16",
-      "summary": "Add backend support for system control commands: a 'server restart' action and a 'server shutdown' action callable only by the owner principal. These should log the action to the activity log with timestamp and caller principal. The restart action resets relevant mutable state counters (e.g., messageCounter) while preserving core data. The shutdown action records the event. Both return a confirmation text result.",
-      "reqIds": [
-        "REQ-7"
-      ],
-      "status": "pending"
-    },
-    {
-      "id": "AR-18",
-      "summary": "Add backend support for batch clip deletion by admin: a function deleteClipsByUser(userId: Text) that deletes all clips belonging to a specific user, callable only by admin or owner principals. Also add a getClickStats() function that returns the total number of clip interactions/downloads logged, and a getVideosPerHour() function that returns an array of {hour: Int, count: Nat} records for the last 24 hours based on activityLogs.",
-      "reqIds": [
-        "REQ-9"
-      ],
       "status": "pending"
     }
   ],
   "gameProjectType": "none",
-  "projectName": "Premium Dark-Mode Full-Stack Dashboard",
+  "projectName": "Beast Clipping",
   "clarification_mode": "instant",
   "clarification_rounds": 0
 }

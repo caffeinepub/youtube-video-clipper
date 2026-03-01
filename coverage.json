@@ -1,132 +1,86 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-02-28T23:56:40.201Z",
+  "generatedAt": "2026-03-01T22:56:02.271Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 9,
-    "implemented": 7,
+    "total": 5,
+    "implemented": 5,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Apply a consistent premium dark-mode visual theme across the entire application: base background color #0B0E14, glassmorphism card/panel surfaces (semi-transparent with backdrop-blur and subtle border), indigo accent color for interactive elements, buttons, badges, and highlights. Use Space Grotesk and Inter fonts. Ensure all existing and new components inherit this theme.",
+        "summary": "Fix the YouTube posting integration: diagnose and resolve the infinite loading spinner in the YouTube post flow. Ensure that when a user clicks 'Post to YouTube' on a ClipCard, the request completes (success or error) and the spinner is dismissed. Verify that the clip is actually submitted to the connected YouTube channel via the backend HTTP outcall, and that success/failure toast notifications are shown.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/tailwind.config.js",
-          "frontend/src/index.css",
-          "frontend/src/components/AppShell.tsx"
+          "frontend/src/hooks/usePostToYouTube.ts",
+          "frontend/src/components/ClipCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/tailwind.config.js",
-          "frontend/src/index.css",
-          "frontend/src/components/AppShell.tsx"
+          "frontend/src/hooks/usePostToYouTube.ts",
+          "frontend/src/components/ClipCard.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Implement a responsive AppShell layout: on desktop (md+), render a fixed sidebar (SideNavigation) showing user profile avatar, display name, greeting (e.g., 'Good morning, [Name]'), role badge, and nav links. On mobile, hide the sidebar and show a persistent bottom navigation bar (BottomNavigation) with icon+label nav items. Both components must be role-aware and reflect authentication state.",
+        "summary": "Re-add the 'Report a Bug / Request a Feature' button to the main UI. The button should open the existing FeedbackModal component. It must be visible to all authenticated users and placed in a consistent, discoverable location (e.g., the SideNavigation sidebar and/or the AppShell bottom navigation on mobile).",
         "status": "implemented",
         "plannedFiles": [
           "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx",
-          "frontend/src/components/AppShell.tsx"
+          "frontend/src/components/BottomNavigation.tsx"
         ],
         "matchedFiles": [
           "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx",
-          "frontend/src/components/AppShell.tsx"
+          "frontend/src/components/BottomNavigation.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Build a Vertical Clip Preview component that displays the currently selected or most recently created clip in a 9:16 (mobile-ratio) aspect ratio container. It should show the clip thumbnail (if available), title, time range, duration, and viral score badge. This component should be prominently placed on the main dashboard/home view.",
+        "summary": "Update the UserMessages component so that each message item opens in a new internal tab within the app (using the existing TanStack Router tab or an in-app tab mechanism), rather than navigating away or opening an external browser tab. Additionally, replace any external download links in the app with an in-app download mechanism: when a user triggers a file/clip download, use the useDownloadClip hook to fetch the URL and initiate a browser download directly (e.g., via a temporary anchor element with the `download` attribute), without redirecting to an external website.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/VerticalClipPreview.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/components/UserMessages.tsx",
+          "frontend/src/components/ClipCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/VerticalClipPreview.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/components/UserMessages.tsx",
+          "frontend/src/components/ClipCard.tsx"
         ]
       },
       {
         "id": "REQ-4",
-        "summary": "Enhance the AI caption editor to be a fully editable textarea with character count, markdown-friendly formatting hints, and a glassmorphism card wrapper. Ensure the YouTube upload scheduler page allows users to select a saved clip, pick a scheduled date/time, view and delete scheduled uploads, and shows a connected YouTube channel status badge. Both editors must be accessible from the main dashboard and/or dedicated pages.",
+        "summary": "Update the messaging system so that all messages display and are sent using the user's generated User ID (the 8-character alphanumeric ID from userIdGenerator.ts) rather than raw principal strings. In the backend, store and index messages by principal but surface the short User ID in all frontend displays. Additionally, add a global 'Reply' feature to UserMessages so that any authenticated user can reply to a message they received — the reply should be sent back to the original sender using their User ID, and the reply should be stored and visible in the conversation.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/CaptionEditor.tsx",
-          "frontend/src/pages/Scheduler.tsx"
+          "frontend/src/components/UserMessages.tsx",
+          "frontend/src/components/AdminMessaging.tsx",
+          "frontend/src/hooks/useMyMessages.ts"
         ],
         "matchedFiles": [
-          "frontend/src/components/CaptionEditor.tsx",
-          "frontend/src/pages/Scheduler.tsx"
+          "frontend/src/components/UserMessages.tsx",
+          "frontend/src/components/AdminMessaging.tsx",
+          "frontend/src/hooks/useMyMessages.ts"
         ]
       },
       {
         "id": "REQ-5",
-        "summary": "Build or enhance the 'Trending in Niche' creator feed page (TrendingPage) to display a ranked leaderboard of trending clips with creator info, trend scores, and thumbnails in a social-feed style grid layout. Include a sidebar or section showing top trending analytics. Use glassmorphism cards with indigo accent highlights for top-ranked entries.",
+        "summary": "Add a Pause/Resume application switch to the Admin Panel (AdminPanel.tsx / SystemControls.tsx area). When the app is 'Paused', non-admin/non-owner users see a maintenance/paused screen and cannot use the app. Toggling this switch must require the user to be authenticated as an Admin or Owner — if an unauthenticated or non-admin user tries to access the toggle, they must be shown an admin login prompt. The current pause state must be persisted in the backend (stable variable). A 'Resume' action restores normal access. The existing SystemControls component should be updated or extended to include this toggle.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/TrendingPage.tsx",
-          "frontend/src/components/TrendingSidebar.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/TrendingPage.tsx",
-          "frontend/src/components/TrendingSidebar.tsx"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Implement the Manager View (ContentManager page) as a full CRUD interface for content entries. The page must be accessible to users with 'manager', 'admin', or 'owner' roles. It should display a table/card list of content entries with inline or modal-based edit forms, add new entry form, and delete confirmation dialogs. Use glassmorphism card styling throughout.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/ContentManager.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/ContentManager.tsx"
-        ]
-      },
-      {
-        "id": "REQ-7",
-        "summary": "Add backend support for system control commands: a 'server restart' action and a 'server shutdown' action callable only by the owner principal. These should log the action to the activity log with timestamp and caller principal. The restart action resets relevant mutable state counters (e.g., messageCounter) while preserving core data. The shutdown action records the event. Both return a confirmation text result.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
-      },
-      {
-        "id": "REQ-8",
-        "summary": "Build the Admin Panel (AdminPanel component and supporting components) as a gated dashboard section visible only to admin and owner roles. It must include: (1) User & Clip Management — a searchable user table with Ban/Unban toggles and a batch clip deletion tool that selects multiple clips by user ID and deletes them in bulk. (2) System Controls — buttons to trigger restartServer and shutdownServer backend calls with confirmation dialogs. (3) Analytics — real-time activity log table (polling), a click-tracking counter display, and a 'Videos Per Hour' bar chart using Recharts. (4) Support Messaging — a form to send a direct message to a user by their User ID.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/AdminPanel.tsx",
-          "frontend/src/components/UserStatusManagement.tsx",
           "frontend/src/components/SystemControls.tsx",
-          "frontend/src/components/AppAnalytics.tsx",
-          "frontend/src/hooks/useDeleteClipsByUser.ts",
-          "frontend/src/hooks/useServerRestart.ts",
-          "frontend/src/hooks/useServerShutdown.ts",
-          "frontend/src/hooks/useVideosPerHour.ts",
-          "frontend/src/hooks/useClickStats.ts",
+          "frontend/src/hooks/useSystemStatus.ts",
+          "frontend/src/components/PausedScreen.tsx",
+          "frontend/src/components/AppShell.tsx",
           "frontend/src/App.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/AdminPanel.tsx",
-          "frontend/src/components/UserStatusManagement.tsx",
           "frontend/src/components/SystemControls.tsx",
-          "frontend/src/components/AppAnalytics.tsx",
+          "frontend/src/hooks/useSystemStatus.ts",
+          "frontend/src/components/PausedScreen.tsx",
           "frontend/src/App.tsx"
         ]
-      },
-      {
-        "id": "REQ-9",
-        "summary": "Add backend support for batch clip deletion by admin: a function deleteClipsByUser(userId: Text) that deletes all clips belonging to a specific user, callable only by admin or owner principals. Also add a getClickStats() function that returns the total number of clip interactions/downloads logged, and a getVideosPerHour() function that returns an array of {hour: Int, count: Nat} records for the last 24 hours based on activityLogs.",
-        "status": "unknown",
-        "plannedFiles": [],
-        "matchedFiles": []
       }
     ]
   },
@@ -140,24 +94,21 @@
     "frontend/src/App.tsx",
     "frontend/src/backend.d.ts",
     "frontend/src/backend.ts",
+    "frontend/src/components/AdminMessaging.tsx",
     "frontend/src/components/AdminPanel.tsx",
-    "frontend/src/components/AppAnalytics.tsx",
-    "frontend/src/components/AppShell.tsx",
     "frontend/src/components/BottomNavigation.tsx",
-    "frontend/src/components/CaptionEditor.tsx",
-    "frontend/src/components/ClipList.tsx",
+    "frontend/src/components/ClipCard.tsx",
+    "frontend/src/components/PausedScreen.tsx",
     "frontend/src/components/SideNavigation.tsx",
     "frontend/src/components/SystemControls.tsx",
-    "frontend/src/components/TrendingSidebar.tsx",
-    "frontend/src/components/UserStatusManagement.tsx",
-    "frontend/src/components/VerticalClipPreview.tsx",
+    "frontend/src/components/UserMessages.tsx",
     "frontend/src/declarations/backend.did.d.ts",
     "frontend/src/declarations/backend.did.js",
-    "frontend/src/index.css",
-    "frontend/src/pages/ContentManager.tsx",
-    "frontend/src/pages/Scheduler.tsx",
-    "frontend/src/pages/TrendingPage.tsx",
-    "frontend/tailwind.config.js",
+    "frontend/src/hooks/useMyMessages.ts",
+    "frontend/src/hooks/usePostToYouTube.ts",
+    "frontend/src/hooks/useSendAdminMessage.ts",
+    "frontend/src/hooks/useSystemStatus.ts",
+    "frontend/src/pages/MessagesPage.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

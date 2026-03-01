@@ -10,9 +10,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { Toaster } from '@/components/ui/sonner';
 import { useInternetIdentity } from './hooks/useInternetIdentity';
 import { useGetCallerUserProfile } from './hooks/useQueries';
+import { useSystemStatus } from './hooks/useSystemStatus';
+import { useGetOwnRole } from './hooks/useGetOwnRole';
 import AppShell from './components/AppShell';
 import ProfileSetup from './components/ProfileSetup';
 import AccountStatusGuard from './components/AccountStatusGuard';
+import PausedScreen from './components/PausedScreen';
 import VideoUrlForm from './components/VideoUrlForm';
 import YouTubePlayer from './components/YouTubePlayer';
 import ClipTimestampControls from './components/ClipTimestampControls';
@@ -29,8 +32,9 @@ import OAuthCallback from './pages/OAuthCallback';
 import UserMessages from './components/UserMessages';
 import ChannelConnection from './components/ChannelConnection';
 import FeedbackModal from './components/FeedbackModal';
+import MessagesPage from './pages/MessagesPage';
 import { useClips } from './hooks/useClips';
-import { VideoClip } from './backend';
+import { VideoClip, SystemStatus, UserRole } from './backend';
 import { Heart, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
@@ -51,11 +55,9 @@ function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#0B0E14] flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Background glow */}
       <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-indigo-500/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="relative z-10 w-full max-w-sm space-y-8 text-center">
-        {/* Logo */}
         <div className="flex flex-col items-center gap-4">
           <div className="w-16 h-16 rounded-2xl bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center indigo-glow">
             <img
@@ -71,7 +73,6 @@ function LoginPage() {
           </div>
         </div>
 
-        {/* Login Card */}
         <div className="glass-card p-8 space-y-6">
           <div className="space-y-2">
             <h2 className="text-white font-semibold text-lg">Welcome back</h2>
@@ -98,7 +99,6 @@ function LoginPage() {
           </p>
         </div>
 
-        {/* Footer */}
         <p className="text-muted-foreground/50 text-xs flex items-center justify-center gap-1">
           Built with <Heart className="w-3 h-3 text-indigo-400 fill-indigo-400" /> using{' '}
           <a
@@ -149,7 +149,6 @@ function HomePage() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      {/* Page Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-white font-bold text-2xl font-display">Dashboard</h1>
@@ -162,6 +161,7 @@ function HomePage() {
             size="icon"
             onClick={() => setFeedbackOpen(true)}
             className="text-muted-foreground hover:text-white"
+            title="Report a Bug / Request a Feature"
           >
             <MessageSquare className="w-4 h-4" />
           </Button>
@@ -170,11 +170,8 @@ function HomePage() {
 
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
 
-      {/* Main Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Left Column */}
         <div className="lg:col-span-2 space-y-4">
-          {/* Video URL Form */}
           <div className="glass-card p-4">
             <VideoUrlForm
               onSubmit={handleVideoLoad}
@@ -182,14 +179,12 @@ function HomePage() {
             />
           </div>
 
-          {/* YouTube Player */}
           {videoId && (
             <div className="glass-card p-4">
               <YouTubePlayer videoId={videoId} />
             </div>
           )}
 
-          {/* Clip Suggestions */}
           {videoId && (
             <ClipSuggestions
               onSelectSuggestion={handleSuggestionSelect}
@@ -197,7 +192,6 @@ function HomePage() {
             />
           )}
 
-          {/* Clip Timestamp Controls */}
           {videoId && (
             <div className="glass-card p-4">
               <ClipTimestampControls
@@ -211,13 +205,11 @@ function HomePage() {
             </div>
           )}
 
-          {/* Caption Editor */}
           <CaptionEditor
             initialCaption={caption}
             onCaptionChange={setCaption}
           />
 
-          {/* Clip List */}
           <div className="glass-card p-4">
             <h2 className="text-white font-semibold text-sm mb-3 flex items-center gap-2">
               My Clips
@@ -231,7 +223,6 @@ function HomePage() {
           </div>
         </div>
 
-        {/* Right Column */}
         <div className="space-y-4">
           <div>
             <h2 className="text-white font-semibold text-sm mb-2 flex items-center gap-2">
@@ -286,6 +277,14 @@ function AppLayout() {
   const { identity, isInitializing } = useInternetIdentity();
   const isAuthenticated = !!identity;
   const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+  const { data: systemStatus } = useSystemStatus();
+  const { data: ownRole } = useGetOwnRole();
+
+  // Normalize role to string
+  const roleStr = ownRole
+    ? (typeof ownRole === 'object' ? Object.keys(ownRole)[0] : String(ownRole))
+    : null;
+  const isAdmin = roleStr === 'admin' || roleStr === 'owner';
 
   if (isInitializing) {
     return (
@@ -300,6 +299,11 @@ function AppLayout() {
 
   if (!isAuthenticated) {
     return <LoginPage />;
+  }
+
+  // Show paused screen for non-admin users when app is paused
+  if (systemStatus === SystemStatus.paused && !isAdmin) {
+    return <PausedScreen />;
   }
 
   const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
@@ -325,6 +329,7 @@ const schedulerRoute = createRoute({ getParentRoute: () => rootRoute, path: '/sc
 const contentManagerRoute = createRoute({ getParentRoute: () => rootRoute, path: '/content-manager', component: ContentManager });
 const adminRoute = createRoute({ getParentRoute: () => rootRoute, path: '/admin', component: AdminPage });
 const oauthCallbackRoute = createRoute({ getParentRoute: () => rootRoute, path: '/oauth/callback', component: OAuthCallback });
+const messagesRoute = createRoute({ getParentRoute: () => rootRoute, path: '/messages', component: MessagesPage });
 
 const routeTree = rootRoute.addChildren([
   homeRoute,
@@ -334,6 +339,7 @@ const routeTree = rootRoute.addChildren([
   contentManagerRoute,
   adminRoute,
   oauthCallbackRoute,
+  messagesRoute,
 ]);
 
 const router = createRouter({ routeTree });

@@ -106,8 +106,10 @@ export const FeedbackSubmission = IDL.Record({
 export const AdminMessage = IDL.Record({
   'id' : IDL.Text,
   'body' : IDL.Text,
+  'toUserId' : IDL.Text,
   'sentAt' : Time,
   'toPrincipal' : IDL.Text,
+  'fromUserId' : IDL.Text,
   'fromPrincipal' : IDL.Text,
 });
 export const ScheduledUpload = IDL.Record({
@@ -115,6 +117,12 @@ export const ScheduledUpload = IDL.Record({
   'clipId' : IDL.Text,
   'createdAt' : Time,
   'scheduledAt' : Time,
+});
+export const SystemStatus = IDL.Variant({
+  'restarting' : IDL.Null,
+  'shutting_down' : IDL.Null,
+  'running' : IDL.Null,
+  'paused' : IDL.Null,
 });
 export const TrendingClipAnalytics = IDL.Record({
   'id' : IDL.Text,
@@ -231,9 +239,10 @@ export const idlService = IDL.Service({
       [IDL.Vec(FeedbackSubmission)],
       ['query'],
     ),
-  'getMyMessages' : IDL.Func([], [IDL.Vec(AdminMessage)], ['query']),
+  'getMyMessages' : IDL.Func([IDL.Text], [IDL.Vec(AdminMessage)], ['query']),
   'getMyScheduledUploads' : IDL.Func([], [IDL.Vec(ScheduledUpload)], ['query']),
   'getOwnRole' : IDL.Func([], [IDL.Opt(UserRole)], ['query']),
+  'getSystemStatus' : IDL.Func([], [SystemStatus], ['query']),
   'getTotalClipsCount' : IDL.Func([], [IDL.Nat], ['query']),
   'getTrendingClips' : IDL.Func([], [IDL.Vec(VideoClip)], ['query']),
   'getTrendingClipsAnalytics' : IDL.Func(
@@ -253,13 +262,18 @@ export const idlService = IDL.Service({
   'isYouTubeChannelConnected' : IDL.Func([], [IDL.Bool], ['query']),
   'logUserActivity' : IDL.Func([IDL.Text], [], []),
   'postClipToYouTube' : IDL.Func([ClipMetadata], [YouTubePostResult], []),
+  'replyToMessage' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Text], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'saveClip' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Float64],
       [IDL.Text],
       [],
     ),
-  'sendAdminMessage' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
+  'sendMessage' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Text],
+      [],
+    ),
   'serverRestartAction' : IDL.Func([], [SystemControlResult], []),
   'serverShutdownAction' : IDL.Func([], [SystemControlResult], []),
   'setUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
@@ -269,6 +283,7 @@ export const idlService = IDL.Service({
       [IDL.Nat],
       [],
     ),
+  'togglePauseSystem' : IDL.Func([], [SystemControlResult], []),
   'transform' : IDL.Func(
       [TransformationInput],
       [TransformationOutput],
@@ -380,8 +395,10 @@ export const idlFactory = ({ IDL }) => {
   const AdminMessage = IDL.Record({
     'id' : IDL.Text,
     'body' : IDL.Text,
+    'toUserId' : IDL.Text,
     'sentAt' : Time,
     'toPrincipal' : IDL.Text,
+    'fromUserId' : IDL.Text,
     'fromPrincipal' : IDL.Text,
   });
   const ScheduledUpload = IDL.Record({
@@ -389,6 +406,12 @@ export const idlFactory = ({ IDL }) => {
     'clipId' : IDL.Text,
     'createdAt' : Time,
     'scheduledAt' : Time,
+  });
+  const SystemStatus = IDL.Variant({
+    'restarting' : IDL.Null,
+    'shutting_down' : IDL.Null,
+    'running' : IDL.Null,
+    'paused' : IDL.Null,
   });
   const TrendingClipAnalytics = IDL.Record({
     'id' : IDL.Text,
@@ -499,13 +522,14 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(FeedbackSubmission)],
         ['query'],
       ),
-    'getMyMessages' : IDL.Func([], [IDL.Vec(AdminMessage)], ['query']),
+    'getMyMessages' : IDL.Func([IDL.Text], [IDL.Vec(AdminMessage)], ['query']),
     'getMyScheduledUploads' : IDL.Func(
         [],
         [IDL.Vec(ScheduledUpload)],
         ['query'],
       ),
     'getOwnRole' : IDL.Func([], [IDL.Opt(UserRole)], ['query']),
+    'getSystemStatus' : IDL.Func([], [SystemStatus], ['query']),
     'getTotalClipsCount' : IDL.Func([], [IDL.Nat], ['query']),
     'getTrendingClips' : IDL.Func([], [IDL.Vec(VideoClip)], ['query']),
     'getTrendingClipsAnalytics' : IDL.Func(
@@ -529,13 +553,18 @@ export const idlFactory = ({ IDL }) => {
     'isYouTubeChannelConnected' : IDL.Func([], [IDL.Bool], ['query']),
     'logUserActivity' : IDL.Func([IDL.Text], [], []),
     'postClipToYouTube' : IDL.Func([ClipMetadata], [YouTubePostResult], []),
+    'replyToMessage' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Text], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'saveClip' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Float64],
         [IDL.Text],
         [],
       ),
-    'sendAdminMessage' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
+    'sendMessage' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Text],
+        [],
+      ),
     'serverRestartAction' : IDL.Func([], [SystemControlResult], []),
     'serverShutdownAction' : IDL.Func([], [SystemControlResult], []),
     'setUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
@@ -545,6 +574,7 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Nat],
         [],
       ),
+    'togglePauseSystem' : IDL.Func([], [SystemControlResult], []),
     'transform' : IDL.Func(
         [TransformationInput],
         [TransformationOutput],

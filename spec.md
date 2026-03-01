@@ -1,35 +1,16 @@
 # Specification
 
 ## Summary
-**Goal:** Build a premium dark-mode full-stack dashboard ("Beast Clipping Dashboard") with an admin panel, role-aware navigation, clip management, AI caption editor, YouTube scheduler, trending feed, and backend system controls.
+**Goal:** Fix the YouTube posting spinner, restore the bug report button, improve the messaging system with internal tabs and User ID display, add a global reply feature, and introduce an admin Pause/Resume toggle for the Beast Clipping app.
 
 **Planned changes:**
+- Fix the infinite loading spinner in the YouTube post flow so that clicking "Post to YouTube" on a ClipCard resolves with a success or error toast, and the clip is actually submitted to the connected YouTube channel via the backend.
+- Re-add the "Report a Bug / Request a Feature" button to the sidebar (desktop) and bottom nav/floating button (mobile) for all authenticated users, opening the existing FeedbackModal.
+- Update UserMessages so that clicking a message opens it in a new in-app tab or detail panel without leaving the app.
+- Replace external download links with an in-app download mechanism using the `useDownloadClip` hook to trigger a browser download via a programmatic anchor click.
+- Display all messages using the short 8-character User ID (from `userIdGenerator.ts`) instead of raw principal strings, in both sent and received views.
+- Add a global "Reply" button/input to each message in UserMessages, allowing the recipient to reply to the original sender; replies are stored in the backend and visible in the thread.
+- Add a Pause/Resume toggle to the Admin Panel (SystemControls area) requiring admin/owner authentication; when paused, regular users see a maintenance screen and cannot use the app; the pause state is persisted in a stable backend variable with `setPauseState` and `getAppStatus` methods.
+- Generate a `migration.mo` to account for the new stable pause state variable in the backend.
 
-**Theme & Layout**
-- Apply a consistent dark-mode theme across the entire app: base background #0B0E14, glassmorphism cards (semi-transparent, backdrop-blur, subtle border), indigo accents, Space Grotesk and Inter fonts
-- Implement a responsive AppShell: fixed sidebar on desktop (md+) with user avatar, display name, time-based greeting, and role badge; persistent bottom navigation bar on mobile
-- Both nav components are role-aware and highlight the active route
-
-**Dashboard Components**
-- Add a Vertical Clip Preview component (9:16 aspect ratio) showing clip thumbnail, title, time range, duration, and color-coded viral score badge; placed prominently on the main dashboard
-- Enhance the AI caption editor: fully editable textarea with live character count, formatting hints, and glassmorphism card wrapper
-- Enhance the YouTube upload scheduler page: clip selector, scheduled date/time picker, list of scheduled uploads with delete option, and YouTube channel connection status badge
-
-**Trending & Content Manager Pages**
-- Build/enhance the Trending in Niche page: ranked leaderboard grid of clips with creator info, trend scores, rank badges, top-3 visual distinction (gold/silver/bronze), loading skeletons, and empty state
-- Build the Content Manager page (manager/admin/owner roles only): CRUD table/card list with inline/modal edit forms, add-new-entry form, and delete confirmation dialogs
-
-**Admin Panel (admin/owner only)**
-- User & Clip Management: searchable user table with Ban/Unban toggles; batch clip deletion tool by user ID
-- System Controls: Restart Server and Shutdown Server buttons with confirmation dialogs wired to backend
-- Analytics: auto-refreshing (15s) activity log table, click-tracking counter card, "Videos Per Hour" bar chart using Recharts
-- Support Messaging: form to send a direct message to a user by User ID via `useSendAdminMessage`
-
-**Backend (Motoko — main.mo)**
-- Add `restartServer()` owner-only function: resets mutable counters, logs action to activityLogs, returns confirmation string
-- Add `shutdownServer()` owner-only function: logs event to activityLogs, returns confirmation string
-- Add `deleteClipsByUser(userId)` admin/owner-only function: removes all clips for the given user from the clips map
-- Add `getClickStats()` query: returns total count of download/post activity log entries
-- Add `getVideosPerHour()` query: returns array of `{hour, count}` records for the last 24 hours based on activityLogs
-
-**User-visible outcome:** Users get a polished dark-mode dashboard with role-based navigation, a vertical clip preview, editable AI captions, a YouTube upload scheduler, a trending creator feed, and a content manager. Admins and owners gain a gated admin panel with user management, batch clip deletion, system control buttons, real-time analytics charts, and direct user messaging.
+**User-visible outcome:** Admins can pause and resume the app from the admin panel; all users see short User IDs in messages and can reply to messages in-app; clips can be posted to YouTube without spinner issues; files download directly in the browser; and a bug/feature report button is accessible from the main navigation.

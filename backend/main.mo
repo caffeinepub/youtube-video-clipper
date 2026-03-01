@@ -16,6 +16,7 @@ import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
 import Migration "migration";
 
+// Apply migration on upgrade
 (with migration = Migration.run)
 actor {
   // Authorization state and mixin
@@ -36,6 +37,7 @@ actor {
     #running;
     #restarting;
     #shutting_down;
+    #paused;
   };
 
   var systemStatus : SystemStatus = #running;
@@ -166,6 +168,8 @@ actor {
     id : Text;
     fromPrincipal : Text;
     toPrincipal : Text;
+    fromUserId : Text;
+    toUserId : Text;
     body : Text;
     sentAt : Time.Time;
   };
@@ -202,7 +206,7 @@ actor {
   var activityLogs : [ActivityLog] = [];
   var activityLogCounter : Nat = 0;
 
-  // Messages storage: per-recipient list of messages
+  // --- User Messaging ---
   let userMessages = Map.empty<Principal, List.List<AdminMessage>>();
   var messageCounter : Nat = 0;
 
@@ -267,9 +271,56 @@ actor {
     baseScore + lengthPenalty;
   };
 
+  // --- System Status ---
+
+  // getSystemStatus is intentionally open to all callers (including guests/anonymous)
+  // so that the frontend can display the maintenance/paused screen to unauthenticated users.
+  public query func getSystemStatus() : async SystemStatus {
+    systemStatus;
+  };
+
+  // Pause/Resume toggle — admin-only
+  public shared ({ caller }) func togglePauseSystem() : async SystemControlResult {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      return {
+        success = false;
+        message = "Unauthorized: Only the owner and admins can pause or resume the system";
+      };
+    };
+
+    switch (systemStatus) {
+      case (#paused) {
+        systemStatus := #running;
+        recordSystemActionLog(#running, caller);
+        {
+          success = true;
+          message = "Application resumed from paused state";
+        };
+      };
+      case (_) {
+        systemStatus := #paused;
+        recordSystemActionLog(#paused, caller);
+        {
+          success = true;
+          message = "Application paused successfully";
+        };
+      };
+    };
+  };
+
+  // --- System/Clips ---
   public query ({ caller }) func getAllClips(_searchText : Text) : async [VideoClip] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can access this endpoint");
+    };
+    // Non-admin users cannot use the app while it is paused
+    switch (systemStatus) {
+      case (#paused) {
+        if (not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("The application is currently paused for system maintenance");
+        };
+      };
+      case (_) {};
     };
     videoClips.values().toArray();
   };
@@ -331,6 +382,7 @@ actor {
         case (#restarting) { "restart" };
         case (#shutting_down) { "shutdown" };
         case (#running) { "run" };
+        case (#paused) { "paused" };
       };
       caller;
       timestamp = Time.now();
@@ -797,15 +849,12 @@ actor {
       Runtime.trap("Invalid clip: start timestamp must be before end timestamp");
     };
 
-    if (clipMetadata.endTimestamp < clipMetadata.startTimestamp) {
-      Runtime.trap("Invalid clip: start time must precede end time");
-    };
-
     let clipDuration = Int.abs(clipMetadata.endTimestamp.toInt() - clipMetadata.startTimestamp.toInt());
     if (clipDuration > 60) {
       Runtime.trap("Invalid clip: YouTube Shorts must be 60 seconds or less");
     };
 
+    // Simulate successful post
     recordActivity(caller, "youtube_post:" # clipMetadata.videoId);
 
     {
@@ -961,7 +1010,6 @@ actor {
   // ── YouTube Scheduler ──────────────────────────────────────────────────────
 
   // Add a scheduled upload entry for the calling user.
-  // Only authenticated users can schedule their own uploads.
   public shared ({ caller }) func addScheduledUpload(clipId : Text, scheduledAt : Time.Time) : async Text {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can schedule uploads");
@@ -984,7 +1032,6 @@ actor {
   };
 
   // Retrieve the calling user's scheduled uploads.
-  // Users can only see their own scheduled uploads.
   public query ({ caller }) func getMyScheduledUploads() : async [ScheduledUpload] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view their scheduled uploads");
@@ -996,7 +1043,6 @@ actor {
   };
 
   // Delete a scheduled upload entry belonging to the calling user.
-  // Users can only delete their own entries.
   public shared ({ caller }) func deleteScheduledUpload(entryId : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can delete their scheduled uploads");
@@ -1092,7 +1138,6 @@ actor {
   };
 
   // Allow authenticated users to explicitly log a significant action from the frontend.
-  // The caller principal is always recorded server-side to prevent spoofing.
   public shared ({ caller }) func logUserActivity(action : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can log activity");
@@ -1100,35 +1145,45 @@ actor {
     recordActivity(caller, action);
   };
 
-  // ── User Messaging ─────────────────────────────────────────────────────────
+  // --- User Messaging System ---
 
-  // Send a direct message to a specific user by their principal text. Admin-only.
-  public shared ({ caller }) func sendAdminMessage(toUserId : Text, body : Text) : async Text {
-    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
-      Runtime.trap("Unauthorized: Only admins can send messages to users");
+  // Send a message to another user. Requires authentication.
+  public shared ({ caller }) func sendMessage(
+    toPrincipal : Text,
+    toUserId : Text,
+    body : Text,
+    fromUserId : Text,
+  ) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can send messages");
     };
-    let recipient = Principal.fromText(toUserId);
+
+    let recipient = Principal.fromText(toPrincipal);
     let id = "msg_" # messageCounter.toText() # "_" # Time.now().toText();
     messageCounter += 1;
+
     let msg : AdminMessage = {
       id;
       fromPrincipal = caller.toText();
-      toPrincipal = toUserId;
+      toPrincipal;
       body;
       sentAt = Time.now();
+      fromUserId;
+      toUserId;
     };
+
     let existing = switch (userMessages.get(recipient)) {
       case (?list) { list };
       case (null) { List.empty<AdminMessage>() };
     };
     existing.add(msg);
     userMessages.add(recipient, existing);
-    recordActivity(caller, "admin_message_sent_to:" # toUserId);
+    recordActivity(caller, "message_sent_to:" # toPrincipal);
     id;
   };
 
-  // Retrieve messages received by the calling user. Users can only read their own messages.
-  public query ({ caller }) func getMyMessages() : async [AdminMessage] {
+  // Retrieve the calling user's own messages. Requires authentication.
+  public query ({ caller }) func getMyMessages(fromUserId : Text) : async [AdminMessage] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
       Runtime.trap("Unauthorized: Only users can view their messages");
     };
@@ -1138,7 +1193,7 @@ actor {
     };
   };
 
-  // Admins can retrieve messages sent to any specific user (for audit purposes).
+  // Retrieve messages for any user by principal text. Admin-only.
   public query ({ caller }) func getUserMessages(userId : Text) : async [AdminMessage] {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
       Runtime.trap("Unauthorized: Only admins can view other users' messages");
@@ -1147,6 +1202,62 @@ actor {
     switch (userMessages.get(target)) {
       case (?list) { list.toArray() };
       case (null) { [] };
+    };
+  };
+
+  // Reply to a received message. The reply is delivered to the original sender.
+  // Any authenticated user can reply to a message they received.
+  public shared ({ caller }) func replyToMessage(
+    originalMessageId : Text,
+    replyBody : Text,
+    fromUserId : Text,
+  ) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can reply to messages");
+    };
+
+    // Verify the caller actually received the original message (it must be in their inbox)
+    let callerMessages = switch (userMessages.get(caller)) {
+      case (?list) { list };
+      case (null) { Runtime.trap("Original message not found") };
+    };
+
+    var foundMessage : ?AdminMessage = null;
+    for (message in callerMessages.values()) {
+      if (message.id == originalMessageId) {
+        foundMessage := ?message;
+      };
+    };
+
+    switch (foundMessage) {
+      case (?originalMessage) {
+        let id = "reply_" # messageCounter.toText() # "_" # Time.now().toText();
+        messageCounter += 1;
+
+        let replyMessage : AdminMessage = {
+          id;
+          fromPrincipal = caller.toText();
+          toPrincipal = originalMessage.fromPrincipal;
+          body = replyBody;
+          sentAt = Time.now();
+          fromUserId;
+          toUserId = originalMessage.fromUserId;
+        };
+
+        let recipient = Principal.fromText(originalMessage.fromPrincipal);
+        let existing = switch (userMessages.get(recipient)) {
+          case (?list) { list };
+          case (null) { List.empty<AdminMessage>() };
+        };
+        existing.add(replyMessage);
+        userMessages.add(recipient, existing);
+
+        recordActivity(caller, "message_reply_sent:" # originalMessageId);
+        id;
+      };
+      case (null) {
+        Runtime.trap("Original message not found in your inbox");
+      };
     };
   };
 
@@ -1162,3 +1273,4 @@ actor {
     userProfiles.add(caller, updatedProfile);
   };
 };
+

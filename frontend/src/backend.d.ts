@@ -14,6 +14,10 @@ export class ExternalBlob {
     static fromBytes(blob: Uint8Array<ArrayBuffer>): ExternalBlob;
     withUploadProgress(onProgress: (percentage: number) => void): ExternalBlob;
 }
+export interface SystemControlResult {
+    message: string;
+    success: boolean;
+}
 export interface ContentEntry {
     id: string;
     title: string;
@@ -41,8 +45,10 @@ export interface YouTubeChannelAuth {
 export interface AdminMessage {
     id: string;
     body: string;
+    toUserId: string;
     sentAt: Time;
     toPrincipal: string;
+    fromUserId: string;
     fromPrincipal: string;
 }
 export interface YouTubePostResult {
@@ -128,13 +134,15 @@ export interface UserProfile {
     profilePicture?: ExternalBlob;
     googleOAuthCredentials?: GoogleOAuthCredentials;
 }
-export interface SystemControlResult {
-    message: string;
-    success: boolean;
-}
 export enum SubmissionType {
     BugReport = "BugReport",
     FeatureRequest = "FeatureRequest"
+}
+export enum SystemStatus {
+    restarting = "restarting",
+    shutting_down = "shutting_down",
+    running = "running",
+    paused = "paused"
 }
 export enum UserRole {
     admin = "admin",
@@ -177,9 +185,10 @@ export interface backendInterface {
     getClipById(clipId: string): Promise<VideoClip>;
     getContentEntries(): Promise<Array<ContentEntry>>;
     getFeedbackSubmissions(): Promise<Array<FeedbackSubmission>>;
-    getMyMessages(): Promise<Array<AdminMessage>>;
+    getMyMessages(fromUserId: string): Promise<Array<AdminMessage>>;
     getMyScheduledUploads(): Promise<Array<ScheduledUpload>>;
     getOwnRole(): Promise<UserRole | null>;
+    getSystemStatus(): Promise<SystemStatus>;
     getTotalClipsCount(): Promise<bigint>;
     getTrendingClips(): Promise<Array<VideoClip>>;
     getTrendingClipsAnalytics(): Promise<Array<TrendingClipAnalytics>>;
@@ -191,14 +200,16 @@ export interface backendInterface {
     isYouTubeChannelConnected(): Promise<boolean>;
     logUserActivity(action: string): Promise<void>;
     postClipToYouTube(clipMetadata: ClipMetadata): Promise<YouTubePostResult>;
+    replyToMessage(originalMessageId: string, replyBody: string, fromUserId: string): Promise<string>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveClip(title: string, videoUrl: string, thumbnailUrl: string, startTime: bigint, endTime: bigint, score: number): Promise<string>;
-    sendAdminMessage(toUserId: string, body: string): Promise<string>;
+    sendMessage(toPrincipal: string, toUserId: string, body: string, fromUserId: string): Promise<string>;
     serverRestartAction(): Promise<SystemControlResult>;
     serverShutdownAction(): Promise<SystemControlResult>;
     setUserRole(target: Principal, userRole: UserRole): Promise<void>;
     storeGoogleOAuthCredentials(authorizationCode: string, redirectUri: string): Promise<void>;
     submitFeedback(submissionType: SubmissionType, title: string, description: string): Promise<bigint>;
+    togglePauseSystem(): Promise<SystemControlResult>;
     transform(input: TransformationInput): Promise<TransformationOutput>;
     updateContentEntry(id: string, title: string, body: string): Promise<void>;
     updateUserStatus(target: Principal, newStatus: UserStatus): Promise<void>;

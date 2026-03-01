@@ -1,5 +1,5 @@
 import React from 'react';
-import { Trash2, Download, Youtube, Clock } from 'lucide-react';
+import { Trash2, Download, Youtube, Clock, Loader2 } from 'lucide-react';
 import { VideoClip } from '../backend';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
@@ -30,7 +30,6 @@ export default function ClipCard({ clip, onDelete, isDeleting }: ClipCardProps) 
   const duration = Number(clip.endTime) - Number(clip.startTime);
 
   const handleDownload = () => {
-    // Extract video ID from URL if it's a full YouTube URL, otherwise use as-is
     const videoIdMatch = clip.videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
     const videoId = videoIdMatch ? videoIdMatch[1] : clip.videoUrl;
 
@@ -43,6 +42,8 @@ export default function ClipCard({ clip, onDelete, isDeleting }: ClipCardProps) 
   };
 
   const handlePost = () => {
+    if (!isConnected) return;
+
     const videoIdMatch = clip.videoUrl.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\s]+)/);
     const videoId = videoIdMatch ? videoIdMatch[1] : clip.videoUrl;
 
@@ -101,7 +102,7 @@ export default function ClipCard({ clip, onDelete, isDeleting }: ClipCardProps) 
                 className="h-7 px-2 text-xs text-muted-foreground hover:text-white hover:bg-white/10 gap-1"
               >
                 {isDownloading ? (
-                  <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
+                  <Loader2 size={12} className="animate-spin" />
                 ) : (
                   <Download size={12} />
                 )}
@@ -119,11 +120,11 @@ export default function ClipCard({ clip, onDelete, isDeleting }: ClipCardProps) 
                       className="h-7 px-2 text-xs text-muted-foreground hover:text-red-400 hover:bg-red-500/10 gap-1 disabled:opacity-40"
                     >
                       {isPosting ? (
-                        <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
+                        <Loader2 size={12} className="animate-spin" />
                       ) : (
                         <Youtube size={12} />
                       )}
-                      Post
+                      {isPosting ? 'Posting…' : 'Post'}
                     </Button>
                   </span>
                 </TooltipTrigger>
@@ -142,7 +143,7 @@ export default function ClipCard({ clip, onDelete, isDeleting }: ClipCardProps) 
                 className="h-7 px-2 text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1 ml-auto"
               >
                 {isDeleting ? (
-                  <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
+                  <Loader2 size={12} className="animate-spin" />
                 ) : (
                   <Trash2 size={12} />
                 )}
