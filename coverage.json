@@ -1,114 +1,80 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T22:56:02.271Z",
+  "generatedAt": "2026-03-01T23:08:34.067Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 5,
-    "implemented": 5,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Fix the YouTube posting integration: diagnose and resolve the infinite loading spinner in the YouTube post flow. Ensure that when a user clicks 'Post to YouTube' on a ClipCard, the request completes (success or error) and the spinner is dismissed. Verify that the clip is actually submitted to the connected YouTube channel via the backend HTTP outcall, and that success/failure toast notifications are shown.",
+        "summary": "Fix the YouTube channel connection status display so that when a user has already connected their YouTube channel (i.e., valid Google OAuth credentials are stored in the backend), the ChannelConnection component correctly reflects the connected state instead of showing 'not connected'. Investigate the useYouTubeChannel hook and the OAuthCallback flow to ensure the stored credentials are being read and the connected status is correctly derived and returned.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/hooks/usePostToYouTube.ts",
-          "frontend/src/components/ClipCard.tsx"
+          "frontend/src/hooks/useYouTubeChannel.ts",
+          "frontend/src/components/ChannelConnection.tsx",
+          "frontend/src/pages/OAuthCallback.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/hooks/usePostToYouTube.ts",
-          "frontend/src/components/ClipCard.tsx"
+          "frontend/src/hooks/useYouTubeChannel.ts",
+          "frontend/src/components/ChannelConnection.tsx",
+          "frontend/src/pages/OAuthCallback.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Re-add the 'Report a Bug / Request a Feature' button to the main UI. The button should open the existing FeedbackModal component. It must be visible to all authenticated users and placed in a consistent, discoverable location (e.g., the SideNavigation sidebar and/or the AppShell bottom navigation on mobile).",
+        "summary": "Fix the clip download functionality so that clicking the download button on a ClipCard successfully triggers a file download in the browser. Investigate the useDownloadClip hook to ensure it correctly fetches the download URL from the backend and that the programmatic browser download trigger (e.g., anchor element click) works as expected. Ensure error states are surfaced to the user if download fails.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx"
+          "frontend/src/hooks/useDownloadClip.ts",
+          "frontend/src/components/ClipCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx"
+          "frontend/src/hooks/useDownloadClip.ts",
+          "frontend/src/components/ClipCard.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Update the UserMessages component so that each message item opens in a new internal tab within the app (using the existing TanStack Router tab or an in-app tab mechanism), rather than navigating away or opening an external browser tab. Additionally, replace any external download links in the app with an in-app download mechanism: when a user triggers a file/clip download, use the useDownloadClip hook to fetch the URL and initiate a browser download directly (e.g., via a temporary anchor element with the `download` attribute), without redirecting to an external website.",
+        "summary": "In the admin panel's user management section (UserStatusManagement component), display each user's full Principal ID alongside their existing user ID. Add a copy-to-clipboard button next to the Principal ID so admins can easily copy it. The Principal ID should be visible in the user list/search results and in any user detail view within the component.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/UserMessages.tsx",
-          "frontend/src/components/ClipCard.tsx"
+          "frontend/src/components/UserStatusManagement.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/UserMessages.tsx",
-          "frontend/src/components/ClipCard.tsx"
+          "frontend/src/components/UserStatusManagement.tsx"
         ]
       },
       {
         "id": "REQ-4",
-        "summary": "Update the messaging system so that all messages display and are sent using the user's generated User ID (the 8-character alphanumeric ID from userIdGenerator.ts) rather than raw principal strings. In the backend, store and index messages by principal but surface the short User ID in all frontend displays. Additionally, add a global 'Reply' feature to UserMessages so that any authenticated user can reply to a message they received — the reply should be sent back to the original sender using their User ID, and the reply should be stored and visible in the conversation.",
+        "summary": "In the admin panel's clip management section (any clip listing/management view available to admins), display the owner's full Principal ID for each clip alongside existing owner information. Add a copy-to-clipboard button next to each Principal ID so admins can easily copy it.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/UserMessages.tsx",
-          "frontend/src/components/AdminMessaging.tsx",
-          "frontend/src/hooks/useMyMessages.ts"
+          "frontend/src/hooks/useClips.ts",
+          "frontend/src/components/ClipCard.tsx",
+          "frontend/src/pages/MyClipsPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/UserMessages.tsx",
-          "frontend/src/components/AdminMessaging.tsx",
-          "frontend/src/hooks/useMyMessages.ts"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Add a Pause/Resume application switch to the Admin Panel (AdminPanel.tsx / SystemControls.tsx area). When the app is 'Paused', non-admin/non-owner users see a maintenance/paused screen and cannot use the app. Toggling this switch must require the user to be authenticated as an Admin or Owner — if an unauthenticated or non-admin user tries to access the toggle, they must be shown an admin login prompt. The current pause state must be persisted in the backend (stable variable). A 'Resume' action restores normal access. The existing SystemControls component should be updated or extended to include this toggle.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/SystemControls.tsx",
-          "frontend/src/hooks/useSystemStatus.ts",
-          "frontend/src/components/PausedScreen.tsx",
-          "frontend/src/components/AppShell.tsx",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/SystemControls.tsx",
-          "frontend/src/hooks/useSystemStatus.ts",
-          "frontend/src/components/PausedScreen.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/components/ClipCard.tsx"
         ]
       }
     ]
   },
   "changedFiles": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "build-request.json",
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/backend.d.ts",
-    "frontend/src/backend.ts",
-    "frontend/src/components/AdminMessaging.tsx",
-    "frontend/src/components/AdminPanel.tsx",
-    "frontend/src/components/BottomNavigation.tsx",
+    "frontend/src/components/ChannelConnection.tsx",
     "frontend/src/components/ClipCard.tsx",
-    "frontend/src/components/PausedScreen.tsx",
-    "frontend/src/components/SideNavigation.tsx",
-    "frontend/src/components/SystemControls.tsx",
-    "frontend/src/components/UserMessages.tsx",
-    "frontend/src/declarations/backend.did.d.ts",
-    "frontend/src/declarations/backend.did.js",
-    "frontend/src/hooks/useMyMessages.ts",
-    "frontend/src/hooks/usePostToYouTube.ts",
-    "frontend/src/hooks/useSendAdminMessage.ts",
-    "frontend/src/hooks/useSystemStatus.ts",
-    "frontend/src/pages/MessagesPage.tsx",
+    "frontend/src/components/UserStatusManagement.tsx",
+    "frontend/src/hooks/useDownloadClip.ts",
+    "frontend/src/hooks/useYouTubeChannel.ts",
+    "frontend/src/pages/OAuthCallback.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

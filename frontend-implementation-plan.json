@@ -1,136 +1,95 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "YouTube Fix, Bug Report Button, In-App Messaging Tabs, User ID Messaging, Global Reply, and Admin Pause/Resume",
+  "title": "Fix YouTube channel connection status, fix downloads, and show principal IDs in admin panel",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix the YouTube posting integration to resolve infinite loading spinner and ensure proper success/error feedback",
+      "summary": "Fix YouTube channel connection status display to correctly reflect connected state when valid credentials exist",
       "acceptanceCriteria": [
-        "Clicking 'Post to YouTube' no longer shows an infinite spinner — the button resolves within a reasonable timeout.",
-        "A successful post shows a success toast; a failed post shows an error toast with a human-readable message.",
-        "The clip is submitted to the user's connected YouTube channel via the backend.",
-        "If no YouTube channel is connected, a clear error message is shown instead of a spinner."
+        "After a user completes the YouTube OAuth flow, the ChannelConnection component shows the channel as connected on subsequent page loads",
+        "The useYouTubeChannel hook returns a connected status when valid credentials exist in the backend",
+        "The connected state persists across page refreshes without requiring the user to reconnect"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/usePostToYouTube.ts",
+          "path": "frontend/src/hooks/useYouTubeChannel.ts",
           "operation": "modify",
-          "description": "Add timeout handling to the mutation (e.g., 30 seconds) to prevent infinite spinners. Ensure the mutation properly handles backend errors and YouTube API failures. Add validation to check if YouTube channel is connected before allowing the mutation to proceed. Include toast notifications for success, error, and timeout scenarios. Verify that the mutation correctly passes ClipMetadata to the backend's postClipToYouTube method."
+          "description": "Fix the connected state derivation logic in useYouTubeChannel hook. Ensure the hook correctly reads and returns the connected status from the backend by checking both hasGoogleOAuthCredentials() and isYouTubeChannelConnected(). Update the query logic to properly reflect when a user has already connected their YouTube channel so that ChannelConnection component displays the correct state on page load."
         },
         {
-          "path": "frontend/src/components/ClipCard.tsx",
+          "path": "frontend/src/components/ChannelConnection.tsx",
           "operation": "modify",
-          "description": "Update the YouTube post button handler to properly display loading state during the mutation and clear it when the mutation completes (success, error, or timeout). Add early validation to check YouTube channel connection status before initiating the post mutation. Display appropriate error messages via toast when YouTube is not connected or when the mutation fails. Ensure the spinner is dismissed in all code paths (success, error, timeout)."
+          "description": "Update the ChannelConnection component to correctly use the connected state from useYouTubeChannel hook. Ensure the component properly displays 'connected' status when valid credentials exist in the backend and handles the loading states appropriately to avoid showing 'not connected' while data is being fetched."
+        },
+        {
+          "path": "frontend/src/pages/OAuthCallback.tsx",
+          "operation": "modify",
+          "description": "Verify that the OAuthCallback page properly invalidates the YouTube channel connection queries after storing credentials, ensuring the updated connected state is reflected immediately after OAuth flow completion. Add query invalidation for both 'googleOAuthCredentials' and 'youtubeChannelConnection' query keys."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Re-add the 'Report a Bug / Request a Feature' button to the main UI",
+      "summary": "Fix clip download functionality to successfully trigger file downloads in the browser",
       "acceptanceCriteria": [
-        "A 'Report a Bug / Request a Feature' button is visible to all authenticated users in the sidebar (desktop) and bottom nav or floating button (mobile).",
-        "Clicking the button opens the FeedbackModal dialog.",
-        "The modal allows submission of a bug report or feature request as before."
+        "Clicking the download button on a ClipCard triggers a file download in the browser",
+        "The download hook fetches a valid URL from the backend before triggering the download",
+        "If the download fails, an error toast or message is shown to the user"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/SideNavigation.tsx",
+          "path": "frontend/src/hooks/useDownloadClip.ts",
           "operation": "modify",
-          "description": "Add a 'Report a Bug / Request a Feature' button below the logout button in the sidebar. The button should open the FeedbackModal component when clicked. Use state to control the modal's open/closed state. Ensure the button is visible to all authenticated users regardless of role."
+          "description": "Fix the download mutation logic to correctly fetch the download URL from the backend via actor.generateDownloadVideoUrl() and ensure the programmatic browser download trigger works. Verify the anchor element creation, URL assignment, click trigger, and cleanup logic. Add proper error handling with toast notifications if the URL fetch or download trigger fails. Ensure the mutation properly awaits the backend response before attempting the download."
         },
         {
-          "path": "frontend/src/components/BottomNavigation.tsx",
+          "path": "frontend/src/components/ClipCard.tsx",
           "operation": "modify",
-          "description": "Add a 'Report a Bug / Request a Feature' button or floating action button to the mobile bottom navigation. On click, open the FeedbackModal component. Use state to manage the modal visibility. Position the button so it's accessible and doesn't overlap with existing navigation items."
+          "description": "Verify the ClipCard component correctly wires the download button to the useDownloadClip mutation and passes the required clip parameters (videoId, startTime, endTime). Ensure loading states are shown during download and that error states from the mutation are surfaced to the user via toast notifications."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Update UserMessages to open messages in internal tabs and replace external download links with in-app downloads",
+      "summary": "Display user Principal IDs with copy-to-clipboard in admin panel's user management section",
       "acceptanceCriteria": [
-        "Clicking a message opens it in a new in-app tab or detail panel without leaving the application.",
-        "Downloading a clip does not redirect to an external website — the file download is triggered directly in the browser via a programmatic anchor click.",
-        "The download button in ClipCard uses the useDownloadClip hook result to trigger the download without navigation."
+        "Each user entry in the UserStatusManagement component displays the user's full Principal ID",
+        "A copy-to-clipboard button is present next to each Principal ID",
+        "Clicking the copy button copies the full Principal ID to the clipboard",
+        "The Principal ID is visible in user search results within the component"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/UserMessages.tsx",
+          "path": "frontend/src/components/UserStatusManagement.tsx",
           "operation": "modify",
-          "description": "Update each message item to use TanStack Router's navigation or open a detail panel/modal when clicked, rather than opening an external link. Add state to track the selected message for display in a detail view. Implement an in-app message detail component that renders within the current page or in a modal/drawer. Ensure all message interactions remain within the application's routing system."
-        },
-        {
-          "path": "frontend/src/components/ClipCard.tsx",
-          "operation": "modify",
-          "description": "Update the download button to use the useDownloadClip hook. When clicked, call the mutation to fetch the download URL, then create a temporary anchor element with the download attribute and the fetched URL, programmatically click it to trigger the browser's native download, and immediately remove the anchor from the DOM. Do not use window.open or navigation to external URLs. Handle loading and error states with appropriate UI feedback."
+          "description": "Add Principal ID display to each user entry in the UserStatusManagement component. Include the full Principal ID alongside the existing user ID (generated from the principal). Add a copy-to-clipboard button next to each Principal ID that uses navigator.clipboard.writeText() to copy the full principal string. Ensure the Principal ID is visible in both the user search results and any user detail views within the component. Use a monospace font for the Principal ID and add a visual confirmation (toast or icon change) when copied successfully."
         }
       ]
     },
     {
       "id": "REQ-4",
-      "summary": "Update messaging system to use User IDs and add global Reply feature",
+      "summary": "Display clip owner Principal IDs with copy-to-clipboard in admin panel's clip management section",
       "acceptanceCriteria": [
-        "All message displays (sent and received) show the short User ID (8-char alphanumeric) instead of full principal strings.",
-        "The send-message form identifies senders by their User ID label.",
-        "Every message in UserMessages has a 'Reply' button/input that allows the recipient to send a reply back to the original sender.",
-        "Replies are stored in the backend and visible in the message thread.",
-        "The backend AdminMessage type or a new Message type supports a reply/thread structure."
+        "Each clip entry in the admin clip management section displays the clip owner's full Principal ID",
+        "A copy-to-clipboard button is present next to each Principal ID",
+        "Clicking the copy button copies the full Principal ID to the clipboard"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/UserMessages.tsx",
+          "path": "frontend/src/hooks/useClips.ts",
           "operation": "modify",
-          "description": "Update all message displays to use the generateUserId function from userIdGenerator.ts to convert principal strings to 8-character User IDs. Replace any raw principal display with the generated User ID. Add a 'Reply' button to each message item. When clicked, show a reply input field or expand an inline reply form. On submit, call the backend's replyToMessage method (passing the original message ID, reply body, and the current user's User ID). After successful reply, refetch messages to show the new reply in the thread. Display replies nested or threaded under the original message."
+          "description": "Update the useClips hook to fetch and include the clip owner's Principal ID in the returned clip data. Modify the query to call actor.getAllClips() with admin context and enrich each clip with owner principal information by cross-referencing with user profile data or by updating the backend query to include owner principals directly in the response."
         },
         {
-          "path": "frontend/src/components/AdminMessaging.tsx",
+          "path": "frontend/src/components/ClipCard.tsx",
           "operation": "modify",
-          "description": "Update the send message form to accept User ID as the recipient identifier instead of raw principal. Convert the entered User ID to a principal using reverse lookup or a helper if needed (or accept principal but display as User ID). Update the form label and placeholder to indicate 'User ID' instead of 'Principal ID'. Ensure that the fromUserId parameter passed to the backend uses the current user's generated User ID from userIdGenerator.ts."
+          "description": "Add owner Principal ID display to the ClipCard component when rendered in an admin context. Show the full Principal ID of the clip owner with a copy-to-clipboard button. Use conditional rendering to only show this information when the current user is an admin. Add a monospace font for the Principal ID and visual feedback (toast or icon change) when successfully copied to clipboard."
         },
         {
-          "path": "frontend/src/hooks/useMyMessages.ts",
+          "path": "frontend/src/pages/MyClipsPage.tsx",
           "operation": "modify",
-          "description": "Update the hook to ensure message data includes both principal and User ID fields. If the backend does not return User IDs, compute them on the frontend by passing each principal through generateUserId from userIdGenerator.ts. Return enriched message objects with both principal and userId properties for use in components."
-        }
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "summary": "Add a Pause/Resume application switch to the Admin Panel",
-      "acceptanceCriteria": [
-        "A Pause/Resume toggle switch is visible in the Admin Panel for admin/owner users.",
-        "Toggling requires the user to be authenticated as admin or owner; otherwise an admin login prompt is shown.",
-        "When the app is paused, regular (non-admin, non-owner) users see a 'App is currently paused' maintenance screen instead of the normal UI.",
-        "Admin and owner users can still access the admin panel while the app is paused.",
-        "The pause state is stored in a stable backend variable and persists across canister upgrades.",
-        "The backend exposes setPauseState(paused: Bool) and getAppStatus() methods, protected by admin authorization."
-      ],
-      "file_operations": [
-        {
-          "path": "frontend/src/components/SystemControls.tsx",
-          "operation": "modify",
-          "description": "Add a Pause/Resume toggle switch to the SystemControls component. Use a React Query mutation to call the backend's togglePauseSystem method (which returns a SystemControlResult). On toggle, show a confirmation dialog explaining the impact. Display loading state during the mutation. After success, show a toast with the result message and invalidate the system status query to refresh the UI. Ensure the toggle reflects the current pause state fetched from the backend."
-        },
-        {
-          "path": "frontend/src/hooks/useSystemStatus.ts",
-          "operation": "create",
-          "description": "Create a new React Query hook that fetches the current system status from the backend's getSystemStatus method. The query should run on mount and refetch periodically (e.g., every 10 seconds) to detect status changes. Return the SystemStatus enum value (running, paused, shutting_down, restarting) and loading/error states."
-        },
-        {
-          "path": "frontend/src/components/PausedScreen.tsx",
-          "operation": "create",
-          "description": "Create a full-screen maintenance UI component that displays when the app is paused. Show a centered message like 'App is currently paused for maintenance' with an icon. Include a 'Check Again' button that refetches the system status. Use consistent styling with the app's theme (glassmorphism, dark mode, etc.)."
-        },
-        {
-          "path": "frontend/src/components/AppShell.tsx",
-          "operation": "modify",
-          "description": "Import and use the useSystemStatus hook and the PausedScreen component. Fetch the current system status and the user's role. If the system status is 'paused' and the user is not an admin or owner, render the PausedScreen component instead of the normal app content. If the user is admin/owner, allow them to access the app normally (especially the Admin Panel) even when paused."
-        },
-        {
-          "path": "frontend/src/App.tsx",
-          "operation": "modify",
-          "description": "Ensure that the pause check in AppShell is applied at the top level of the routing tree. If needed, wrap protected routes with a guard that checks system status and user role. Make sure that admin/owner users can bypass the paused state and access the Admin Panel to resume the app."
+          "description": "Update MyClipsPage to conditionally render clip owner Principal IDs when viewed by an admin. Pass an isAdminView prop or context to ClipCard components so they know to display owner principal information. Ensure the page queries include owner data when accessed by an admin user."
         }
       ]
     }

@@ -1,63 +1,46 @@
 import React from 'react';
-import { Youtube, CheckCircle } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Youtube, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { useYouTubeChannel } from '../hooks/useYouTubeChannel';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-
-const GOOGLE_CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
+import { Button } from '@/components/ui/button';
 
 export default function ChannelConnection() {
-  const { identity } = useInternetIdentity();
-  const { channelStatus, isLoading, isConfigured, connectChannel } = useYouTubeChannel();
-
-  const isConnected = channelStatus?.isConnected ?? false;
-  const channelName = channelStatus?.channelName ?? '';
-
-  if (!identity) return null;
+  const { channelStatus, isLoading, connectChannel, isConnecting } = useYouTubeChannel();
 
   if (isLoading) {
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/10">
-        <span className="w-3 h-3 border border-white/30 border-t-white rounded-full animate-spin" />
-        <span className="text-xs text-muted-foreground">Checking...</span>
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 text-muted-foreground text-sm">
+        <Loader2 className="w-4 h-4 animate-spin" />
+        <span>Checking connection…</span>
       </div>
     );
   }
 
-  if (isConnected) {
+  if (channelStatus.isConnected) {
     return (
-      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20">
-        <CheckCircle size={14} className="text-green-400" />
-        <span className="text-xs text-green-300 font-medium truncate max-w-[120px]">
-          {channelName || 'Connected'}
+      <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-success/10 text-success text-sm border border-success/20">
+        <CheckCircle className="w-4 h-4" />
+        <span className="font-medium">
+          {channelStatus.channelName ? channelStatus.channelName : 'YouTube Connected'}
         </span>
       </div>
     );
   }
 
   return (
-    <TooltipProvider>
-      <Tooltip>
-        <TooltipTrigger asChild>
-          <span>
-            <Button
-              size="sm"
-              onClick={() => connectChannel()}
-              disabled={!isConfigured}
-              className="bg-red-600/80 hover:bg-red-600 text-white border-0 gap-1.5 text-xs h-8"
-            >
-              <Youtube size={14} />
-              Connect YouTube
-            </Button>
-          </span>
-        </TooltipTrigger>
-        {!isConfigured && (
-          <TooltipContent className="bg-dark-800 border-white/10 text-white text-xs max-w-xs">
-            Configure VITE_GOOGLE_CLIENT_ID in your .env file to enable YouTube connection.
-          </TooltipContent>
-        )}
-      </Tooltip>
-    </TooltipProvider>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={() => connectChannel()}
+      disabled={isConnecting}
+      className="flex items-center gap-2 border-destructive/40 text-destructive hover:bg-destructive/10"
+    >
+      {isConnecting ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : (
+        <AlertCircle className="w-4 h-4" />
+      )}
+      <Youtube className="w-4 h-4" />
+      <span>{isConnecting ? 'Connecting…' : 'Connect YouTube'}</span>
+    </Button>
   );
 }

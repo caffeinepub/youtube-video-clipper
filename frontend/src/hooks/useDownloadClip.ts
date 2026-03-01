@@ -4,45 +4,64 @@ import { toast } from 'sonner';
 
 interface DownloadClipParams {
   videoId: string;
-  startTimestamp: bigint;
-  endTimestamp: bigint;
-  title: string;
+  startTime: number;
+  endTime: number;
+  title?: string;
 }
 
 export function useDownloadClip() {
   const { actor } = useActor();
 
-  return useMutation<void, Error, DownloadClipParams>({
-    mutationFn: async ({ videoId, startTimestamp, endTimestamp, title }: DownloadClipParams) => {
-      if (!actor) throw new Error('Actor not available');
+  return useMutation({
+    mutationFn: async ({ videoId, startTime, endTime, title }: DownloadClipParams) => {
+      if (!actor) throw new Error('Not connected to backend');
 
-      // Get download URL from backend
-      const downloadUrl = await actor.generateDownloadVideoUrl(
+      if (startTime >= endTime) {
+        throw new Error('Invalid timestamps: start time must be less than end time');
+      }
+
+      const url = await actor.generateDownloadVideoUrl(
         videoId,
-        startTimestamp,
-        endTimestamp
+        BigInt(Math.floor(startTime)),
+        BigInt(Math.floor(endTime))
       );
 
-      // Create a temporary anchor element to trigger download
-      const link = document.createElement('a');
-      link.href = downloadUrl;
-      
-      // Generate filename from title and timestamps
-      const sanitizedTitle = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-      const startSec = Number(startTimestamp);
-      const endSec = Number(endTimestamp);
-      link.download = `${sanitizedTitle}_${startSec}-${endSec}.mp4`;
-      
-      // Trigger download
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      
+      if (!url) throw new Error('Failed to generate download URL');
+
+      // For cross-origin URLs, window.open is the reliable approach
+      // link.download only works for same-origin URLs
+      const filename = title
+        ? `${title.replace(/[^a-z0-9]/gi, '_')}_${startTime}-${endTime}.mp4`
+        : `clip_${videoId}_${startTime}-${endTime}.mp4`;
+
+      // Try fetch approach first (works if CORS allows it)
+      try {
+        const response = await fetch(url);
+        if (response.ok) {
+          const blob = await response.blob();
+          const blobUrl = URL.createObjectURL(blob);
+          const link = document.createElement('a');
+          link.href = blobUrl;
+          link.download = filename;
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
+          return url;
+        }
+      } catch {
+        // CORS blocked or fetch failed — fall through to window.open
+      }
+
+      // Fallback: open in new tab so the browser handles the download
+      window.open(url, '_blank', 'noopener,noreferrer');
+      return url;
+    },
+    onSuccess: () => {
       toast.success('Download started!');
     },
-    onError: (error) => {
-      console.error('Download error:', error);
-      toast.error(error.message || 'Failed to download clip');
+    onError: (error: Error) => {
+      toast.error(`Download failed: ${error.message}`);
     },
   });
 }

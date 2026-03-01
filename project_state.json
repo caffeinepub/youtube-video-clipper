@@ -1,56 +1,43 @@
 {
   "schemaVersion": "1.0.0",
   "projectStateVersion": 3,
-  "summary": "Dashboard/admin app with YouTube integration, messaging system, file downloads, and admin controls.",
-  "architectural_notes": [
-    "App has a dashboard with admin controls, YouTube integration, messaging system, and file download functionality.",
-    "Admin controls include pause/resume requiring authenticated Admin Panel Access to reactivate."
-  ],
+  "summary": "New project",
+  "architectural_notes": [],
   "known_issues": [
-    "YouTube integration shows infinite spinner but fails to post to channels.",
-    "Report a Bug / Request a Feature button is missing from UI.",
-    "Messages do not use User ID for sending.",
-    "Reply/messaging-back functionality not yet enabled for all users."
+    "YouTube channel shows as disconnected even when connected",
+    "Downloads from the website are not working"
   ],
   "isFixRequest": true,
   "existing_features": [
     {
-      "id": "feature-fix-the-youtube-posting-integration-diagnose-and-resolve-the-infinite-loading-spinner-in-the-youtube-post-flow-ensure-that-when-a-user-clicks-post-to-youtube-on-a-clipcard-the-request-completes-success-or-error-and-the-spinner-is-dismissed-verify-that-the-clip-is-actually-submitted-to-the-connected-youtube-channel-via-the-backend-http-outcall-and-that-success-failure-toast-notifications-are-shown",
-      "title": "Fix the YouTube posting integration: diagnose and resolve the infinite loading spinner in the YouTube post flow. Ensure that when a user clicks 'Post to YouTube' on a ClipCard, the request completes (success or error) and the spinner is dismissed. Verify that the clip is actually submitted to the connected YouTube channel via the backend HTTP outcall, and that success/failure toast notifications are shown.",
+      "id": "feature-fix-the-youtube-channel-connection-status-display-so-that-when-a-user-has-already-connected-their-youtube-channel-i-e-valid-google-oauth-credentials-are-stored-in-the-backend-the-channelconnection-component-correctly-reflects-the-connected-state-instead-of-showing-not-connected-investigate-the-useyoutubechannel-hook-and-the-oauthcallback-flow-to-ensure-the-stored-credentials-are-being-read-and-the-connected-status-is-correctly-derived-and-returned",
+      "title": "Fix the YouTube channel connection status display so that when a user has already connected their YouTube channel (i.e., valid Google OAuth credentials are stored in the backend), the ChannelConnection component correctly reflects the connected state instead of showing 'not connected'. Investigate the useYouTubeChannel hook and the OAuthCallback flow to ensure the stored credentials are being read and the connected status is correctly derived and returned.",
       "reqIds": [
         "REQ-1"
       ],
       "version": 1
     },
     {
-      "id": "feature-re-add-the-report-a-bug-request-a-feature-button-to-the-main-ui-the-button-should-open-the-existing-feedbackmodal-component-it-must-be-visible-to-all-authenticated-users-and-placed-in-a-consistent-discoverable-location-e-g-the-sidenavigation-sidebar-and-or-the-appshell-bottom-navigation-on-mobile",
-      "title": "Re-add the 'Report a Bug / Request a Feature' button to the main UI. The button should open the existing FeedbackModal component. It must be visible to all authenticated users and placed in a consistent, discoverable location (e.g., the SideNavigation sidebar and/or the AppShell bottom navigation on mobile).",
+      "id": "feature-fix-the-clip-download-functionality-so-that-clicking-the-download-button-on-a-clipcard-successfully-triggers-a-file-download-in-the-browser-investigate-the-usedownloadclip-hook-to-ensure-it-correctly-fetches-the-download-url-from-the-backend-and-that-the-programmatic-browser-download-trigger-e-g-anchor-element-click-works-as-expected-ensure-error-states-are-surfaced-to-the-user-if-download-fails",
+      "title": "Fix the clip download functionality so that clicking the download button on a ClipCard successfully triggers a file download in the browser. Investigate the useDownloadClip hook to ensure it correctly fetches the download URL from the backend and that the programmatic browser download trigger (e.g., anchor element click) works as expected. Ensure error states are surfaced to the user if download fails.",
       "reqIds": [
         "REQ-2"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-usermessages-component-so-that-each-message-item-opens-in-a-new-internal-tab-within-the-app-using-the-existing-tanstack-router-tab-or-an-in-app-tab-mechanism-rather-than-navigating-away-or-opening-an-external-browser-tab-additionally-replace-any-external-download-links-in-the-app-with-an-in-app-download-mechanism-when-a-user-triggers-a-file-clip-download-use-the-usedownloadclip-hook-to-fetch-the-url-and-initiate-a-browser-download-directly-e-g-via-a-temporary-anchor-element-with-the-download-attribute-without-redirecting-to-an-external-website",
-      "title": "Update the UserMessages component so that each message item opens in a new internal tab within the app (using the existing TanStack Router tab or an in-app tab mechanism), rather than navigating away or opening an external browser tab. Additionally, replace any external download links in the app with an in-app download mechanism: when a user triggers a file/clip download, use the useDownloadClip hook to fetch the URL and initiate a browser download directly (e.g., via a temporary anchor element with the `download` attribute), without redirecting to an external website.",
+      "id": "feature-in-the-admin-panel-s-user-management-section-userstatusmanagement-component-display-each-user-s-full-principal-id-alongside-their-existing-user-id-add-a-copy-to-clipboard-button-next-to-the-principal-id-so-admins-can-easily-copy-it-the-principal-id-should-be-visible-in-the-user-list-search-results-and-in-any-user-detail-view-within-the-component",
+      "title": "In the admin panel's user management section (UserStatusManagement component), display each user's full Principal ID alongside their existing user ID. Add a copy-to-clipboard button next to the Principal ID so admins can easily copy it. The Principal ID should be visible in the user list/search results and in any user detail view within the component.",
       "reqIds": [
         "REQ-3"
       ],
       "version": 1
     },
     {
-      "id": "feature-update-the-messaging-system-so-that-all-messages-display-and-are-sent-using-the-user-s-generated-user-id-the-8-character-alphanumeric-id-from-useridgenerator-ts-rather-than-raw-principal-strings-in-the-backend-store-and-index-messages-by-principal-but-surface-the-short-user-id-in-all-frontend-displays-additionally-add-a-global-reply-feature-to-usermessages-so-that-any-authenticated-user-can-reply-to-a-message-they-received-the-reply-should-be-sent-back-to-the-original-sender-using-their-user-id-and-the-reply-should-be-stored-and-visible-in-the-conversation",
-      "title": "Update the messaging system so that all messages display and are sent using the user's generated User ID (the 8-character alphanumeric ID from userIdGenerator.ts) rather than raw principal strings. In the backend, store and index messages by principal but surface the short User ID in all frontend displays. Additionally, add a global 'Reply' feature to UserMessages so that any authenticated user can reply to a message they received — the reply should be sent back to the original sender using their User ID, and the reply should be stored and visible in the conversation.",
+      "id": "feature-in-the-admin-panel-s-clip-management-section-any-clip-listing-management-view-available-to-admins-display-the-owner-s-full-principal-id-for-each-clip-alongside-existing-owner-information-add-a-copy-to-clipboard-button-next-to-each-principal-id-so-admins-can-easily-copy-it",
+      "title": "In the admin panel's clip management section (any clip listing/management view available to admins), display the owner's full Principal ID for each clip alongside existing owner information. Add a copy-to-clipboard button next to each Principal ID so admins can easily copy it.",
       "reqIds": [
         "REQ-4"
-      ],
-      "version": 1
-    },
-    {
-      "id": "feature-add-a-pause-resume-application-switch-to-the-admin-panel-adminpanel-tsx-systemcontrols-tsx-area-when-the-app-is-paused-non-admin-non-owner-users-see-a-maintenance-paused-screen-and-cannot-use-the-app-toggling-this-switch-must-require-the-user-to-be-authenticated-as-an-admin-or-owner-if-an-unauthenticated-or-non-admin-user-tries-to-access-the-toggle-they-must-be-shown-an-admin-login-prompt-the-current-pause-state-must-be-persisted-in-the-backend-stable-variable-a-resume-action-restores-normal-access-the-existing-systemcontrols-component-should-be-updated-or-extended-to-include-this-toggle",
-      "title": "Add a Pause/Resume application switch to the Admin Panel (AdminPanel.tsx / SystemControls.tsx area). When the app is 'Paused', non-admin/non-owner users see a maintenance/paused screen and cannot use the app. Toggling this switch must require the user to be authenticated as an Admin or Owner — if an unauthenticated or non-admin user tries to access the toggle, they must be shown an admin login prompt. The current pause state must be persisted in the backend (stable variable). A 'Resume' action restores normal access. The existing SystemControls component should be updated or extended to include this toggle.",
-      "reqIds": [
-        "REQ-5"
       ],
       "version": 1
     }
@@ -58,42 +45,11 @@
   "new_feature_requests": [
     {
       "id": "AR-1",
-      "summary": "Fix YouTube integration: stop infinite loading spinner and enable posting to channels",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-2",
-      "summary": "Re-add 'Report a Bug / Request a Feature' button to the UI",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-3",
-      "summary": "Open all messages in a new internal tab within the app",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-4",
-      "summary": "Enable in-app file downloads (or dedicated download website)",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-5",
-      "summary": "Update messaging to use User IDs for sending and enable global Reply feature",
-      "reqIds": [],
-      "status": "pending"
-    },
-    {
-      "id": "AR-6",
-      "summary": "Add Admin Pause/Resume switch requiring Admin login to toggle",
+      "summary": "Show user principal ID in admin panel user and clip management section for easy copying",
       "reqIds": [],
       "status": "pending"
     }
   ],
-  "gameProjectType": "none",
   "projectName": "Beast Clipping",
   "clarification_mode": "instant",
   "clarification_rounds": 0

@@ -1,86 +1,19 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-03-01T22:56:02.267Z",
-  "summary": "The diff implements most of the requested requirements across REQ-1 through REQ-5. YouTube spinner fix (REQ-1), bug report button (REQ-2), in-app download (REQ-3), user ID messaging + reply (REQ-4), and pause/resume (REQ-5) are all substantially addressed. However, several specific acceptance criteria have gaps: the REQ-3 message tab mechanism appears to be a detail panel rather than a true tab, the useDownloadClip anchor download mechanism is not confirmed, REQ-5's admin login prompt for unauthenticated toggle attempts is not clearly implemented, and the backend method names differ from the specified setPauseState/getAppStatus.",
-  "missing_requirements": [
-    {
-      "requirement": "REQ-3: The download button in ClipCard uses the useDownloadClip hook result to trigger the download without navigation via a programmatic anchor element with the download attribute",
-      "reason": "ClipCard.tsx imports and calls useDownloadClip, but the diff is truncated before showing the actual download trigger mechanism. It is not confirmed that the hook uses a temporary anchor element with the download attribute rather than redirecting externally.",
-      "evidence": [
-        "frontend/src/components/ClipCard.tsx"
-      ]
-    },
-    {
-      "requirement": "REQ-5: If an unauthenticated or non-admin user tries to access the pause/resume toggle, they must be shown an admin login prompt",
-      "reason": "SystemControls.tsx shows a toggle for admins, but there is no evidence of an admin login prompt being shown to unauthenticated or non-admin users who attempt to access the toggle. AdminPanel.tsx shows an Access Denied message but not a login prompt.",
-      "evidence": [
-        "frontend/src/components/SystemControls.tsx",
-        "frontend/src/components/AdminPanel.tsx"
-      ]
-    },
-    {
-      "requirement": "REQ-5: The backend exposes setPauseState(paused: Bool) and getAppStatus() methods by those exact names, protected by admin authorization",
-      "reason": "The backend diff shows togglePauseSystem() and getSystemStatus() methods rather than the specified setPauseState(paused: Bool) and getAppStatus() method signatures.",
-      "evidence": [
-        "frontend/src/components/SystemControls.tsx",
-        "backend/main.mo"
-      ]
-    },
-    {
-      "id": "REQ-4",
-      "requirement": "The backend AdminMessage type or a new Message type supports a reply/thread structure with replies stored and visible in the message thread",
-      "reason": "The migration.mo and backend/main.mo show AdminMessage with fromUserId/toUserId fields added and there is a replyToMessage call in UserMessages.tsx, but no evidence of a thread or replies array field in AdminMessage or a dedicated reply type in the backend to store threaded replies.",
-      "evidence": [
-        "backend/main.mo",
-        "backend/migration.mo",
-        "frontend/src/components/UserMessages.tsx"
-      ]
-    }
-  ],
-  "hallucinated_features": [
-    {
-      "description": "A dedicated MessagesPage.tsx page component was added as a separate page route at /messages",
-      "reason": "The build request only asked to update the UserMessages component behavior such as opening messages in tabs and adding a reply feature. A full new page route was not explicitly requested.",
-      "evidence": [
-        "frontend/src/pages/MessagesPage.tsx",
-        "frontend/src/App.tsx"
-      ]
-    },
-    {
-      "description": "A useMyMessages.ts hook was added as a separate reusable hook",
-      "reason": "The build request did not explicitly request a new useMyMessages hook. This appears to be additional infrastructure not specified in the requirements.",
-      "evidence": [
-        "frontend/src/hooks/useMyMessages.ts"
-      ]
-    },
-    {
-      "description": "A useSendAdminMessage.ts hook was added as a separate reusable hook",
-      "reason": "The build request did not explicitly request a new useSendAdminMessage hook separate from the existing admin messaging flow.",
-      "evidence": [
-        "frontend/src/hooks/useSendAdminMessage.ts"
-      ]
-    }
-  ],
-  "confidence": 0.62,
+  "generatedAt": "2026-03-01T23:08:34.064Z",
+  "summary": "The diff implements all four requirements: REQ-1 (YouTube connection status fix via useYouTubeChannel hook and OAuthCallback), REQ-2 (download fix in useDownloadClip with error toasts), REQ-3 (Principal ID + copy button in UserStatusManagement), and REQ-4 (Principal ID + copy button in ClipCard for admin view). All acceptance criteria appear to be addressed.",
+  "missing_requirements": [],
+  "hallucinated_features": [],
+  "confidence": 0.92,
   "changed_files": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
-    "frontend/src/App.tsx",
-    "frontend/src/components/AdminMessaging.tsx",
-    "frontend/src/components/AdminPanel.tsx",
-    "frontend/src/components/BottomNavigation.tsx",
+    "frontend/src/components/ChannelConnection.tsx",
     "frontend/src/components/ClipCard.tsx",
-    "frontend/src/components/PausedScreen.tsx",
-    "frontend/src/components/SideNavigation.tsx",
-    "frontend/src/components/SystemControls.tsx",
-    "frontend/src/components/UserMessages.tsx",
-    "frontend/src/hooks/useMyMessages.ts",
-    "frontend/src/hooks/usePostToYouTube.ts",
-    "frontend/src/hooks/useSendAdminMessage.ts",
-    "frontend/src/hooks/useSystemStatus.ts",
-    "frontend/src/pages/MessagesPage.tsx",
+    "frontend/src/components/UserStatusManagement.tsx",
+    "frontend/src/hooks/useDownloadClip.ts",
+    "frontend/src/hooks/useYouTubeChannel.ts",
+    "frontend/src/pages/OAuthCallback.tsx",
     "project_state.json"
   ]
 }
