@@ -1,127 +1,109 @@
 {
   "kind": "spec_vs_diff_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T22:52:27.792Z",
-  "summary": "The diff implements the majority of the 19 requirements. Frontend components for transcription, clip editing tools, social features, notifications, meme overlays, sharing, and gallery are present. However, the backend REQ-19 implementation is not evidenced in the truncated diff (new Notification/MintedCollectible types and backend methods are absent from visible code, with frontend hooks using local/client-side state instead). REQ-14's TikTokify dual-view layout and Neon Captions toggle details are incomplete. Most other requirements appear implemented.",
+  "generatedAt": "2026-03-02T23:09:08.363Z",
+  "summary": "The diff implements most of the requested v69 feature restorations. REQ-1 through REQ-8 are largely addressed: AdminPanel, ProfileSetup, FeedbackModal, TrendingSidebar, UserMessages, navigation links, and routing are all present. However, the ChannelConnection component and useYouTubeChannel hook (REQ-3) are absent from the diff, and the ProfilePage itself is not shown. SocialFeedPage and TrendingPage implementations are also not in the diff. Several page files are referenced in App.tsx but omitted from the diff summary due to truncation limits.",
   "missing_requirements": [
     {
-      "id": "REQ-19",
-      "requirement": "Update the backend Motoko actor to add Notification type, MintedCollectible type, social feed entries, and methods: getMyNotifications, markNotificationRead, getMintedCollectibles, mintClip, getSocialFeed",
-      "reason": "The backend/main.mo is truncated and shows no evidence of Notification or MintedCollectible types or the required backend methods. The frontend useMintClip hook uses addMintedCollectible from a local useMintedCollectibles hook (client-side state), not a backend canister call. The migration.mo also does not include these new types. No backend getSocialFeed or getMyNotifications methods are visible.",
+      "id": "REQ-3",
+      "requirement": "Restore the YouTube channel connection UI: ChannelConnection component displayed in the Scheduler page, useYouTubeChannel hook showing connected/disconnected state, Scheduler page renders channel connection status alongside scheduled uploads list.",
+      "reason": "No ChannelConnection component, useYouTubeChannel hook, or Scheduler page file appears anywhere in the diff. The Scheduler route is defined in App.tsx but the Scheduler page implementation is not shown and there is no evidence of ChannelConnection integration.",
       "evidence": [
-        "backend/main.mo",
-        "backend/migration.mo",
-        "frontend/src/hooks/useMintClip.ts"
+        "frontend/src/App.tsx"
       ]
     },
     {
-      "id": "REQ-14",
-      "requirement": "TikTokify preset button activating a Dual-View Layout preview with webcam placeholder (top) and gameplay video (bottom) in 9:16, plus a Neon Captions toggle with bold yellow-green (#CCFF00) text synced to playback position",
-      "reason": "TikTokifyPresetButton component exists as a toggle button only. No evidence of the actual dual-view layout rendering (webcam placeholder + gameplay split), nor the Neon Captions toggle component or its #CCFF00 styled caption rendering. The button component has no layout or preview logic.",
+      "id": "REQ-1",
+      "requirement": "ProfilePage must display principal ID, display name, stats (total clips, average score, viral clips count), and a chronological clip activity list.",
+      "reason": "ProfilePage is imported and routed in App.tsx but its implementation file is not present in the diff, so it cannot be verified that it displays all required stats and clip activity list. ProfileSetup and UserIdDisplay/UserRoleBadge components are present, but the ProfilePage itself is missing from the diff.",
       "evidence": [
-        "frontend/src/components/TikTokifyPresetButton.tsx"
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "requirement": "SocialFeedPage accessible via navigation, showing clip activity with avatar initials, thumbnails, time ranges, relative timestamps, loading skeletons, and empty state.",
+      "reason": "SocialFeedPage is imported and routed in App.tsx and the Feed nav link appears in both SideNavigation and BottomNavigation, but the SocialFeedPage component implementation is not in the diff and cannot be verified.",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/SideNavigation.tsx",
+        "frontend/src/components/BottomNavigation.tsx"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "requirement": "TrendingPage must render a responsive grid of ClipCards sorted by viral/trending score alongside TrendingSidebar.",
+      "reason": "TrendingSidebar is implemented and TrendingPage is routed, but the TrendingPage component implementation showing a ClipCards grid sorted by viral score is not present in the diff and cannot be verified.",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/TrendingSidebar.tsx"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "requirement": "MessagesPage implementation must be verified: displaying UserMessages component, useSendAdminMessage and useMyMessages hooks wired to message store.",
+      "reason": "MessagesPage is routed in App.tsx and UserMessages component is present in the diff, but the MessagesPage file itself is not shown. The page-level wiring cannot be fully confirmed.",
+      "evidence": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/UserMessages.tsx"
       ]
     }
   ],
   "hallucinated_features": [
     {
-      "description": "GreenScreenOverlayButtons provides four color overlay options (Green, Red, Blue, Gold) rather than only green-screen overlay thumbnails",
-      "reason": "The build request specifies placeholder green-screen overlay thumbnail buttons. The implementation adds four arbitrary color tint buttons beyond what was specified, though this is a minor interpretation difference.",
+      "description": "Content Manager page and route (/content-manager) added to navigation and routing.",
+      "reason": "The build request does not mention a Content Manager page or nav link. It appears in SideNavigation navItems and is routed in App.tsx but was not requested.",
       "evidence": [
-        "frontend/src/components/GreenScreenOverlayButtons.tsx"
+        "frontend/src/components/SideNavigation.tsx",
+        "frontend/src/App.tsx"
+      ]
+    },
+    {
+      "description": "Admin panel access extended to users with admin role in addition to owner role.",
+      "reason": "REQ-2 specifies the panel must only be visible to owner-role users. However in both SideNavigation and BottomNavigation, isOwner is set to true for both owner and admin roles, expanding access beyond what was specified.",
+      "evidence": [
+        "frontend/src/components/SideNavigation.tsx",
+        "frontend/src/components/BottomNavigation.tsx"
       ]
     }
   ],
   "confidence": 0.72,
   "changed_files": [
-    "backend/main.mo",
-    "backend/migration.mo",
     "frontend-file-summaries.txt",
     "frontend/src/App.tsx",
-    "frontend/src/components/AccountStatusErrorScreen.tsx",
-    "frontend/src/components/AccountStatusGuard.tsx",
     "frontend/src/components/ActivityLogTable.tsx",
+    "frontend/src/components/AdminList.tsx",
+    "frontend/src/components/AdminManagement.tsx",
     "frontend/src/components/AdminMessaging.tsx",
     "frontend/src/components/AdminPanel.tsx",
     "frontend/src/components/AppAnalytics.tsx",
     "frontend/src/components/AppShell.tsx",
     "frontend/src/components/BottomNavigation.tsx",
-    "frontend/src/components/BurnInCaptionsToggle.tsx",
-    "frontend/src/components/ChannelConnection.tsx",
-    "frontend/src/components/ClipCard.tsx",
-    "frontend/src/components/ClipList.tsx",
-    "frontend/src/components/ClipSuggestions.tsx",
-    "frontend/src/components/ClipTimestampControls.tsx",
-    "frontend/src/components/DetectHypeButton.tsx",
-    "frontend/src/components/ExportFormatDropdown.tsx",
     "frontend/src/components/FeedbackModal.tsx",
     "frontend/src/components/FeedbackSubmissions.tsx",
-    "frontend/src/components/GreenScreenOverlayButtons.tsx",
-    "frontend/src/components/MemeOverlayPanel.tsx",
-    "frontend/src/components/MintToGalleryButton.tsx",
-    "frontend/src/components/NotificationBell.tsx",
-    "frontend/src/components/NotificationToastContainer.tsx",
-    "frontend/src/components/OneTouchPresets.tsx",
     "frontend/src/components/ProfileSetup.tsx",
-    "frontend/src/components/SendToDiscordButton.tsx",
-    "frontend/src/components/ShareClipButton.tsx",
     "frontend/src/components/SideNavigation.tsx",
-    "frontend/src/components/SlowMoToggle.tsx",
-    "frontend/src/components/SmartClipsPanel.tsx",
-    "frontend/src/components/SoundEffectButtons.tsx",
     "frontend/src/components/SystemControls.tsx",
-    "frontend/src/components/TikTokifyPresetButton.tsx",
-    "frontend/src/components/TimelineScrubber.tsx",
-    "frontend/src/components/TranscriptPanel.tsx",
     "frontend/src/components/TrendingSidebar.tsx",
+    "frontend/src/components/UserIdDisplay.tsx",
     "frontend/src/components/UserMessages.tsx",
     "frontend/src/components/UserRoleBadge.tsx",
     "frontend/src/components/UserStatusManagement.tsx",
-    "frontend/src/components/VerticalClipPreview.tsx",
-    "frontend/src/components/VerticalModeToggle.tsx",
-    "frontend/src/components/VideoUrlForm.tsx",
-    "frontend/src/components/ViralScoreBadge.tsx",
-    "frontend/src/hooks/useActivityLogs.ts",
-    "frontend/src/hooks/useAddAdmin.ts",
-    "frontend/src/hooks/useAdminList.ts",
-    "frontend/src/hooks/useAdminStats.ts",
-    "frontend/src/hooks/useAutoGenerateClips.ts",
-    "frontend/src/hooks/useClipCreation.ts",
-    "frontend/src/hooks/useClips.ts",
-    "frontend/src/hooks/useContentEntries.ts",
     "frontend/src/hooks/useDeleteFeedback.ts",
-    "frontend/src/hooks/useDownloadClip.ts",
     "frontend/src/hooks/useFeedbackSubmissions.ts",
     "frontend/src/hooks/useFeedbackSubmit.ts",
     "frontend/src/hooks/useGetOwnRole.ts",
     "frontend/src/hooks/useIsOwner.ts",
-    "frontend/src/hooks/useMintClip.ts",
-    "frontend/src/hooks/useMintedCollectibles.ts",
     "frontend/src/hooks/useMyMessages.ts",
-    "frontend/src/hooks/useNotifications.ts",
-    "frontend/src/hooks/usePostToYouTube.ts",
     "frontend/src/hooks/useQueries.ts",
-    "frontend/src/hooks/useScheduledUploads.ts",
     "frontend/src/hooks/useSendAdminMessage.ts",
-    "frontend/src/hooks/useSetUserRole.ts",
-    "frontend/src/hooks/useSetUserStatus.ts",
     "frontend/src/hooks/useSocialFeed.ts",
-    "frontend/src/hooks/useSoundEffect.ts",
-    "frontend/src/hooks/useSystemStatus.ts",
-    "frontend/src/hooks/useTranscriptGenerator.ts",
-    "frontend/src/hooks/useTrendingClips.ts",
-    "frontend/src/hooks/useUserRoles.ts",
-    "frontend/src/hooks/useYouTubeChannel.ts",
-    "frontend/src/index.css",
-    "frontend/src/pages/ContentManager.tsx",
+    "frontend/src/pages/MessagesPage.tsx",
+    "frontend/src/pages/MyClipsPage.tsx",
     "frontend/src/pages/MyGalleryPage.tsx",
-    "frontend/src/pages/OAuthCallback.tsx",
     "frontend/src/pages/ProfilePage.tsx",
-    "frontend/src/pages/Scheduler.tsx",
     "frontend/src/pages/SocialFeedPage.tsx",
     "frontend/src/pages/TrendingPage.tsx",
-    "frontend/src/types/app.ts",
-    "frontend/tailwind.config.js",
     "project_state.json"
   ]
 }

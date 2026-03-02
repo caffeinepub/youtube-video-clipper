@@ -2,15 +2,16 @@
   "kind": "feature_evidence_report",
   "features": [
     {
-      "featureId": "feature-add-a-user-profile-section-where-each-authenticated-user-can-view-their-own-activity-history-clips-created-clips-shared-timestamps-of-actions-and-a-public-facing-social-feed-showing-recent-clip-activity-from-all-users-clip-title-creator-viral-score-timestamp",
-      "featureTitle": "Add a user profile section where each authenticated user can view their own activity history (clips created, clips shared, timestamps of actions) and a public-facing social feed showing recent clip activity from all users (clip title, creator, viral score, timestamp).",
+      "featureId": "feature-restore-the-user-profile-account-functionality-ensure-profilepage-displays-the-authenticated-user-s-principal-id-display-name-stats-total-clips-average-score-viral-clips-count-and-a-chronological-clip-activity-list-ensure-profilesetup-modal-fires-on-first-login-to-collect-a-display-name-ensure-useriddisplay-userrolebadge-and-related-profile-hooks-usequeries-usegetownrole-are-wired-up-and-visible-in-the-ui",
+      "featureTitle": "Restore the user profile/account functionality: ensure ProfilePage displays the authenticated user's principal ID, display name, stats (total clips, average score, viral clips count), and a chronological clip activity list. Ensure ProfileSetup modal fires on first login to collect a display name. Ensure UserIdDisplay, UserRoleBadge, and related profile hooks (useQueries, useGetOwnRole) are wired up and visible in the UI.",
       "files": [
         "frontend/src/App.tsx",
-        "frontend/src/components/BottomNavigation.tsx",
+        "frontend/src/components/ProfileSetup.tsx",
         "frontend/src/components/SideNavigation.tsx",
-        "frontend/src/hooks/useSocialFeed.ts",
-        "frontend/src/pages/ProfilePage.tsx",
-        "frontend/src/pages/SocialFeedPage.tsx"
+        "frontend/src/components/UserIdDisplay.tsx",
+        "frontend/src/components/UserRoleBadge.tsx",
+        "frontend/src/hooks/useQueries.ts",
+        "frontend/src/pages/ProfilePage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -28,13 +29,19 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-an-in-app-notification-system-that-delivers-alerts-to-users-when-relevant-actions-occur-e-g-a-clip-is-processed-a-message-is-received-a-hype-moment-is-detected-notifications-should-appear-as-non-blocking-popup-toasts-and-be-stored-in-a-persistent-notification-inbox-accessible-from-a-bell-icon-in-the-header-sidebar",
-      "featureTitle": "Implement an in-app notification system that delivers alerts to users when relevant actions occur (e.g., a clip is processed, a message is received, a hype moment is detected). Notifications should appear as non-blocking popup toasts and be stored in a persistent notification inbox accessible from a bell icon in the header/sidebar.",
+      "featureId": "feature-restore-the-full-adminpanel-ensure-it-renders-collapsible-sections-for-system-controls-pause-resume-restart-shutdown-via-systemcontrols-analytics-appanalytics-with-clip-counts-and-upload-bar-chart-user-management-userstatusmanagement-for-listing-searching-managing-user-roles-and-statuses-admin-messaging-adminmessaging-to-send-messages-to-specific-users-feedback-submissions-feedbacksubmissions-list-with-delete-activity-logs-activitylogtable-admin-list-management-adminmanagement-adminlist-and-the-admindebugpanel-the-panel-must-only-be-visible-to-owner-role-users",
+      "featureTitle": "Restore the full AdminPanel: ensure it renders collapsible sections for system controls (pause/resume/restart/shutdown via SystemControls), analytics (AppAnalytics with clip counts and upload bar chart), user management (UserStatusManagement for listing/searching/managing user roles and statuses), admin messaging (AdminMessaging to send messages to specific users), feedback submissions (FeedbackSubmissions list with delete), activity logs (ActivityLogTable), admin list/management (AdminManagement, AdminList), and the AdminDebugPanel. The panel must only be visible to owner-role users.",
       "files": [
         "frontend/src/App.tsx",
-        "frontend/src/components/NotificationBell.tsx",
-        "frontend/src/components/SideNavigation.tsx",
-        "frontend/src/hooks/useNotifications.ts"
+        "frontend/src/components/ActivityLogTable.tsx",
+        "frontend/src/components/AdminList.tsx",
+        "frontend/src/components/AdminManagement.tsx",
+        "frontend/src/components/AdminMessaging.tsx",
+        "frontend/src/components/AdminPanel.tsx",
+        "frontend/src/components/AppAnalytics.tsx",
+        "frontend/src/components/FeedbackSubmissions.tsx",
+        "frontend/src/components/SystemControls.tsx",
+        "frontend/src/components/UserStatusManagement.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -52,33 +59,13 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-smart-transcription-feature-when-a-youtube-video-is-loaded-simulate-a-timestamped-transcript-by-segmenting-the-video-timeline-into-labeled-intervals-e-g-0-00-0-15-segment-1-display-the-transcript-in-a-scrollable-panel-below-the-video-player-since-server-side-speech-to-text-is-not-available-use-a-placeholder-transcript-generation-approach-based-on-video-duration-with-clearly-labeled-mock-segments",
-      "featureTitle": "Add a Smart Transcription feature: when a YouTube video is loaded, simulate a timestamped transcript by segmenting the video timeline into labeled intervals (e.g., '0:00 - 0:15: [Segment 1]'). Display the transcript in a scrollable panel below the video player. Since server-side speech-to-text is not available, use a placeholder transcript generation approach based on video duration with clearly labeled mock segments.",
+      "featureId": "feature-restore-the-report-a-bug-request-a-feature-button-ensure-the-feedbackmodal-trigger-button-is-present-in-both-the-sidenavigation-desktop-and-bottomnavigation-mobile-the-modal-must-allow-users-to-choose-between-bug-report-and-feature-request-types-and-submit-a-title-and-description-via-the-usefeedbacksubmit-hook",
+      "featureTitle": "Restore the Report a Bug / Request a Feature button: ensure the FeedbackModal trigger button is present in both the SideNavigation (desktop) and BottomNavigation (mobile). The modal must allow users to choose between 'Bug Report' and 'Feature Request' types and submit a title and description via the useFeedbackSubmit hook.",
       "files": [
-        "frontend/src/components/TranscriptPanel.tsx",
-        "frontend/src/hooks/useTranscriptGenerator.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-3"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-text-to-clip-functionality-users-can-click-on-any-transcript-segment-row-to-automatically-populate-the-clip-start-and-end-timestamp-fields-with-that-segment-s-time-range",
-      "featureTitle": "Add Text-to-Clip functionality: users can click on any transcript segment row to automatically populate the clip start and end timestamp fields with that segment's time range.",
-      "files": [
-        "frontend/src/components/ClipTimestampControls.tsx",
-        "frontend/src/components/TranscriptPanel.tsx"
+        "frontend/src/components/BottomNavigation.tsx",
+        "frontend/src/components/FeedbackModal.tsx",
+        "frontend/src/components/SideNavigation.tsx",
+        "frontend/src/hooks/useFeedbackSubmit.ts"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -96,10 +83,14 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-add-a-vertical-mode-toggle-in-the-clip-preview-area-when-enabled-display-the-video-clip-preview-in-a-9-16-aspect-ratio-with-a-simulated-center-crop-overlay-represented-visually-with-crop-guides-on-the-16-9-frame-and-label-it-as-auto-reframe-subject-centered-this-is-a-ui-only-representation-since-actual-video-processing-is-client-side",
-      "featureTitle": "Add a 'Vertical Mode' toggle in the clip preview area. When enabled, display the video clip preview in a 9:16 aspect ratio with a simulated center-crop overlay (represented visually with crop guides on the 16:9 frame), and label it as 'Auto-Reframe: Subject Centered'. This is a UI-only representation since actual video processing is client-side.",
+      "featureId": "feature-restore-the-trending-now-section-ensure-trendingpage-is-accessible-via-navigation-and-renders-the-top-trending-clips-sorted-by-viral-trending-score-including-the-trendingsidebar-top-5-leaderboard-and-a-responsive-grid-of-clipcards-ensure-the-trending-nav-link-appears-in-sidenavigation-and-bottomnavigation-for-all-users-authenticated-and-anonymous",
+      "featureTitle": "Restore the Trending Now section: ensure TrendingPage is accessible via navigation and renders the top trending clips sorted by viral/trending score, including the TrendingSidebar top-5 leaderboard and a responsive grid of ClipCards. Ensure the 'Trending' nav link appears in SideNavigation and BottomNavigation for all users (authenticated and anonymous).",
       "files": [
-        "frontend/src/components/VerticalModeToggle.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/components/BottomNavigation.tsx",
+        "frontend/src/components/SideNavigation.tsx",
+        "frontend/src/components/TrendingSidebar.tsx",
+        "frontend/src/pages/TrendingPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -117,10 +108,16 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-implement-a-visual-timeline-seek-bar-below-the-youtube-player-that-shows-frame-preview-thumbnails-at-scrub-positions-using-youtube-s-thumbnail-api-e-g-https-img-youtube-com-vi-videoid-0-jpg-tiled-the-seek-bar-should-allow-clicking-to-set-the-current-playback-position-and-display-the-current-timestamp-in-mm-ss-ms-format",
-      "featureTitle": "Implement a visual timeline seek bar below the YouTube player that shows frame-preview thumbnails at scrub positions using YouTube's thumbnail API (e.g., `https://img.youtube.com/vi/{videoId}/0.jpg` tiled). The seek bar should allow clicking to set the current playback position and display the current timestamp in MM:SS:ms format.",
+      "featureId": "feature-restore-messaging-functionality-ensure-the-messagespage-is-accessible-via-navigation-for-authenticated-users-displaying-the-usermessages-component-which-lists-the-user-s-messages-and-allows-viewing-individual-messages-and-composing-replies-ensure-the-messages-nav-item-appears-in-sidenavigation-and-bottomnavigation-for-authenticated-users-ensure-usesendadminmessage-and-usemymessages-hooks-are-correctly-wired-to-the-message-store",
+      "featureTitle": "Restore messaging functionality: ensure the MessagesPage is accessible via navigation for authenticated users, displaying the UserMessages component which lists the user's messages and allows viewing individual messages and composing replies. Ensure the 'Messages' nav item appears in SideNavigation and BottomNavigation for authenticated users. Ensure useSendAdminMessage and useMyMessages hooks are correctly wired to the message store.",
       "files": [
-        "frontend/src/components/TimelineScrubber.tsx"
+        "frontend/src/App.tsx",
+        "frontend/src/components/BottomNavigation.tsx",
+        "frontend/src/components/SideNavigation.tsx",
+        "frontend/src/components/UserMessages.tsx",
+        "frontend/src/hooks/useMyMessages.ts",
+        "frontend/src/hooks/useSendAdminMessage.ts",
+        "frontend/src/pages/MessagesPage.tsx"
       ],
       "components": [
         "core-infrastructure@1.0.2",
@@ -138,242 +135,38 @@
       "confidence": "high"
     },
     {
-      "featureId": "feature-overhaul-the-entire-application-ui-to-use-a-cyberpunk-dark-theme-deep-purple-backgrounds-240046-neon-cyan-accents-00f2ff-glassmorphism-card-panels-frosted-glass-effect-with-backdrop-filter-blur-high-contrast-buttons-with-neon-glow-and-smooth-css-transitions-between-all-interactive-states-apply-this-theme-consistently-across-all-pages-and-components",
-      "featureTitle": "Overhaul the entire application UI to use a Cyberpunk dark theme: deep purple backgrounds (#240046), neon cyan accents (#00f2ff), glassmorphism card panels (frosted glass effect with backdrop-filter blur), high-contrast buttons with neon glow, and smooth CSS transitions between all interactive states. Apply this theme consistently across all pages and components.",
-      "files": [
-        "frontend/src/components/AdminPanel.tsx",
-        "frontend/src/components/AppShell.tsx",
-        "frontend/src/components/BottomNavigation.tsx",
-        "frontend/src/components/ClipCard.tsx",
-        "frontend/src/components/SideNavigation.tsx",
-        "frontend/src/components/ViralScoreBadge.tsx",
-        "frontend/src/index.css",
-        "frontend/tailwind.config.js"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-8"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-burn-in-captions-toggle-in-the-clip-editor-when-enabled-display-an-animated-caption-overlay-at-the-bottom-of-the-clip-preview-that-cycles-through-the-transcript-segments-for-the-selected-clip-time-range-style-the-captions-as-bold-white-text-on-a-semi-transparent-dark-bar-with-a-fade-in-animation-per-segment",
-      "featureTitle": "Add a 'Burn-in Captions' toggle in the clip editor. When enabled, display an animated caption overlay at the bottom of the clip preview that cycles through the transcript segments for the selected clip time range. Style the captions as bold white text on a semi-transparent dark bar, with a fade-in animation per segment.",
-      "files": [
-        "frontend/src/components/BurnInCaptionsToggle.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-9"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-multi-format-export-dropdown-to-the-clip-export-download-area-with-three-options-mp4-high-res-gif-meme-format-and-mp3-audio-only-each-option-should-trigger-the-existing-download-flow-with-the-selected-format-label-appended-to-the-filename-show-a-toast-notification-indicating-the-selected-export-format",
-      "featureTitle": "Add a Multi-Format Export dropdown to the clip export/download area with three options: 'MP4 (High Res)', 'GIF (Meme Format)', and 'MP3 (Audio Only)'. Each option should trigger the existing download flow with the selected format label appended to the filename. Show a toast notification indicating the selected export format.",
-      "files": [
-        "frontend/src/components/ClipCard.tsx",
-        "frontend/src/components/ExportFormatDropdown.tsx",
-        "frontend/src/hooks/useDownloadClip.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-10"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-share-clip-button-on-each-clipcard-and-in-the-clip-editor-that-generates-a-shareable-youtube-url-with-timestamp-parameters-e-g-https-youtu-be-videoid-t-startseconds-and-copies-it-to-clipboard-also-provide-quick-share-buttons-labeled-share-to-x-and-share-to-discord-that-open-pre-filled-share-urls-for-twitter-x-and-a-discord-invite-respectively",
-      "featureTitle": "Add a 'Share Clip' button on each ClipCard and in the clip editor that generates a shareable YouTube URL with timestamp parameters (e.g., `https://youtu.be/{videoId}?t={startSeconds}`) and copies it to clipboard. Also provide quick-share buttons labeled 'Share to X' and 'Share to Discord' that open pre-filled share URLs for Twitter/X and a Discord invite respectively.",
-      "files": [
-        "frontend/src/components/ClipCard.tsx",
-        "frontend/src/components/ShareClipButton.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-11"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-detect-hype-button-in-the-clip-editor-that-uses-the-web-audio-api-to-analyze-the-loaded-video-s-audio-track-and-places-visual-markers-on-the-timeline-seek-bar-at-timestamps-where-volume-exceeds-a-threshold-simulating-cheering-audio-spikes-each-marker-should-be-clickable-to-jump-to-that-timestamp",
-      "featureTitle": "Add a 'Detect Hype' button in the clip editor that uses the Web Audio API to analyze the loaded video's audio track and places visual markers on the timeline seek bar at timestamps where volume exceeds a threshold (simulating cheering/audio spikes). Each marker should be clickable to jump to that timestamp.",
-      "files": [
-        "frontend/src/components/DetectHypeButton.tsx",
-        "frontend/src/components/TimelineScrubber.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-12"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-smart-clips-suggestion-panel-that-simulates-ocr-based-killfeed-detection-by-pattern-matching-transcript-segments-for-keywords-like-victory-eliminated-level-up-kill-and-win-matching-segments-are-highlighted-in-the-transcript-and-surfaced-as-clickable-smart-clip-suggestions-with-their-timestamps",
-      "featureTitle": "Add a 'Smart Clips' suggestion panel that simulates OCR-based killfeed detection by pattern-matching transcript segments for keywords like 'Victory', 'Eliminated', 'Level Up', 'Kill', and 'Win'. Matching segments are highlighted in the transcript and surfaced as clickable Smart Clip suggestions with their timestamps.",
-      "files": [
-        "frontend/src/components/SmartClipsPanel.tsx",
-        "frontend/src/components/TranscriptPanel.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-13"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-tiktokify-preset-button-in-the-clip-editor-that-activates-a-dual-view-layout-preview-a-simulated-9-16-vertical-frame-showing-a-webcam-placeholder-at-the-top-half-and-gameplay-video-at-the-bottom-half-include-a-neon-caption-style-toggle-that-displays-transcript-text-in-bold-yellow-green-ccff00-text-with-a-black-stroke-synced-to-the-current-playback-position",
-      "featureTitle": "Add a 'TikTokify' preset button in the clip editor that activates a Dual-View Layout preview: a simulated 9:16 vertical frame showing a webcam placeholder at the top half and gameplay video at the bottom half. Include a 'Neon Caption' style toggle that displays transcript text in bold yellow/green (#CCFF00) text with a black stroke, synced to the current playback position.",
-      "files": [
-        "frontend/src/components/TikTokifyPresetButton.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-14"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-slow-mo-toggle-in-the-clip-editor-that-when-enabled-visually-indicates-that-the-last-2-seconds-of-the-clip-will-be-rendered-at-0-5x-speed-display-a-badge-on-the-clip-preview-labeled-slow-mo-last-2s-0-5x-when-active",
-      "featureTitle": "Add a 'Slow-Mo' toggle in the clip editor that, when enabled, visually indicates that the last 2 seconds of the clip will be rendered at 0.5x speed. Display a badge on the clip preview labeled 'Slow-Mo: Last 2s @ 0.5x' when active.",
-      "files": [
-        "frontend/src/components/SlowMoToggle.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-15"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-send-to-discord-feature-on-clipcard-and-in-the-clip-editor-provide-an-input-field-where-users-can-enter-a-discord-webhook-url-and-a-send-button-that-posts-a-formatted-message-containing-the-clip-title-timestamp-range-and-youtube-url-to-the-provided-webhook-via-an-http-post-request-from-the-frontend",
-      "featureTitle": "Add a 'Send to Discord' feature on ClipCard and in the clip editor. Provide an input field where users can enter a Discord webhook URL and a 'Send' button that posts a formatted message containing the clip title, timestamp range, and YouTube URL to the provided webhook via an HTTP POST request from the frontend.",
-      "files": [
-        "frontend/src/components/ClipCard.tsx",
-        "frontend/src/components/SendToDiscordButton.tsx"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-16"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-meme-overlay-asset-library-panel-in-the-clip-editor-display-a-grid-of-preset-sound-effect-buttons-airhorn-bruh-mission-failed-victory-royale-that-play-the-corresponding-audio-when-clicked-using-the-web-audio-api-with-synthesized-tones-as-placeholders-also-show-placeholder-green-screen-overlay-thumbnail-buttons-that-toggle-a-color-overlay-on-the-clip-preview",
-      "featureTitle": "Add a 'Meme Overlay' asset library panel in the clip editor. Display a grid of preset sound effect buttons ('Airhorn', 'Bruh', 'Mission Failed', 'Victory Royale') that play the corresponding audio when clicked (using the Web Audio API with synthesized tones as placeholders). Also show placeholder green-screen overlay thumbnail buttons that toggle a color overlay on the clip preview.",
-      "files": [
-        "frontend/src/components/GreenScreenOverlayButtons.tsx",
-        "frontend/src/components/MemeOverlayPanel.tsx",
-        "frontend/src/components/SoundEffectButtons.tsx",
-        "frontend/src/hooks/useSoundEffect.ts"
-      ],
-      "components": [
-        "core-infrastructure@1.0.2",
-        "shadcn-ui@1.0.0",
-        "build-template-react@1.0.0",
-        "initial-app@1.0.0",
-        "github-export-icp-cli@1.0.0",
-        "authorization@4.0.0",
-        "http-outcalls@3.0.0",
-        "blob-storage@4.0.0"
-      ],
-      "testIds": [
-        "REQ-17"
-      ],
-      "confidence": "high"
-    },
-    {
-      "featureId": "feature-add-a-mint-to-gallery-button-on-clipcard-and-in-the-clip-editor-when-clicked-call-a-backend-endpoint-that-stores-the-clip-s-metadata-title-videoid-timestamps-viral-score-owner-principal-as-a-permanent-digital-collectible-record-in-the-backend-display-a-minted-badge-on-clips-that-have-been-minted-and-provide-a-my-gallery-page-listing-all-minted-clips-for-the-authenticated-user",
-      "featureTitle": "Add a 'Mint to Gallery' button on ClipCard and in the clip editor. When clicked, call a backend endpoint that stores the clip's metadata (title, videoId, timestamps, viral score, owner principal) as a permanent 'digital collectible' record in the backend. Display a 'Minted ✓' badge on clips that have been minted, and provide a 'My Gallery' page listing all minted clips for the authenticated user.",
+      "featureId": "feature-restore-the-social-feed-ensure-socialfeedpage-is-accessible-via-navigation-showing-recent-clip-creation-activity-from-all-users-with-avatar-initials-clip-thumbnails-time-ranges-and-relative-timestamps-ensure-the-feed-nav-link-appears-in-sidenavigation-and-bottomnavigation",
+      "featureTitle": "Restore the Social Feed: ensure SocialFeedPage is accessible via navigation, showing recent clip creation activity from all users with avatar initials, clip thumbnails, time ranges, and relative timestamps. Ensure the 'Feed' nav link appears in SideNavigation and BottomNavigation.",
       "files": [
         "frontend/src/App.tsx",
         "frontend/src/components/BottomNavigation.tsx",
-        "frontend/src/components/ClipCard.tsx",
-        "frontend/src/components/MintToGalleryButton.tsx",
         "frontend/src/components/SideNavigation.tsx",
-        "frontend/src/hooks/useMintClip.ts",
-        "frontend/src/hooks/useMintedCollectibles.ts",
+        "frontend/src/hooks/useSocialFeed.ts",
+        "frontend/src/pages/SocialFeedPage.tsx"
+      ],
+      "components": [
+        "core-infrastructure@1.0.2",
+        "shadcn-ui@1.0.0",
+        "build-template-react@1.0.0",
+        "initial-app@1.0.0",
+        "github-export-icp-cli@1.0.0",
+        "authorization@4.0.0",
+        "http-outcalls@3.0.0",
+        "blob-storage@4.0.0"
+      ],
+      "testIds": [
+        "REQ-7"
+      ],
+      "confidence": "high"
+    },
+    {
+      "featureId": "feature-ensure-all-navigation-links-clips-trending-feed-gallery-profile-messages-scheduler-are-present-and-correctly-routed-in-both-sidenavigation-desktop-and-bottomnavigation-mobile-filtered-appropriately-by-authentication-state-confirm-that-all-routes-defined-in-app-tsx-correspond-to-their-respective-page-components",
+      "featureTitle": "Ensure all navigation links — Clips, Trending, Feed, Gallery, Profile, Messages, Scheduler — are present and correctly routed in both SideNavigation (desktop) and BottomNavigation (mobile), filtered appropriately by authentication state. Confirm that all routes defined in App.tsx correspond to their respective page components.",
+      "files": [
+        "frontend/src/App.tsx",
+        "frontend/src/components/BottomNavigation.tsx",
+        "frontend/src/components/SideNavigation.tsx",
+        "frontend/src/pages/MyClipsPage.tsx",
         "frontend/src/pages/MyGalleryPage.tsx"
       ],
       "components": [
@@ -387,7 +180,7 @@
         "blob-storage@4.0.0"
       ],
       "testIds": [
-        "REQ-18"
+        "REQ-8"
       ],
       "confidence": "high"
     }

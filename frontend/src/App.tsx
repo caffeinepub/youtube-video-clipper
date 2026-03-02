@@ -1,64 +1,71 @@
-import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet, redirect } from '@tanstack/react-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ThemeProvider } from 'next-themes';
+import { RouterProvider, createRouter, createRoute, createRootRoute, Outlet, redirect } from '@tanstack/react-router';
 import { Toaster } from '@/components/ui/sonner';
+import { ThemeProvider } from 'next-themes';
 import AppShell from './components/AppShell';
 import MyClipsPage from './pages/MyClipsPage';
 import TrendingPage from './pages/TrendingPage';
-import MessagesPage from './pages/MessagesPage';
-import OAuthCallback from './pages/OAuthCallback';
-import ContentManager from './pages/ContentManager';
-import ProfilePage from './pages/ProfilePage';
 import SocialFeedPage from './pages/SocialFeedPage';
+import ProfilePage from './pages/ProfilePage';
+import MessagesPage from './pages/MessagesPage';
+import Scheduler from './pages/Scheduler';
+import ContentManager from './pages/ContentManager';
 import MyGalleryPage from './pages/MyGalleryPage';
-import AccountStatusGuard from './components/AccountStatusGuard';
-import NotificationToastContainer from './components/NotificationToastContainer';
-import { useSystemStatus } from './hooks/useSystemStatus';
-import { useInternetIdentity } from './hooks/useInternetIdentity';
+import OAuthCallback from './pages/OAuthCallback';
+import ProfileSetup from './components/ProfileSetup';
 import PausedScreen from './components/PausedScreen';
+import AccountStatusGuard from './components/AccountStatusGuard';
+import { useInternetIdentity } from './hooks/useInternetIdentity';
+import { useGetCallerUserProfile } from './hooks/useQueries';
+import { useSystemStatus } from './hooks/useSystemStatus';
 import { useIsOwner } from './hooks/useIsOwner';
 
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       retry: 1,
-      staleTime: 30000,
+      staleTime: 30_000,
     },
   },
 });
 
-function SystemStatusGuard({ children }: { children: React.ReactNode }) {
-  const { data: status } = useSystemStatus();
+function AppContent() {
   const { identity } = useInternetIdentity();
-  const { data: isAdmin } = useIsOwner();
+  const isAuthenticated = !!identity;
+  const { data: userProfile, isLoading: profileLoading, isFetched } = useGetCallerUserProfile();
+  const { data: systemStatus } = useSystemStatus();
+  const { data: isOwner } = useIsOwner();
 
-  if (status === 'paused' && !isAdmin) {
+  const showProfileSetup = isAuthenticated && !profileLoading && isFetched && userProfile === null;
+  const isPaused = systemStatus === 'paused';
+
+  if (isPaused && !isOwner) {
     return <PausedScreen />;
   }
 
-  return <>{children}</>;
-}
-
-function Layout() {
   return (
     <AccountStatusGuard>
-      <SystemStatusGuard>
-        <AppShell>
-          <Outlet />
-        </AppShell>
-        <NotificationToastContainer />
-      </SystemStatusGuard>
+      <AppShell>
+        <Outlet />
+      </AppShell>
+      {showProfileSetup && <ProfileSetup />}
     </AccountStatusGuard>
   );
 }
 
 const rootRoute = createRootRoute({
-  component: Layout,
+  component: AppContent,
 });
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
+  component: MyClipsPage,
+});
+
+const clipsRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/clips',
   component: MyClipsPage,
 });
 
@@ -68,22 +75,10 @@ const trendingRoute = createRoute({
   component: TrendingPage,
 });
 
-const messagesRoute = createRoute({
+const feedRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/messages',
-  component: MessagesPage,
-});
-
-const oauthCallbackRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/oauth/callback',
-  component: OAuthCallback,
-});
-
-const contentManagerRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: '/content',
-  component: ContentManager,
+  path: '/feed',
+  component: SocialFeedPage,
 });
 
 const profileRoute = createRoute({
@@ -92,10 +87,16 @@ const profileRoute = createRoute({
   component: ProfilePage,
 });
 
-const socialFeedRoute = createRoute({
+const messagesRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/social',
-  component: SocialFeedPage,
+  path: '/messages',
+  component: MessagesPage,
+});
+
+const schedulerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/scheduler',
+  component: Scheduler,
 });
 
 const galleryRoute = createRoute({
@@ -104,15 +105,29 @@ const galleryRoute = createRoute({
   component: MyGalleryPage,
 });
 
+const contentManagerRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/content-manager',
+  component: ContentManager,
+});
+
+const oauthCallbackRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/oauth/callback',
+  component: OAuthCallback,
+});
+
 const routeTree = rootRoute.addChildren([
   indexRoute,
+  clipsRoute,
   trendingRoute,
-  messagesRoute,
-  oauthCallbackRoute,
-  contentManagerRoute,
+  feedRoute,
   profileRoute,
-  socialFeedRoute,
+  messagesRoute,
+  schedulerRoute,
   galleryRoute,
+  contentManagerRoute,
+  oauthCallbackRoute,
 ]);
 
 const router = createRouter({ routeTree });
@@ -125,21 +140,11 @@ declare module '@tanstack/react-router' {
 
 export default function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false} forcedTheme="dark">
+    <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
+      <QueryClientProvider client={queryClient}>
         <RouterProvider router={router} />
-        <Toaster
-          position="bottom-right"
-          toastOptions={{
-            style: {
-              background: 'rgba(36, 0, 70, 0.9)',
-              border: '1px solid rgba(0, 242, 255, 0.4)',
-              color: '#00f2ff',
-              backdropFilter: 'blur(12px)',
-            },
-          }}
-        />
-      </ThemeProvider>
-    </QueryClientProvider>
+        <Toaster richColors position="top-right" />
+      </QueryClientProvider>
+    </ThemeProvider>
   );
 }

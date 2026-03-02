@@ -1,12 +1,8 @@
 import React, { useState } from 'react';
-import { UserRole } from '../backend';
 import { useUserRoles } from '../hooks/useUserRoles';
-import { useSetUserRole } from '../hooks/useSetUserRole';
-import { useSetUserStatus } from '../hooks/useSetUserStatus';
 import { generateShortUserId } from '../utils/userIdGenerator';
-import { Search, Copy, Trash2 } from 'lucide-react';
-import { toast } from 'sonner';
-import type { UserStatus } from '../types/app';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Input } from '@/components/ui/input';
 import {
   Select,
   SelectContent,
@@ -14,122 +10,168 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-
-function getRoleVariant(role: string): string {
-  switch (role) {
-    case 'owner': return 'default';
-    case UserRole.admin: return 'secondary';
-    case 'friend': return 'outline';
-    default: return 'ghost';
-  }
-}
+import { Search, Copy, Check, Users } from 'lucide-react';
+import { toast } from 'sonner';
+import { useActor } from '../hooks/useActor';
+import { useQueryClient } from '@tanstack/react-query';
+import { UserRole } from '../backend';
 
 export default function UserStatusManagement() {
   const { data: users = [], isLoading } = useUserRoles();
-  const { mutate: setRole } = useSetUserRole();
-  const { mutate: setStatus } = useSetUserStatus();
+  const { actor } = useActor();
+  const queryClient = useQueryClient();
   const [search, setSearch] = useState('');
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const filteredUsers = users.filter(
-    (u) =>
-      u.principal.toLowerCase().includes(search.toLowerCase()) ||
-      (u.profile?.name || '').toLowerCase().includes(search.toLowerCase())
-  );
+  const filteredUsers = (users as any[]).filter((u: any) => {
+    if (!search) return true;
+    const shortId = u.principal ? generateShortUserId(u.principal) : '';
+    return (
+      shortId.toLowerCase().includes(search.toLowerCase()) ||
+      u.principal?.toLowerCase().includes(search.toLowerCase()) ||
+      u.profile?.name?.toLowerCase().includes(search.toLowerCase())
+    );
+  });
 
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-    toast.success('Copied!');
+  const copyPrincipal = async (principal: string) => {
+    await navigator.clipboard.writeText(principal);
+    setCopiedId(principal);
+    setTimeout(() => setCopiedId(null), 2000);
+    toast.success('Principal copied!');
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-16 rounded-xl bg-cyan-neon/5 animate-pulse" />
-        ))}
-      </div>
-    );
-  }
+  const handleRoleChange = async (principal: string, role: string) => {
+    if (!actor) {
+      toast.error('Actor not available');
+      return;
+    }
+    try {
+      // Map string role to UserRole enum
+      let userRole: UserRole;
+      if (role === UserRole.admin) {
+        userRole = UserRole.admin;
+      } else if (role === UserRole.guest) {
+        userRole = UserRole.guest;
+      } else {
+        userRole = UserRole.user;
+      }
+      const { Principal } = await import('@icp-sdk/core/principal');
+      await actor.assignCallerUserRole(Principal.fromText(principal), userRole);
+      queryClient.invalidateQueries({ queryKey: ['userRoles'] });
+      toast.success('Role updated');
+    } catch (err: any) {
+      toast.error(`Failed to update role: ${err.message}`);
+    }
+  };
+
+  const handleStatusChange = async (principal: string, status: string) => {
+    // Status management is a stub — backend doesn't support it yet
+    toast.info(`Status change to "${status}" noted (backend support pending)`);
+  };
 
   return (
-    <div className="space-y-4">
+    <div className="bg-card rounded-lg border border-border/50 p-4 space-y-3">
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <input
-          type="text"
+        <Search
+          size={14}
+          className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+        />
+        <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search users..."
-          className="w-full pl-9 pr-3 py-2 rounded-lg bg-purple-deep/50 border border-cyan-neon/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-cyan-neon transition-smooth"
+          className="pl-8 bg-background border-border text-foreground text-sm h-8"
         />
       </div>
 
-      {filteredUsers.length === 0 ? (
-        <div className="text-center py-8 text-muted-foreground text-sm">
-          No users found. Users appear here after they log in.
+      {isLoading ? (
+        <div className="space-y-2">
+          {[1, 2, 3].map((i) => (
+            <Skeleton key={i} className="h-16 rounded-lg" />
+          ))}
+        </div>
+      ) : filteredUsers.length === 0 ? (
+        <div className="text-center py-6 text-muted-foreground">
+          <Users size={24} className="mx-auto mb-1 opacity-30" />
+          <p className="text-xs">
+            {search ? 'No matching users' : 'No users found'}
+          </p>
         </div>
       ) : (
-        <div className="space-y-3">
-          {filteredUsers.map((user) => {
-            const shortId = generateShortUserId(user.principal);
+        <div className="space-y-2 max-h-80 overflow-y-auto">
+          {filteredUsers.map((user: any) => {
+            const shortId = user.principal
+              ? generateShortUserId(user.principal)
+              : 'unknown';
             return (
               <div
                 key={user.principal}
-                className="glass-card rounded-xl p-4 border border-cyan-neon/10"
+                className="bg-background/50 rounded-lg border border-border/30 p-3 space-y-2"
               >
-                <div className="flex items-center justify-between gap-3 flex-wrap">
-                  <div className="flex items-center gap-3 min-w-0">
-                    <div>
-                      <p className="text-sm font-semibold text-foreground">
-                        {user.profile?.name || 'Anonymous'}
-                      </p>
-                      <div className="flex items-center gap-2 mt-0.5">
-                        <span className="text-xs text-muted-foreground font-mono">#{shortId}</span>
-                        <button
-                          onClick={() => copyToClipboard(user.principal)}
-                          className="text-muted-foreground hover:text-cyan-neon transition-smooth"
-                        >
-                          <Copy className="w-3 h-3" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Select
-                      value={user.role}
-                      onValueChange={(role) => {
-                        // Role assignment uses the backend's assignCallerUserRole
-                        toast.info('Role management requires admin backend support');
-                      }}
-                    >
-                      <SelectTrigger className="w-24 h-7 text-xs bg-purple-deep/50 border-cyan-neon/20">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="glass-card border-cyan-neon/30">
-                        <SelectItem value={UserRole.admin}>Admin</SelectItem>
-                        <SelectItem value={UserRole.user}>User</SelectItem>
-                        <SelectItem value={UserRole.guest}>Guest</SelectItem>
-                      </SelectContent>
-                    </Select>
-
-                    <Select
-                      value={user.status}
-                      onValueChange={(status) => {
-                        toast.info('Status management not available in this version');
-                      }}
-                    >
-                      <SelectTrigger className="w-28 h-7 text-xs bg-purple-deep/50 border-cyan-neon/20">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent className="glass-card border-cyan-neon/30">
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                        <SelectItem value="suspended">Suspended</SelectItem>
-                        <SelectItem value="banned">Banned</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-mono text-primary font-bold">
+                    {shortId}
+                  </span>
+                  <span className="text-xs text-muted-foreground truncate flex-1">
+                    {user.profile?.name || 'No name'}
+                  </span>
+                  <button
+                    onClick={() => copyPrincipal(user.principal)}
+                    className="text-muted-foreground hover:text-primary transition-colors shrink-0"
+                  >
+                    {copiedId === user.principal ? (
+                      <Check size={12} className="text-green-500" />
+                    ) : (
+                      <Copy size={12} />
+                    )}
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <Select
+                    value={user.role || 'user'}
+                    onValueChange={(role) =>
+                      handleRoleChange(user.principal, role)
+                    }
+                  >
+                    <SelectTrigger className="h-7 text-xs bg-background border-border flex-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      <SelectItem value={UserRole.admin} className="text-xs">
+                        Admin
+                      </SelectItem>
+                      <SelectItem value={UserRole.user} className="text-xs">
+                        User
+                      </SelectItem>
+                      <SelectItem value={UserRole.guest} className="text-xs">
+                        Guest
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={user.status || 'active'}
+                    onValueChange={(status) =>
+                      handleStatusChange(user.principal, status)
+                    }
+                  >
+                    <SelectTrigger className="h-7 text-xs bg-background border-border flex-1">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-card border-border">
+                      <SelectItem value="active" className="text-xs">
+                        Active
+                      </SelectItem>
+                      <SelectItem value="inactive" className="text-xs">
+                        Inactive
+                      </SelectItem>
+                      <SelectItem value="suspended" className="text-xs">
+                        Suspended
+                      </SelectItem>
+                      <SelectItem value="banned" className="text-xs">
+                        Banned
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
             );

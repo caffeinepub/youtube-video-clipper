@@ -1,98 +1,135 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Bug, Lightbulb, Send } from 'lucide-react';
 import { useFeedbackSubmit } from '../hooks/useFeedbackSubmit';
-import type { SubmissionType } from '../types/app';
+import { toast } from 'sonner';
 
 interface FeedbackModalProps {
   open: boolean;
-  onClose: () => void;
+  onOpenChange: (open: boolean) => void;
 }
 
-export default function FeedbackModal({ open, onClose }: FeedbackModalProps) {
-  const [submissionType, setSubmissionType] = useState<SubmissionType>('FeatureRequest');
+export default function FeedbackModal({ open, onOpenChange }: FeedbackModalProps) {
+  const [type, setType] = useState<'bug' | 'feature'>('bug');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const { mutate: submitFeedback, isPending } = useFeedbackSubmit();
+  const submitFeedback = useFeedbackSubmit();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!title.trim() || !description.trim()) return;
-    submitFeedback(
-      { submissionType, title, description },
-      {
-        onSuccess: () => {
-          setTitle('');
-          setDescription('');
-          onClose();
-        },
-      }
-    );
+    if (!title.trim() || !description.trim()) {
+      toast.error('Please fill in all fields');
+      return;
+    }
+    try {
+      await submitFeedback.mutateAsync({
+        submissionType: type === 'bug' ? { BugReport: null } : { FeatureRequest: null },
+        title: title.trim(),
+        description: description.trim(),
+      });
+      toast.success('Feedback submitted! Thank you!');
+      setTitle('');
+      setDescription('');
+      onOpenChange(false);
+    } catch (err) {
+      toast.error('Failed to submit feedback. Please try again.');
+    }
   };
 
   return (
-    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
-      <DialogContent className="glass-card border border-cyan-neon/30 max-w-md">
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="bg-card border-border max-w-md">
         <DialogHeader>
-          <DialogTitle className="font-orbitron text-cyan-neon">SUBMIT FEEDBACK</DialogTitle>
+          <DialogTitle className="flex items-center gap-2 text-foreground">
+            <Bug size={18} className="text-primary" />
+            Report / Request
+          </DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            Help us improve Beast Clipping by reporting bugs or requesting features.
+          </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
-          <div className="flex gap-2">
-            {(['FeatureRequest', 'BugReport'] as SubmissionType[]).map((type) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setSubmissionType(type)}
-                className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-smooth ${
-                  submissionType === type
-                    ? 'cyberpunk-btn-active text-cyan-neon border-cyan-neon'
-                    : 'border-cyan-neon/20 text-muted-foreground hover:border-cyan-neon/40'
-                }`}
-              >
-                {type === 'FeatureRequest' ? '✨ Feature Request' : '🐛 Bug Report'}
-              </button>
-            ))}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-2">
+            <Label className="text-sm text-foreground">Type</Label>
+            <RadioGroup value={type} onValueChange={(v) => setType(v as 'bug' | 'feature')} className="flex gap-4">
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="bug" id="bug" />
+                <Label htmlFor="bug" className="flex items-center gap-1.5 cursor-pointer text-sm">
+                  <Bug size={14} className="text-destructive" />
+                  Bug Report
+                </Label>
+              </div>
+              <div className="flex items-center gap-2">
+                <RadioGroupItem value="feature" id="feature" />
+                <Label htmlFor="feature" className="flex items-center gap-1.5 cursor-pointer text-sm">
+                  <Lightbulb size={14} className="text-yellow-400" />
+                  Feature Request
+                </Label>
+              </div>
+            </RadioGroup>
           </div>
 
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Title</label>
-            <input
-              type="text"
+          <div className="space-y-1">
+            <Label htmlFor="feedback-title" className="text-sm text-foreground">Title</Label>
+            <Input
+              id="feedback-title"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Brief summary..."
-              className="w-full px-3 py-2 rounded-lg bg-purple-deep/50 border border-cyan-neon/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-cyan-neon transition-smooth"
-              required
+              className="bg-background border-border text-foreground"
             />
           </div>
 
-          <div>
-            <label className="text-xs text-muted-foreground mb-1 block">Description</label>
-            <textarea
+          <div className="space-y-1">
+            <Label htmlFor="feedback-desc" className="text-sm text-foreground">Description</Label>
+            <Textarea
+              id="feedback-desc"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Describe in detail..."
+              className="bg-background border-border text-foreground resize-none"
               rows={4}
-              className="w-full px-3 py-2 rounded-lg bg-purple-deep/50 border border-cyan-neon/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-cyan-neon transition-smooth resize-none"
-              required
             />
           </div>
 
           <div className="flex gap-2 justify-end">
-            <button
+            <Button
               type="button"
-              onClick={onClose}
-              className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground border border-cyan-neon/20 hover:border-cyan-neon/40 transition-smooth"
+              variant="outline"
+              onClick={() => onOpenChange(false)}
+              className="border-border text-foreground hover:bg-muted"
             >
               Cancel
-            </button>
-            <button
+            </Button>
+            <Button
               type="submit"
-              disabled={isPending || !title.trim() || !description.trim()}
-              className="px-4 py-2 rounded-lg text-sm cyberpunk-btn transition-smooth disabled:opacity-50"
+              disabled={submitFeedback.isPending || !title.trim() || !description.trim()}
+              className="bg-primary hover:bg-primary/90 text-primary-foreground"
             >
-              {isPending ? 'Submitting...' : 'Submit'}
-            </button>
+              {submitFeedback.isPending ? (
+                <span className="flex items-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary-foreground" />
+                  Submitting...
+                </span>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <Send size={14} />
+                  Submit
+                </span>
+              )}
+            </Button>
           </div>
         </form>
       </DialogContent>

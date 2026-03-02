@@ -1,93 +1,83 @@
 import React from 'react';
-import { Sparkles, Star, Clock, LogIn } from 'lucide-react';
-import { useMintedCollectibles } from '../hooks/useMintedCollectibles';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { formatDistanceToNow } from 'date-fns';
+import { useClips } from '../hooks/useClips';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Image, Scissors, LogIn, Zap } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function MyGalleryPage() {
-  const { identity } = useInternetIdentity();
-  const { collectibles, isLoading } = useMintedCollectibles();
+  const { identity, login, loginStatus } = useInternetIdentity();
+  const isAuthenticated = !!identity;
+  const { data: clips = [], isLoading } = useClips();
 
-  if (!identity) {
+  if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4">
-        <div className="glass-card rounded-2xl p-8 text-center max-w-sm">
-          <LogIn className="w-12 h-12 text-cyan-neon mx-auto mb-4" />
-          <h2 className="font-orbitron text-lg text-cyan-neon mb-2">LOGIN REQUIRED</h2>
-          <p className="text-muted-foreground text-sm">Please login to view your gallery.</p>
-        </div>
+      <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-8">
+        <Image size={64} className="text-muted-foreground/30" />
+        <h2 className="text-xl font-semibold text-foreground">Sign in to view your gallery</h2>
+        <p className="text-muted-foreground text-center max-w-sm">
+          Connect with Internet Identity to access your clip gallery.
+        </p>
+        <Button
+          onClick={() => login()}
+          disabled={loginStatus === 'logging-in'}
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          <LogIn size={16} className="mr-2" />
+          {loginStatus === 'logging-in' ? 'Logging in...' : 'Login'}
+        </Button>
       </div>
     );
   }
 
+  const viralClips = clips.filter(c => (c.score || 0) >= 70);
+
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="glass-card rounded-2xl p-6">
-        <div className="flex items-center gap-3">
-          <Sparkles className="w-8 h-8 text-cyan-neon animate-mint-sparkle" />
-          <div>
-            <h1 className="font-orbitron text-xl text-cyan-neon">MY GALLERY</h1>
-            <p className="text-muted-foreground text-sm">Your minted digital collectibles on ICP</p>
-          </div>
+    <div className="max-w-5xl mx-auto p-6 space-y-6">
+      <div className="flex items-center gap-3">
+        <Image size={28} className="text-primary" />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">My Gallery</h1>
+          <p className="text-sm text-muted-foreground">Your top-performing clip collectibles</p>
         </div>
       </div>
 
-      {/* Gallery Grid */}
       {isLoading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="glass-card rounded-2xl p-4 animate-pulse h-48" />
-          ))}
+          {[1, 2, 3, 4, 5, 6].map(i => <Skeleton key={i} className="h-48 rounded-xl" />)}
         </div>
-      ) : collectibles.length === 0 ? (
-        <div className="glass-card rounded-2xl p-12 text-center">
-          <Sparkles className="w-12 h-12 text-cyan-neon/30 mx-auto mb-4" />
-          <h3 className="font-orbitron text-sm text-muted-foreground">NO COLLECTIBLES YET</h3>
-          <p className="text-muted-foreground text-sm mt-2">
-            Mint your best clips to save them as permanent digital collectibles!
-          </p>
+      ) : viralClips.length === 0 ? (
+        <div className="text-center py-16 text-muted-foreground bg-card rounded-xl border border-border/50">
+          <Zap size={48} className="mx-auto mb-3 opacity-30" />
+          <p className="font-medium">No viral clips yet</p>
+          <p className="text-sm mt-1">Clips with a score of 70+ will appear here as collectibles</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {collectibles.map((item) => (
+          {viralClips.map((clip) => (
             <div
-              key={item.clipId}
-              className="glass-card rounded-2xl overflow-hidden border border-cyan-neon/20 hover:border-cyan-neon/50 transition-smooth group"
+              key={clip.id}
+              className="bg-card rounded-xl border border-border/50 p-4 hover:border-primary/40 transition-all duration-200 relative overflow-hidden group"
             >
-              {/* Thumbnail */}
-              <div className="relative aspect-video bg-purple-deep">
-                {item.thumbnailUrl && (
-                  <img
-                    src={item.thumbnailUrl}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
-                )}
-                <div className="absolute top-2 right-2">
-                  <span className="flex items-center gap-1 text-xs font-orbitron px-2 py-1 rounded-full bg-cyan-neon/20 border border-cyan-neon/40 text-cyan-neon neon-glow-sm">
-                    <Sparkles className="w-3 h-3" />
-                    MINTED ✓
-                  </span>
-                </div>
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-accent to-primary" />
+              {/* Thumbnail placeholder */}
+              <div className="w-full h-32 bg-primary/10 rounded-lg mb-3 flex items-center justify-center border border-primary/20 group-hover:border-primary/40 transition-colors">
+                <Scissors size={32} className="text-primary/40" />
               </div>
-
-              {/* Info */}
-              <div className="p-4">
-                <h3 className="font-semibold text-foreground truncate">{item.title}</h3>
-                <div className="flex items-center gap-3 mt-2">
-                  <span className="text-xs text-muted-foreground flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {item.startTime}s – {item.endTime}s
-                  </span>
-                  <span className="text-xs font-orbitron text-cyan-neon">
-                    ⚡ {item.viralScore.toFixed(0)}
-                  </span>
-                </div>
-                <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                  <Star className="w-3 h-3 text-cyan-neon" />
-                  Minted {formatDistanceToNow(new Date(item.mintedAt), { addSuffix: true })}
-                </p>
+              <h3 className="text-sm font-semibold text-foreground truncate mb-1">{clip.title || 'Untitled Clip'}</h3>
+              <p className="text-xs text-muted-foreground mb-2">
+                {Math.floor(clip.startTime / 60)}:{String(clip.startTime % 60).padStart(2, '0')} –{' '}
+                {Math.floor(clip.endTime / 60)}:{String(clip.endTime % 60).padStart(2, '0')}
+              </p>
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-muted-foreground">Viral Score</span>
+                <span className={`text-sm font-bold px-2 py-0.5 rounded ${
+                  (clip.score || 0) >= 90 ? 'bg-green-500/20 text-green-400' :
+                  (clip.score || 0) >= 80 ? 'bg-yellow-500/20 text-yellow-400' :
+                  'bg-primary/20 text-primary'
+                }`}>
+                  {(clip.score || 0).toFixed(0)}
+                </span>
               </div>
             </div>
           ))}

@@ -1,41 +1,33 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useActor } from './useActor';
+import { useInternetIdentity } from './useInternetIdentity';
+import { generateShortUserId } from '../utils/userIdGenerator';
 import { toast } from 'sonner';
-import { addMessageToStore } from './useMyMessages';
-import type { AdminMessage } from '../types/app';
 
 export function useSendAdminMessage() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      toPrincipal,
-      toUserId,
-      body,
-      fromUserId,
-    }: {
-      toPrincipal: string;
-      toUserId: string;
-      body: string;
-      fromUserId: string;
-    }) => {
-      const msg: AdminMessage = {
-        id: `msg-${Date.now()}`,
-        fromPrincipal: 'local',
-        toPrincipal,
+    mutationFn: async (params: { toPrincipal: string; toUserId: string; body: string }) => {
+      if (!actor) throw new Error('Actor not available');
+      const fromPrincipal = identity?.getPrincipal().toString() || '';
+      const fromUserId = fromPrincipal ? generateShortUserId(fromPrincipal) : 'admin';
+      await (actor as any).sendMessage?.({
+        toPrincipal: params.toPrincipal,
+        toUserId: params.toUserId,
+        body: params.body,
         fromUserId,
-        toUserId,
-        body,
-        sentAt: BigInt(Date.now() * 1_000_000),
-      };
-      addMessageToStore(msg);
-      return msg;
+        fromPrincipal,
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['myMessages'] });
-      toast.success('Message sent');
+      toast.success('Message sent successfully!');
     },
-    onError: () => {
-      toast.error('Failed to send message');
+    onError: (err: any) => {
+      toast.error(`Failed to send message: ${err.message}`);
     },
   });
 }

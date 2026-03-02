@@ -10,7 +10,7 @@ import Order "mo:core/Order";
 import VarArray "mo:core/VarArray";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
-import Migration "migration";
+
 import OutCall "http-outcalls/outcall";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
@@ -19,7 +19,7 @@ import Storage "blob-storage/Storage";
 
 
 // Apply migration on upgrade
-(with migration = Migration.run)
+
 actor {
   // Authorization state and mixin
   let accessControlState = AccessControl.initState();

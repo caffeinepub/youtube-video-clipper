@@ -1,71 +1,106 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useFeedbackSubmissions } from '../hooks/useFeedbackSubmissions';
 import { useDeleteFeedback } from '../hooks/useDeleteFeedback';
-import { Trash2, Bug, Sparkles } from 'lucide-react';
 import { generateShortUserId } from '../utils/userIdGenerator';
-import { formatDistanceToNow } from 'date-fns';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
+import { Bug, Lightbulb, Trash2, Inbox } from 'lucide-react';
 
 export default function FeedbackSubmissions() {
   const { data: submissions = [], isLoading } = useFeedbackSubmissions();
-  const { mutate: deleteFeedback, isPending: isDeleting } = useDeleteFeedback();
+  const deleteFeedback = useDeleteFeedback();
+
+  const formatTime = (ts: number | bigint) => {
+    const ms = typeof ts === 'bigint' ? Number(ts) / 1_000_000 : Number(ts);
+    const date = new Date(ms);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    if (diff < 60_000) return 'just now';
+    if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+    if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+    return date.toLocaleDateString();
+  };
 
   if (isLoading) {
     return (
       <div className="space-y-3">
-        {[1, 2, 3].map((i) => (
-          <div key={i} className="h-20 rounded-xl bg-cyan-neon/5 animate-pulse" />
-        ))}
+        {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full rounded-lg" />)}
       </div>
     );
   }
 
   if (submissions.length === 0) {
     return (
-      <div className="text-center py-8 text-muted-foreground text-sm">
-        No feedback submissions yet.
+      <div className="text-center py-8 text-muted-foreground">
+        <Inbox size={32} className="mx-auto mb-2 opacity-30" />
+        <p className="text-sm">No feedback submissions yet</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      {submissions.map((sub) => (
-        <div
-          key={sub.id.toString()}
-          className="glass-card rounded-xl p-4 border border-cyan-neon/10"
-        >
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex items-start gap-3 flex-1 min-w-0">
-              <div className="shrink-0 mt-0.5">
-                {sub.submissionType === 'BugReport' ? (
-                  <Bug className="w-4 h-4 text-red-400" />
+      {submissions.map((sub: any) => {
+        const isBug = sub.submissionType && ('BugReport' in sub.submissionType || sub.submissionType.__kind__ === 'BugReport');
+        const shortId = sub.submitterPrincipal ? generateShortUserId(sub.submitterPrincipal) : sub.submitterUserId || 'unknown';
+        return (
+          <div key={String(sub.id)} className="bg-background/50 rounded-lg border border-border/30 p-3">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2">
+                {isBug ? (
+                  <Bug size={14} className="text-destructive shrink-0 mt-0.5" />
                 ) : (
-                  <Sparkles className="w-4 h-4 text-cyan-neon" />
+                  <Lightbulb size={14} className="text-yellow-400 shrink-0 mt-0.5" />
                 )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-foreground">{sub.title}</p>
-                <p className="text-xs text-muted-foreground mt-1">{sub.description}</p>
-                <div className="flex items-center gap-3 mt-2">
-                  <span className="text-xs text-muted-foreground font-mono">
-                    #{generateShortUserId(sub.submitterPrincipal)}
-                  </span>
-                  <span className="text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(sub.timestamp), { addSuffix: true })}
-                  </span>
+                <div>
+                  <p className="text-sm font-medium text-foreground">{sub.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    <span className="font-mono text-primary">{shortId}</span>
+                    {' · '}
+                    {formatTime(sub.timestamp)}
+                  </p>
                 </div>
               </div>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0">
+                    <Trash2 size={14} />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent className="bg-card border-border">
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Feedback</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this feedback submission?
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      onClick={() => deleteFeedback.mutate(BigInt(sub.id))}
+                      className="bg-destructive hover:bg-destructive/90"
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
-            <button
-              onClick={() => deleteFeedback(sub.id)}
-              disabled={isDeleting}
-              className="shrink-0 p-1.5 rounded-lg text-red-400 hover:bg-red-900/20 transition-smooth"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </button>
+            <p className="text-xs text-muted-foreground mt-2 ml-5">{sub.description}</p>
           </div>
-        </div>
-      ))}
+        );
+      })}
     </div>
   );
 }

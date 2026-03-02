@@ -1,55 +1,65 @@
 import React from 'react';
 import { useAdminStats } from '../hooks/useAdminStats';
+import { Skeleton } from '@/components/ui/skeleton';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { TrendingUp, Scissors, Activity } from 'lucide-react';
+import { BarChart2, Scissors, TrendingUp } from 'lucide-react';
 
 export default function AppAnalytics() {
   const { data, isLoading } = useAdminStats();
-
   const totalClips = data?.totalClips ?? 0;
-  const chartData = data?.videoUploadStats?.map((s) => ({
-    hour: `${s.hour}h`,
-    count: s.count,
-  })) ?? [];
+  const trendingAnalytics = data?.trendingAnalytics ?? [];
+
+  const chartData = trendingAnalytics.slice(0, 8).map((item, i) => ({
+    name: item.title?.slice(0, 8) || `Clip ${i + 1}`,
+    score: Number((item.trendingScore || item.scoreMetrics || 0).toFixed(1)),
+  }));
 
   return (
-    <div className="glass-card rounded-2xl p-6 border border-cyan-neon/20 space-y-6">
-      <div className="flex items-center gap-2">
-        <Activity className="w-5 h-5 text-cyan-neon" />
-        <h3 className="font-orbitron text-sm text-cyan-neon">ANALYTICS</h3>
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="glass-panel rounded-xl p-4 text-center">
-          <Scissors className="w-5 h-5 text-cyan-neon mx-auto mb-1" />
-          <p className="font-orbitron text-2xl text-cyan-neon">{isLoading ? '...' : totalClips}</p>
-          <p className="text-xs text-muted-foreground">Total Clips</p>
+    <div className="bg-card rounded-lg border border-border/50 p-4 space-y-4">
+      <div className="grid grid-cols-2 gap-3">
+        <div className="bg-background/50 rounded-lg p-3 border border-border/30">
+          <div className="flex items-center gap-2 mb-1">
+            <Scissors size={14} className="text-primary" />
+            <span className="text-xs text-muted-foreground">Total Clips</span>
+          </div>
+          {isLoading ? (
+            <Skeleton className="h-7 w-16" />
+          ) : (
+            <p className="text-2xl font-bold text-foreground">{totalClips}</p>
+          )}
         </div>
-        <div className="glass-panel rounded-xl p-4 text-center">
-          <TrendingUp className="w-5 h-5 text-cyan-neon mx-auto mb-1" />
-          <p className="font-orbitron text-2xl text-cyan-neon">
-            {isLoading ? '...' : data?.trendingAnalytics?.length ?? 0}
-          </p>
-          <p className="text-xs text-muted-foreground">Trending</p>
+        <div className="bg-background/50 rounded-lg p-3 border border-border/30">
+          <div className="flex items-center gap-2 mb-1">
+            <TrendingUp size={14} className="text-accent" />
+            <span className="text-xs text-muted-foreground">Trending</span>
+          </div>
+          {isLoading ? (
+            <Skeleton className="h-7 w-16" />
+          ) : (
+            <p className="text-2xl font-bold text-foreground">{trendingAnalytics.length}</p>
+          )}
         </div>
       </div>
 
       {chartData.length > 0 && (
         <div>
-          <p className="text-xs text-muted-foreground mb-3">Activity (last 24h)</p>
+          <p className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+            <BarChart2 size={12} />
+            Top Clip Scores
+          </p>
           <ResponsiveContainer width="100%" height={120}>
-            <BarChart data={chartData}>
-              <XAxis dataKey="hour" tick={{ fontSize: 10, fill: 'rgba(0,242,255,0.5)' }} />
-              <YAxis tick={{ fontSize: 10, fill: 'rgba(0,242,255,0.5)' }} />
+            <BarChart data={chartData} margin={{ top: 0, right: 0, left: -20, bottom: 0 }}>
+              <XAxis dataKey="name" tick={{ fontSize: 9, fill: '#888' }} />
+              <YAxis tick={{ fontSize: 9, fill: '#888' }} />
               <Tooltip
                 contentStyle={{
-                  background: 'rgba(36,0,70,0.9)',
-                  border: '1px solid rgba(0,242,255,0.3)',
-                  borderRadius: '8px',
-                  color: '#00f2ff',
+                  background: '#1a1a2e',
+                  border: '1px solid #333',
+                  borderRadius: '6px',
+                  fontSize: '11px',
                 }}
               />
-              <Bar dataKey="count" fill="#00f2ff" opacity={0.7} radius={[2, 2, 0, 0]} />
+              <Bar dataKey="score" fill="oklch(0.65 0.25 320)" radius={[3, 3, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

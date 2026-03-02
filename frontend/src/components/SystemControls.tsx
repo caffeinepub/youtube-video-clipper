@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Power, RotateCcw, Pause, Play } from 'lucide-react';
-import { useSystemStatus } from '../hooks/useSystemStatus';
-import { setGlobalSystemStatus } from '../hooks/useSystemStatus';
-import type { SystemStatus } from '../types/app';
+import { useSystemStatus, setGlobalSystemStatus } from '../hooks/useSystemStatus';
+import { useActor } from '../hooks/useActor';
+import { Switch } from '@/components/ui/switch';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -14,85 +15,181 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
+import { Power, RefreshCw, AlertTriangle, Activity } from 'lucide-react';
+import { toast } from 'sonner';
 
 export function SystemControls() {
-  const { data: status } = useSystemStatus();
-  const isPaused = status === 'paused';
+  const { data: systemStatus } = useSystemStatus();
+  const { actor } = useActor();
+  const [isUpdating, setIsUpdating] = useState(false);
 
-  const handleTogglePause = () => {
-    setGlobalSystemStatus(isPaused ? 'running' : 'paused');
+  const isPaused = systemStatus === 'paused';
+
+  const handleTogglePause = async () => {
+    setIsUpdating(true);
+    try {
+      if (isPaused) {
+        if (actor) await (actor as any).resumeSystem?.();
+        setGlobalSystemStatus('running');
+        toast.success('System resumed');
+      } else {
+        if (actor) await (actor as any).pauseSystem?.();
+        setGlobalSystemStatus('paused');
+        toast.success('System paused');
+      }
+    } catch (err: any) {
+      toast.error(`Failed: ${err.message}`);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
-  const handleRestart = () => {
-    setGlobalSystemStatus('restarting');
-    setTimeout(() => setGlobalSystemStatus('running'), 2000);
+  const handleRestart = async () => {
+    setIsUpdating(true);
+    try {
+      if (actor) await (actor as any).restartSystem?.();
+      setGlobalSystemStatus('restarting');
+      toast.success('System restarting...');
+      setTimeout(() => setGlobalSystemStatus('running'), 3000);
+    } catch (err: any) {
+      toast.error(`Failed: ${err.message}`);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
-  const handleShutdown = () => {
-    setGlobalSystemStatus('shutting_down');
+  const handleShutdown = async () => {
+    setIsUpdating(true);
+    try {
+      if (actor) await (actor as any).shutdownSystem?.();
+      setGlobalSystemStatus('shutting_down');
+      toast.success('System shutting down...');
+    } catch (err: any) {
+      toast.error(`Failed: ${err.message}`);
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center justify-between p-3 rounded-xl bg-cyan-neon/5 border border-cyan-neon/10">
-        <div className="flex items-center gap-2">
-          <div className={`w-2 h-2 rounded-full ${status === 'running' ? 'bg-green-400' : 'bg-yellow-400'} animate-pulse`} />
-          <span className="text-sm text-foreground capitalize">{status?.replace('_', ' ') || 'running'}</span>
-        </div>
-        <button
-          onClick={handleTogglePause}
-          className={`flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg border transition-smooth ${
-            isPaused
-              ? 'bg-green-900/30 border-green-500/40 text-green-400 hover:bg-green-900/50'
-              : 'bg-yellow-900/30 border-yellow-500/40 text-yellow-400 hover:bg-yellow-900/50'
-          }`}
-        >
-          {isPaused ? <Play className="w-3 h-3" /> : <Pause className="w-3 h-3" />}
-          {isPaused ? 'Resume' : 'Pause'}
-        </button>
+    <div className="bg-card rounded-lg border border-border/50 p-4 space-y-4">
+      {/* Status indicator */}
+      <div className="flex items-center gap-2">
+        <Activity
+          size={16}
+          className={isPaused ? 'text-yellow-400' : 'text-green-400'}
+        />
+        <span className="text-sm text-foreground">
+          Status:{' '}
+          <span
+            className={`font-semibold ${
+              isPaused ? 'text-yellow-400' : 'text-green-400'
+            }`}
+          >
+            {systemStatus || 'running'}
+          </span>
+        </span>
       </div>
 
-      <div className="flex gap-2">
+      {/* Pause/Resume toggle */}
+      <div className="flex items-center justify-between">
+        <Label className="text-sm text-foreground">
+          {isPaused ? 'System Paused' : 'System Running'}
+        </Label>
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <button className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-blue-900/30 border border-blue-500/40 text-blue-400 hover:bg-blue-900/50 transition-smooth">
-              <RotateCcw className="w-3 h-3" />
-              Restart
-            </button>
+            <div className="flex items-center gap-2 cursor-pointer">
+              <Switch checked={!isPaused} disabled={isUpdating} />
+            </div>
           </AlertDialogTrigger>
-          <AlertDialogContent className="glass-card border-cyan-neon/30">
+          <AlertDialogContent className="bg-card border-border">
             <AlertDialogHeader>
-              <AlertDialogTitle className="font-orbitron text-cyan-neon">Restart System?</AlertDialogTitle>
-              <AlertDialogDescription>This will temporarily restart the system.</AlertDialogDescription>
+              <AlertDialogTitle>
+                {isPaused ? 'Resume System?' : 'Pause System?'}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {isPaused
+                  ? 'This will resume normal operations for all users.'
+                  : 'This will pause the system. Non-admin users will see a maintenance screen.'}
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleRestart}>Restart</AlertDialogAction>
-            </AlertDialogFooter>
-          </AlertDialogContent>
-        </AlertDialog>
-
-        <AlertDialog>
-          <AlertDialogTrigger asChild>
-            <button className="flex-1 flex items-center justify-center gap-1.5 text-xs px-3 py-2 rounded-lg bg-red-900/30 border border-red-500/40 text-red-400 hover:bg-red-900/50 transition-smooth">
-              <Power className="w-3 h-3" />
-              Shutdown
-            </button>
-          </AlertDialogTrigger>
-          <AlertDialogContent className="glass-card border-cyan-neon/30">
-            <AlertDialogHeader>
-              <AlertDialogTitle className="font-orbitron text-red-400">Shutdown System?</AlertDialogTitle>
-              <AlertDialogDescription>This will shut down the system.</AlertDialogDescription>
-            </AlertDialogHeader>
-            <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
-              <AlertDialogAction onClick={handleShutdown} className="bg-red-600 hover:bg-red-700">
-                Shutdown
+              <AlertDialogAction onClick={handleTogglePause} disabled={isUpdating}>
+                {isPaused ? 'Resume' : 'Pause'}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
       </div>
+
+      {/* Restart button */}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full border-border text-foreground hover:bg-muted"
+            disabled={isUpdating}
+          >
+            <RefreshCw size={14} className="mr-2" />
+            Restart System
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Restart System?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will restart the system. There may be brief downtime.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleRestart} disabled={isUpdating}>
+              Restart
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Shutdown button */}
+      <AlertDialog>
+        <AlertDialogTrigger asChild>
+          <Button
+            variant="destructive"
+            size="sm"
+            className="w-full"
+            disabled={isUpdating}
+          >
+            <Power size={14} className="mr-2" />
+            Shutdown System
+          </Button>
+        </AlertDialogTrigger>
+        <AlertDialogContent className="bg-card border-border">
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle size={18} className="text-destructive" />
+              Shutdown System?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              This will shut down the system completely. This action may be
+              irreversible.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleShutdown}
+              disabled={isUpdating}
+              className="bg-destructive hover:bg-destructive/90"
+            >
+              Shutdown
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }
+
+export default SystemControls;

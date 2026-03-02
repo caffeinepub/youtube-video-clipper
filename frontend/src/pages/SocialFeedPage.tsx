@@ -1,104 +1,75 @@
 import React from 'react';
-import { Users, Clock, Scissors } from 'lucide-react';
 import { useSocialFeed } from '../hooks/useSocialFeed';
-import { formatDistanceToNow } from 'date-fns';
-import { generateShortUserId } from '../utils/userIdGenerator';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Rss, Scissors, Clock } from 'lucide-react';
 
 export default function SocialFeedPage() {
-  const { feedItems, isLoading } = useSocialFeed();
+  const { data: feedItems = [], isLoading } = useSocialFeed();
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
-      {/* Header */}
-      <div className="glass-card rounded-2xl p-6">
-        <div className="flex items-center gap-3">
-          <Users className="w-8 h-8 text-cyan-neon" />
-          <div>
-            <h1 className="font-orbitron text-xl text-cyan-neon">SOCIAL FEED</h1>
-            <p className="text-muted-foreground text-sm">Recent clip activity from all players</p>
-          </div>
+    <div className="max-w-2xl mx-auto p-6 space-y-6">
+      <div className="flex items-center gap-3">
+        <Rss size={28} className="text-primary" />
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Social Feed</h1>
+          <p className="text-sm text-muted-foreground">Recent clip activity from all creators</p>
         </div>
       </div>
 
-      {/* Feed */}
       {isLoading ? (
         <div className="space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className="glass-card rounded-2xl p-4 animate-pulse">
-              <div className="flex gap-4">
-                <div className="w-10 h-10 rounded-full bg-cyan-neon/10" />
-                <div className="flex-1 space-y-2">
-                  <div className="h-4 bg-cyan-neon/10 rounded w-1/3" />
-                  <div className="h-3 bg-cyan-neon/5 rounded w-2/3" />
-                </div>
-              </div>
-            </div>
-          ))}
+          {[1, 2, 3, 4].map(i => <Skeleton key={i} className="h-28 rounded-xl" />)}
         </div>
       ) : feedItems.length === 0 ? (
-        <div className="glass-card rounded-2xl p-12 text-center">
-          <Scissors className="w-12 h-12 text-cyan-neon/30 mx-auto mb-4" />
-          <h3 className="font-orbitron text-sm text-muted-foreground">NO ACTIVITY YET</h3>
-          <p className="text-muted-foreground text-sm mt-2">Be the first to create a clip!</p>
+        <div className="text-center py-16 text-muted-foreground bg-card rounded-xl border border-border/50">
+          <Rss size={48} className="mx-auto mb-3 opacity-30" />
+          <p className="font-medium">No activity yet</p>
+          <p className="text-sm mt-1">Clips created by users will appear here</p>
         </div>
       ) : (
         <div className="space-y-4">
-          {feedItems.map((item) => (
+          {feedItems.map((item: any) => (
             <div
               key={item.id}
-              className="glass-card rounded-2xl p-4 border border-cyan-neon/10 hover:border-cyan-neon/30 transition-smooth animate-fade-in-up"
+              className="bg-card rounded-xl border border-border/50 p-4 hover:border-primary/30 transition-all duration-200 relative overflow-hidden"
             >
-              <div className="flex gap-4">
+              <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-primary/30 to-transparent" />
+              <div className="flex items-start gap-3">
                 {/* Avatar */}
-                <div className="w-10 h-10 rounded-full bg-cyan-neon/10 border border-cyan-neon/30 flex items-center justify-center shrink-0">
-                  <span className="font-orbitron text-xs text-cyan-neon">
-                    {item.userName.charAt(0).toUpperCase()}
+                <div className="w-10 h-10 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center shrink-0">
+                  <span className="text-sm font-bold text-primary">
+                    {item.userInitial || '?'}
                   </span>
                 </div>
-
-                {/* Content */}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="font-semibold text-foreground text-sm">{item.userName}</span>
-                    <span className="text-muted-foreground text-xs">created a clip</span>
-                    <span className="text-xs text-cyan-neon/60 font-mono">#{generateShortUserId(item.principal)}</span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-mono text-primary">{item.userId || 'Unknown'}</span>
+                    <span className="text-xs text-muted-foreground">created a clip</span>
+                    <span className="text-xs text-muted-foreground ml-auto flex items-center gap-1">
+                      <Clock size={10} />
+                      {item.timeAgo}
+                    </span>
                   </div>
-
-                  {/* Clip Info */}
-                  <div className="mt-2 p-3 rounded-xl bg-cyan-neon/5 border border-cyan-neon/10">
-                    <div className="flex items-center gap-2">
-                      {item.thumbnailUrl && (
-                        <img
-                          src={item.thumbnailUrl}
-                          alt={item.title}
-                          className="w-16 h-10 rounded-lg object-cover shrink-0"
-                        />
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-foreground truncate">{item.title}</p>
-                        <div className="flex items-center gap-3 mt-1">
-                          <span className="text-xs text-muted-foreground flex items-center gap-1">
-                            <Clock className="w-3 h-3" />
-                            {item.startTime}s – {item.endTime}s
-                          </span>
-                          <span
-                            className={`text-xs font-orbitron px-2 py-0.5 rounded-full border ${
-                              item.score >= 80
-                                ? 'text-cyan-neon border-cyan-neon/40 bg-cyan-neon/10'
-                                : 'text-muted-foreground border-muted/30'
-                            }`}
-                          >
-                            ⚡ {item.score.toFixed(0)}
-                          </span>
-                        </div>
-                      </div>
+                  <div className="flex items-center gap-3 bg-background/50 rounded-lg p-2 border border-border/30">
+                    <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center shrink-0">
+                      <Scissors size={14} className="text-primary" />
                     </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{item.clipTitle || 'Untitled Clip'}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {item.timeRange}
+                      </p>
+                    </div>
+                    {item.score !== undefined && (
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded shrink-0 ${
+                        item.score >= 80 ? 'bg-green-500/20 text-green-400' :
+                        item.score >= 50 ? 'bg-yellow-500/20 text-yellow-400' :
+                        'bg-muted/50 text-muted-foreground'
+                      }`}>
+                        {item.score.toFixed(0)}
+                      </span>
+                    )}
                   </div>
-
-                  <p className="text-xs text-muted-foreground mt-2 flex items-center gap-1">
-                    <Clock className="w-3 h-3" />
-                    {formatDistanceToNow(new Date(item.timestamp), { addSuffix: true })}
-                  </p>
                 </div>
               </div>
             </div>
