@@ -1,20 +1,7 @@
-import { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Loader2, Lightbulb, Bug } from 'lucide-react';
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useFeedbackSubmit } from '../hooks/useFeedbackSubmit';
-import { SubmissionType } from '../backend';
+import type { SubmissionType } from '../types/app';
 
 interface FeedbackModalProps {
   open: boolean;
@@ -22,146 +9,92 @@ interface FeedbackModalProps {
 }
 
 export default function FeedbackModal({ open, onClose }: FeedbackModalProps) {
-  const [submissionType, setSubmissionType] = useState<SubmissionType>(SubmissionType.FeatureRequest);
+  const [submissionType, setSubmissionType] = useState<SubmissionType>('FeatureRequest');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [errors, setErrors] = useState<{ title?: string; description?: string }>({});
-
   const { mutate: submitFeedback, isPending } = useFeedbackSubmit();
 
-  const validate = () => {
-    const newErrors: { title?: string; description?: string } = {};
-    if (!title.trim()) newErrors.title = 'Title is required.';
-    if (!description.trim()) newErrors.description = 'Description is required.';
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = () => {
-    if (!validate()) return;
-
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!title.trim() || !description.trim()) return;
     submitFeedback(
-      { submissionType, title: title.trim(), description: description.trim() },
+      { submissionType, title, description },
       {
         onSuccess: () => {
-          handleClose();
+          setTitle('');
+          setDescription('');
+          onClose();
         },
       }
     );
   };
 
-  const handleClose = () => {
-    setTitle('');
-    setDescription('');
-    setErrors({});
-    setSubmissionType(SubmissionType.FeatureRequest);
-    onClose();
-  };
-
   return (
-    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) handleClose(); }}>
-      <DialogContent className="sm:max-w-lg">
+    <Dialog open={open} onOpenChange={(v) => !v && onClose()}>
+      <DialogContent className="glass-card border border-cyan-neon/30 max-w-md">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Send Feedback</DialogTitle>
-          <DialogDescription>
-            Request a new feature or report a bug. Your user ID will be included with the submission.
-          </DialogDescription>
+          <DialogTitle className="font-orbitron text-cyan-neon">SUBMIT FEEDBACK</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-5 py-2">
-          {/* Type Selector */}
-          <div className="space-y-2">
-            <Label className="text-sm font-medium">Feedback Type</Label>
-            <RadioGroup
-              value={submissionType}
-              onValueChange={(val) => setSubmissionType(val as SubmissionType)}
-              className="flex gap-4"
-            >
-              <div className="flex items-center gap-2 flex-1">
-                <RadioGroupItem value={SubmissionType.FeatureRequest} id="feature" />
-                <Label
-                  htmlFor="feature"
-                  className="flex items-center gap-2 cursor-pointer font-normal"
-                >
-                  <Lightbulb className="w-4 h-4 text-yellow-500" />
-                  Request a Feature
-                </Label>
-              </div>
-              <div className="flex items-center gap-2 flex-1">
-                <RadioGroupItem value={SubmissionType.BugReport} id="bug" />
-                <Label
-                  htmlFor="bug"
-                  className="flex items-center gap-2 cursor-pointer font-normal"
-                >
-                  <Bug className="w-4 h-4 text-destructive" />
-                  Report a Bug
-                </Label>
-              </div>
-            </RadioGroup>
+        <form onSubmit={handleSubmit} className="space-y-4 mt-2">
+          <div className="flex gap-2">
+            {(['FeatureRequest', 'BugReport'] as SubmissionType[]).map((type) => (
+              <button
+                key={type}
+                type="button"
+                onClick={() => setSubmissionType(type)}
+                className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-smooth ${
+                  submissionType === type
+                    ? 'cyberpunk-btn-active text-cyan-neon border-cyan-neon'
+                    : 'border-cyan-neon/20 text-muted-foreground hover:border-cyan-neon/40'
+                }`}
+              >
+                {type === 'FeatureRequest' ? '✨ Feature Request' : '🐛 Bug Report'}
+              </button>
+            ))}
           </div>
 
-          {/* Title */}
-          <div className="space-y-1.5">
-            <Label htmlFor="feedback-title" className="text-sm font-medium">
-              Title <span className="text-destructive">*</span>
-            </Label>
-            <Input
-              id="feedback-title"
-              placeholder={
-                submissionType === SubmissionType.FeatureRequest
-                  ? 'e.g. Add dark mode support'
-                  : 'e.g. Clip timestamps not saving correctly'
-              }
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Title</label>
+            <input
+              type="text"
               value={title}
-              onChange={(e) => {
-                setTitle(e.target.value);
-                if (errors.title) setErrors((prev) => ({ ...prev, title: undefined }));
-              }}
-              disabled={isPending}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="Brief summary..."
+              className="w-full px-3 py-2 rounded-lg bg-purple-deep/50 border border-cyan-neon/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-cyan-neon transition-smooth"
+              required
             />
-            {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
           </div>
 
-          {/* Description */}
-          <div className="space-y-1.5">
-            <Label htmlFor="feedback-description" className="text-sm font-medium">
-              Description <span className="text-destructive">*</span>
-            </Label>
-            <Textarea
-              id="feedback-description"
-              placeholder={
-                submissionType === SubmissionType.FeatureRequest
-                  ? 'Describe the feature you would like to see...'
-                  : 'Describe the bug, steps to reproduce, and expected behavior...'
-              }
+          <div>
+            <label className="text-xs text-muted-foreground mb-1 block">Description</label>
+            <textarea
               value={description}
-              onChange={(e) => {
-                setDescription(e.target.value);
-                if (errors.description) setErrors((prev) => ({ ...prev, description: undefined }));
-              }}
-              disabled={isPending}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="Describe in detail..."
               rows={4}
-              className="resize-none"
+              className="w-full px-3 py-2 rounded-lg bg-purple-deep/50 border border-cyan-neon/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-cyan-neon transition-smooth resize-none"
+              required
             />
-            {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
           </div>
-        </div>
 
-        <DialogFooter className="gap-2">
-          <Button variant="outline" onClick={handleClose} disabled={isPending}>
-            Cancel
-          </Button>
-          <Button onClick={handleSubmit} disabled={isPending}>
-            {isPending ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Submitting...
-              </>
-            ) : (
-              'Submit Feedback'
-            )}
-          </Button>
-        </DialogFooter>
+          <div className="flex gap-2 justify-end">
+            <button
+              type="button"
+              onClick={onClose}
+              className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground border border-cyan-neon/20 hover:border-cyan-neon/40 transition-smooth"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={isPending || !title.trim() || !description.trim()}
+              className="px-4 py-2 rounded-lg text-sm cyberpunk-btn transition-smooth disabled:opacity-50"
+            >
+              {isPending ? 'Submitting...' : 'Submit'}
+            </button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );

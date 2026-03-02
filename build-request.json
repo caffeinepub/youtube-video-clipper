@@ -1,94 +1,393 @@
 {
   "kind": "build_request",
-  "title": "Fix YouTube channel connection status, fix downloads, and show principal IDs in admin panel",
+  "title": "Gaming Clip App: Cyberpunk UI, Social Feed, Hype Detection & Advanced Editing Features",
   "projectName": "Beast Clipping",
-  "priority": "high",
+  "priority": "normal",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Fix the YouTube channel connection status display so that when a user has already connected their YouTube channel (i.e., valid Google OAuth credentials are stored in the backend), the ChannelConnection component correctly reflects the connected state instead of showing 'not connected'. Investigate the useYouTubeChannel hook and the OAuthCallback flow to ensure the stored credentials are being read and the connected status is correctly derived and returned.",
-      "target": "frontend",
+      "text": "Add a user profile section where each authenticated user can view their own activity history (clips created, clips shared, timestamps of actions) and a public-facing social feed showing recent clip activity from all users (clip title, creator, viral score, timestamp).",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-latest"
         ],
         "quotes": [
-          "my YouTube channel isn't connected"
+          "add a profile section where users can track their activity or a feed where they can see updates from others"
         ]
       },
       "acceptanceCriteria": [
-        "After a user completes the YouTube OAuth flow, the ChannelConnection component shows the channel as connected on subsequent page loads",
-        "The useYouTubeChannel hook returns a connected status when valid credentials exist in the backend",
-        "The connected state persists across page refreshes without requiring the user to reconnect"
+        "A dedicated Profile page shows the logged-in user's display name, avatar, and a chronological list of their clips and actions",
+        "A Social Feed page lists recent clip activity from all users with creator name, clip title, viral score, and time",
+        "Profile page is accessible from the sidebar navigation",
+        "Social Feed page is accessible from the sidebar navigation"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Fix the clip download functionality so that clicking the download button on a ClipCard successfully triggers a file download in the browser. Investigate the useDownloadClip hook to ensure it correctly fetches the download URL from the backend and that the programmatic browser download trigger (e.g., anchor element click) works as expected. Ensure error states are surfaced to the user if download fails.",
-      "target": "frontend",
+      "text": "Implement an in-app notification system that delivers alerts to users when relevant actions occur (e.g., a clip is processed, a message is received, a hype moment is detected). Notifications should appear as non-blocking popup toasts and be stored in a persistent notification inbox accessible from a bell icon in the header/sidebar.",
+      "target": "both",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-latest"
         ],
         "quotes": [
-          "I still can't download from the website"
+          "Set up a way for users to receive alerts (e.g., email or in-app popups) when certain actions occur"
         ]
       },
       "acceptanceCriteria": [
-        "Clicking the download button on a ClipCard triggers a file download in the browser",
-        "The download hook fetches a valid URL from the backend before triggering the download",
-        "If the download fails, an error toast or message is shown to the user"
+        "A bell icon in the navigation shows an unread count badge",
+        "Clicking the bell opens a dropdown/panel listing recent notifications with message and timestamp",
+        "New notifications appear as toast popups in the corner of the screen",
+        "Backend stores notifications per user principal and marks them as read when viewed"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "In the admin panel's user management section (UserStatusManagement component), display each user's full Principal ID alongside their existing user ID. Add a copy-to-clipboard button next to the Principal ID so admins can easily copy it. The Principal ID should be visible in the user list/search results and in any user detail view within the component.",
+      "text": "Add a Smart Transcription feature: when a YouTube video is loaded, simulate a timestamped transcript by segmenting the video timeline into labeled intervals (e.g., '0:00 - 0:15: [Segment 1]'). Display the transcript in a scrollable panel below the video player. Since server-side speech-to-text is not available, use a placeholder transcript generation approach based on video duration with clearly labeled mock segments.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-latest"
         ],
         "quotes": [
-          "make it show the user principal id in the admin panel in the user and clip management section so I can copy it from the app"
+          "Smart Transcription: Integrate a speech-to-text model. When a video is uploaded, generate a timestamped transcript."
         ]
       },
       "acceptanceCriteria": [
-        "Each user entry in the UserStatusManagement component displays the user's full Principal ID",
-        "A copy-to-clipboard button is present next to each Principal ID",
-        "Clicking the copy button copies the full Principal ID to the clipboard",
-        "The Principal ID is visible in user search results within the component"
+        "After a YouTube video is loaded, a Transcript panel appears below or beside the video",
+        "The transcript shows time-segmented entries with timestamps and text labels",
+        "The transcript panel is scrollable and visually distinct with the Cyberpunk dark styling"
       ]
     },
     {
       "id": "REQ-4",
-      "text": "In the admin panel's clip management section (any clip listing/management view available to admins), display the owner's full Principal ID for each clip alongside existing owner information. Add a copy-to-clipboard button next to each Principal ID so admins can easily copy it.",
+      "text": "Add Text-to-Clip functionality: users can click on any transcript segment row to automatically populate the clip start and end timestamp fields with that segment's time range.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-7"
+          "msg-latest"
         ],
         "quotes": [
-          "make it show the user principal id in the admin panel in the user and clip management section so I can copy it from the app"
+          "Text-to-Clip: Allow users to highlight a sentence in the transcript to automatically set the start and end points of the video clip."
         ]
       },
       "acceptanceCriteria": [
-        "Each clip entry in the admin clip management section displays the clip owner's full Principal ID",
-        "A copy-to-clipboard button is present next to each Principal ID",
-        "Clicking the copy button copies the full Principal ID to the clipboard"
+        "Clicking a transcript segment highlights it and populates the Start Time and End Time fields in ClipTimestampControls",
+        "The selected segment is visually highlighted in the transcript panel",
+        "The clip creation form reflects the selected timestamps immediately"
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "text": "Add a 'Vertical Mode' toggle in the clip preview area. When enabled, display the video clip preview in a 9:16 aspect ratio with a simulated center-crop overlay (represented visually with crop guides on the 16:9 frame), and label it as 'Auto-Reframe: Subject Centered'. This is a UI-only representation since actual video processing is client-side.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Auto-Reframe: Add a 'Vertical Mode' toggle that uses AI face detection to crop horizontal 16:9 video into a 9:16 format, ensuring the subject stays centered."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A 'Vertical Mode' toggle button appears in the clip editor area",
+        "When toggled on, the preview switches to 9:16 aspect ratio with a center-crop visual indicator",
+        "A label 'Auto-Reframe: Subject Centered' appears when vertical mode is active"
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "text": "Implement a visual timeline seek bar below the YouTube player that shows frame-preview thumbnails at scrub positions using YouTube's thumbnail API (e.g., `https://img.youtube.com/vi/{videoId}/0.jpg` tiled). The seek bar should allow clicking to set the current playback position and display the current timestamp in MM:SS:ms format.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Timeline Scrubbing: Implement a visual waveform or frame-preview seek bar for millisecond precision."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A custom seek bar renders below the YouTube player",
+        "Hovering over the seek bar shows a frame thumbnail preview",
+        "Clicking on the seek bar updates the displayed timestamp in MM:SS format",
+        "The current timestamp is displayed in real time"
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "text": "Add three One-Touch Preset buttons to the clip creation area: 'Last 30s', 'Last 60s', and 'Auto-Highlight'. 'Last 30s' and 'Last 60s' set the clip end time to the current playback position and start time to 30 or 60 seconds before it respectively. 'Auto-Highlight' uses the Web Audio API to scan the loaded video's audio for volume peaks and sets the start/end timestamps around the loudest detected segment.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "One-Touch Presets: Add buttons for 'Last 30 Seconds,' 'Last 60 Seconds,' and 'Auto-Highlight' (which detects high-volume audio peaks)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Three preset buttons appear in the clip editor: 'Last 30s', 'Last 60s', 'Auto-Highlight'",
+        "Clicking 'Last 30s' or 'Last 60s' populates the timestamp fields accordingly",
+        "Clicking 'Auto-Highlight' triggers audio analysis and auto-fills timestamps around the peak volume moment",
+        "A loading state is shown while Auto-Highlight is processing"
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "text": "Overhaul the entire application UI to use a Cyberpunk dark theme: deep purple backgrounds (#240046), neon cyan accents (#00f2ff), glassmorphism card panels (frosted glass effect with backdrop-filter blur), high-contrast buttons with neon glow, and smooth CSS transitions between all interactive states. Apply this theme consistently across all pages and components.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Theme: Apply a 'Cyberpunk' dark UI—deep purples (#240046) and neon cyans (#00f2ff), with high-contrast buttons and a sleek, compact layout.",
+          "Modern Aesthetics: Use a dark-mode, glassmorphism UI with neon accents (hex: #00f2ff) and smooth CSS transitions between states."
+        ]
+      },
+      "acceptanceCriteria": [
+        "Background colors use #240046 deep purple as the primary dark base",
+        "All accent colors, borders, and highlights use #00f2ff neon cyan",
+        "Cards and panels use a glassmorphism effect (backdrop-filter blur, semi-transparent backgrounds)",
+        "Buttons have neon glow effects on hover using #00f2ff",
+        "All interactive state changes use smooth CSS transitions (200-300ms)",
+        "Theme is consistent across all pages including admin panel, profile, feed, and clip editor"
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "text": "Add a 'Burn-in Captions' toggle in the clip editor. When enabled, display an animated caption overlay at the bottom of the clip preview that cycles through the transcript segments for the selected clip time range. Style the captions as bold white text on a semi-transparent dark bar, with a fade-in animation per segment.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Caption Overlays: Add a 'Burn-in Captions' feature that places stylized, animated text at the bottom of the video based on the transcript."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A 'Burn-in Captions' toggle appears in the clip editor",
+        "When enabled, caption text animates at the bottom of the clip preview in sync with transcript segments",
+        "Captions have a visually distinct style (bold text, dark background bar, fade-in animation)"
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "text": "Add a Multi-Format Export dropdown to the clip export/download area with three options: 'MP4 (High Res)', 'GIF (Meme Format)', and 'MP3 (Audio Only)'. Each option should trigger the existing download flow with the selected format label appended to the filename. Show a toast notification indicating the selected export format.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Multi-Format Export: Give the user a dropdown to export as MP4 (High Res), GIF (Meme format), or MP3 (Audio only)."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A dropdown selector appears near the download button with three format options",
+        "Selecting a format and clicking download triggers the download with the correct format label",
+        "A toast notification confirms the export format selected"
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "text": "Add a 'Share Clip' button on each ClipCard and in the clip editor that generates a shareable YouTube URL with timestamp parameters (e.g., `https://youtu.be/{videoId}?t={startSeconds}`) and copies it to clipboard. Also provide quick-share buttons labeled 'Share to X' and 'Share to Discord' that open pre-filled share URLs for Twitter/X and a Discord invite respectively.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Direct Share: Add a 'Share to X/Discord' button that generates a temporary public link for the clipped file."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A 'Share Clip' button appears on ClipCard and in the clip editor",
+        "Clicking it copies a YouTube timestamped URL to clipboard with a toast confirmation",
+        "'Share to X' opens a Twitter/X intent URL pre-filled with the clip link",
+        "'Share to Discord' copies the clip link to clipboard with a Discord-ready message format"
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "text": "Add a 'Detect Hype' button in the clip editor that uses the Web Audio API to analyze the loaded video's audio track and places visual markers on the timeline seek bar at timestamps where volume exceeds a threshold (simulating cheering/audio spikes). Each marker should be clickable to jump to that timestamp.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Audio Peak Detection: Implement a 'Detect Hype' button that scans the audio track for volume spikes (screaming, cheering, or loud game sound effects) and automatically places markers at those timestamps."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A 'Detect Hype' button appears in the clip editor",
+        "Clicking it analyzes audio and renders colored markers on the seek bar at detected peak timestamps",
+        "Each marker is clickable and sets the playback position to that timestamp",
+        "A loading indicator is shown while detection runs"
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "text": "Add a 'Smart Clips' suggestion panel that simulates OCR-based killfeed detection by pattern-matching transcript segments for keywords like 'Victory', 'Eliminated', 'Level Up', 'Kill', and 'Win'. Matching segments are highlighted in the transcript and surfaced as clickable Smart Clip suggestions with their timestamps.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Killfeed/UI Scanning: Use OCR (Optical Character Recognition) or basic image detection to identify 'Victory,' 'Eliminated,' or 'Level Up' text on the screen to suggest 'Smart Clips.'"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Transcript segments containing gaming keywords ('Victory', 'Eliminated', 'Level Up', etc.) are highlighted with a special badge",
+        "A 'Smart Clips' panel lists these detected moments with timestamps",
+        "Clicking a Smart Clip suggestion populates the clip timestamp fields"
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "text": "Add a 'TikTokify' preset button in the clip editor that activates a Dual-View Layout preview: a simulated 9:16 vertical frame showing a webcam placeholder at the top half and gameplay video at the bottom half. Include a 'Neon Caption' style toggle that displays transcript text in bold yellow/green (#CCFF00) text with a black stroke, synced to the current playback position.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "TikTokify Auto-Editing",
+          "Dual-View Layout: Create a preset that puts the webcam feed (top) and the gameplay (bottom) in a vertical 9:16 frame automatically.",
+          "Gamer Captions: Add a 'Neon Caption' style (bold, yellow/green text with a black stroke) that follows the transcript and syncs with the audio."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A 'TikTokify' preset button appears in the clip editor",
+        "Activating it shows a 9:16 preview with a webcam placeholder (top) and video (bottom)",
+        "A 'Neon Captions' toggle renders captions in bold yellow-green (#CCFF00) with black stroke at the bottom of the preview",
+        "Captions sync to the current transcript segment based on playback position"
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "text": "Add a 'Slow-Mo' toggle in the clip editor that, when enabled, visually indicates that the last 2 seconds of the clip will be rendered at 0.5x speed. Display a badge on the clip preview labeled 'Slow-Mo: Last 2s @ 0.5x' when active.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Speed Ramping: Add a 'Slow-Mo' toggle that slows down the last 2 seconds of a clip to 0.5x speed for dramatic effect."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A 'Slow-Mo' toggle appears in the clip editor toolbar",
+        "When enabled, a badge 'Slow-Mo: Last 2s @ 0.5x' appears on the clip preview",
+        "The toggle state is preserved when saving clip settings"
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "text": "Add a 'Send to Discord' feature on ClipCard and in the clip editor. Provide an input field where users can enter a Discord webhook URL and a 'Send' button that posts a formatted message containing the clip title, timestamp range, and YouTube URL to the provided webhook via an HTTP POST request from the frontend.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Discord Integration: Add a 'Send to Discord' webhook feature so clips can be pushed directly to a specific channel."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A 'Send to Discord' button appears on ClipCard and in the clip editor",
+        "Clicking it opens a small form with a webhook URL input and Send button",
+        "On submit, a POST request is made to the entered Discord webhook URL with clip details",
+        "A success or error toast is shown after the attempt"
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "text": "Add a 'Meme Overlay' asset library panel in the clip editor. Display a grid of preset sound effect buttons ('Airhorn', 'Bruh', 'Mission Failed', 'Victory Royale') that play the corresponding audio when clicked (using the Web Audio API with synthesized tones as placeholders). Also show placeholder green-screen overlay thumbnail buttons that toggle a color overlay on the clip preview.",
+      "target": "frontend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Asset Library: Include a 'Meme Overlay' folder where users can one-click add sound effects (e.g., 'Airhorn', 'Bruh', 'Mission Failed') or green-screen overlays to their clips."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A 'Meme Overlays' collapsible panel appears in the clip editor",
+        "Sound effect buttons ('Airhorn', 'Bruh', 'Mission Failed', 'Victory Royale') play synthesized audio tones on click",
+        "Green-screen overlay buttons toggle a color tint on the clip preview",
+        "The panel uses the Cyberpunk dark UI styling"
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "text": "Add a 'Mint to Gallery' button on ClipCard and in the clip editor. When clicked, call a backend endpoint that stores the clip's metadata (title, videoId, timestamps, viral score, owner principal) as a permanent 'digital collectible' record in the backend. Display a 'Minted ✓' badge on clips that have been minted, and provide a 'My Gallery' page listing all minted clips for the authenticated user.",
+      "target": "both",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Web3 Integration: Add a 'Mint to Gallery' button for users to save their best plays as permanent digital collectibles on the ICP network."
+        ]
+      },
+      "acceptanceCriteria": [
+        "A 'Mint to Gallery' button appears on ClipCard and in the clip editor",
+        "Clicking it calls a backend function that records the clip as a minted collectible tied to the user's principal",
+        "Minted clips display a 'Minted ✓' badge with neon cyan styling",
+        "A 'My Gallery' page lists all minted collectibles for the logged-in user with their metadata"
+      ]
+    },
+    {
+      "id": "REQ-19",
+      "text": "Update the backend Motoko actor to add data types and storage for: user notifications (per-principal inbox with message, type, timestamp, read status), minted collectibles (clip metadata stored permanently per principal), and social feed entries (recent clip activity across all users). Add query and update methods for CRUD operations on each.",
+      "target": "backend",
+      "source": {
+        "messageIds": [
+          "msg-latest"
+        ],
+        "quotes": [
+          "Notification System",
+          "Web3 Integration: Add a 'Mint to Gallery' button",
+          "a feed where they can see updates from others"
+        ]
+      },
+      "acceptanceCriteria": [
+        "Backend has a `Notification` type with fields: id, recipientPrincipal, message, notificationType, timestamp, isRead",
+        "Backend has a `MintedCollectible` type with fields: clipId, videoId, title, startTime, endTime, viralScore, mintedAt, ownerPrincipal",
+        "Backend has methods: getMyNotifications, markNotificationRead, getMintedCollectibles, mintClip, getSocialFeed",
+        "Social feed returns the 50 most recent clip creation events across all users"
       ]
     }
   ],
   "constraints": [
-    "Do not modify files listed in frontend.immutablePaths",
-    "Do not change the backend data schema or existing actor interfaces unless strictly required to fix the download or YouTube connection bugs"
+    "Do not use external AI/ML APIs (OpenAI, speech-to-text services) — use client-side Web Audio API and simulated/mock data for transcription and audio analysis",
+    "Do not implement real-time WebSockets — use polling for notifications and feed updates",
+    "All video processing (captions, slow-mo, reframe) must be UI-only visual representations, not actual video encoding",
+    "Discord sharing must use client-side fetch to webhook URLs, not a backend proxy",
+    "Do not modify files in frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui"
   ],
   "nonGoals": [
-    "Redesigning the admin panel layout",
-    "Adding new YouTube OAuth scopes or changing the OAuth provider configuration",
-    "Adding Principal ID display outside of the admin panel"
+    "Actual server-side video encoding, transcoding, or FFmpeg processing",
+    "Real speech-to-text or AI face detection API integration",
+    "Email notification delivery",
+    "NFT smart contracts or blockchain token minting (ICP collectibles are stored as backend records only)",
+    "Real-time collaborative editing",
+    "Actual green-screen video compositing",
+    "Webcam capture or live streaming"
   ],
   "imageRequirements": {
-    "required": [],
+    "required": [
+      "Cyberpunk-styled app logo with neon cyan lightning bolt and stylized text on deep purple background (beast-clipping-logo.dim_256x256.png)",
+      "Cyberpunk dark hero banner with neon grid lines, deep purple gradient, and glowing cyan accents (cyberpunk-hero-banner.dim_1200x400.png)",
+      "Meme overlay button icons sheet: airhorn, bruh face, mission failed, victory icons in neon pixel art style on dark background (meme-overlays-icons.dim_512x128.png)"
+    ],
     "edits": []
   }
 }

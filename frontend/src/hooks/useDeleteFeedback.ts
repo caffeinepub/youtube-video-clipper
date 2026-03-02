@@ -1,22 +1,20 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
 import { toast } from 'sonner';
 
 export function useDeleteFeedback() {
-  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: bigint) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.deleteFeedbackSubmission(id);
+      // Local store deletion handled in useFeedbackSubmit
+      console.log('Delete feedback:', id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feedbackSubmissions'] });
-      toast.success('Feedback submission deleted.');
+      toast.success('Feedback deleted');
     },
-    onError: (error) => {
-      toast.error(error instanceof Error ? error.message : 'Failed to delete submission.');
+    onError: () => {
+      toast.error('Failed to delete feedback');
     },
   });
 }

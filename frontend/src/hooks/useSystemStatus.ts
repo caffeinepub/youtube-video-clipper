@@ -1,18 +1,25 @@
-import { useQuery } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import { SystemStatus } from '../backend';
+import { useState, useEffect } from 'react';
+import type { SystemStatus } from '../types/app';
+
+// System status is managed locally since backend doesn't have these methods
+let globalStatus: SystemStatus = 'running';
+let statusListeners: Array<() => void> = [];
+
+export function setGlobalSystemStatus(status: SystemStatus) {
+  globalStatus = status;
+  statusListeners.forEach((fn) => fn());
+}
 
 export function useSystemStatus() {
-  const { actor } = useActor();
+  const [status, setStatus] = useState<SystemStatus>(globalStatus);
 
-  return useQuery<SystemStatus>({
-    queryKey: ['systemStatus'],
-    queryFn: async () => {
-      if (!actor) return SystemStatus.running;
-      return actor.getSystemStatus();
-    },
-    enabled: !!actor,
-    refetchInterval: 10_000,
-    staleTime: 5_000,
-  });
+  useEffect(() => {
+    const fn = () => setStatus(globalStatus);
+    statusListeners.push(fn);
+    return () => {
+      statusListeners = statusListeners.filter((l) => l !== fn);
+    };
+  }, []);
+
+  return { data: status, isLoading: false };
 }

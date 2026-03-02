@@ -1,23 +1,24 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { AdminMessage } from '../backend';
-import { useInternetIdentity } from './useInternetIdentity';
-import { generateShortUserId } from '../utils/userIdGenerator';
+import type { AdminMessage } from '../types/app';
 
-export function useMyMessages() {
+let messagesStore: AdminMessage[] = [];
+
+export function addMessageToStore(msg: AdminMessage) {
+  messagesStore = [msg, ...messagesStore];
+}
+
+export function useMyMessages(myUserId: string) {
   const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
-
-  const principalStr = identity?.getPrincipal().toString() ?? '';
-  const myUserId = principalStr ? generateShortUserId(principalStr) : '';
 
   return useQuery<AdminMessage[]>({
-    queryKey: ['myMessages'],
+    queryKey: ['myMessages', myUserId],
     queryFn: async () => {
-      if (!actor) return [];
-      return actor.getMyMessages(myUserId);
+      return messagesStore.filter(
+        (m) => m.toUserId === myUserId || m.fromUserId === myUserId
+      );
     },
-    enabled: !!actor && !isFetching && !!identity,
-    refetchInterval: 30_000,
+    enabled: !!actor && !isFetching && !!myUserId,
+    staleTime: 10000,
   });
 }

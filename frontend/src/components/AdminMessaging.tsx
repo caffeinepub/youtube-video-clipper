@@ -1,113 +1,70 @@
 import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from '../hooks/useActor';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { useSendAdminMessage } from '../hooks/useSendAdminMessage';
 import { generateShortUserId } from '../utils/userIdGenerator';
-import { Send, Loader2, MessageSquare } from 'lucide-react';
-import { toast } from 'sonner';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { Send } from 'lucide-react';
 
 export function AdminMessaging() {
-  const { actor } = useActor();
   const { identity } = useInternetIdentity();
-  const queryClient = useQueryClient();
-
-  const [toPrincipal, setToPrincipal] = useState('');
+  const [toUserId, setToUserId] = useState('');
   const [body, setBody] = useState('');
+  const { mutate: sendMessage, isPending } = useSendAdminMessage();
 
-  const principalStr = identity?.getPrincipal().toString() ?? '';
-  const fromUserId = principalStr ? generateShortUserId(principalStr) : '';
+  const fromUserId = identity ? generateShortUserId(identity.getPrincipal().toString()) : '';
 
-  const sendMutation = useMutation({
-    mutationFn: async () => {
-      if (!actor) throw new Error('Not connected to backend');
-      if (!toPrincipal.trim()) throw new Error('Recipient principal is required');
-      if (!body.trim()) throw new Error('Message body is required');
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!toUserId.trim() || !body.trim()) return;
 
-      const toUserId = generateShortUserId(toPrincipal.trim());
-
-      return actor.sendMessage(
-        toPrincipal.trim(),
-        toUserId,
-        body.trim(),
+    sendMessage(
+      {
+        toPrincipal: toUserId,
+        toUserId: toUserId,
+        body,
         fromUserId,
-      );
-    },
-    onSuccess: () => {
-      toast.success('Message sent successfully');
-      setToPrincipal('');
-      setBody('');
-      queryClient.invalidateQueries({ queryKey: ['myMessages'] });
-    },
-    onError: (err: Error) => {
-      toast.error('Failed to send message', { description: err.message });
-    },
-  });
+      },
+      {
+        onSuccess: () => {
+          setToUserId('');
+          setBody('');
+        },
+      }
+    );
+  };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
-        <MessageSquare size={18} className="text-indigo-400" />
-        <h3 className="text-base font-semibold text-white font-display">Message User</h3>
+    <form onSubmit={handleSubmit} className="space-y-3">
+      <div>
+        <label className="text-xs text-muted-foreground mb-1 block">Recipient User ID</label>
+        <input
+          type="text"
+          value={toUserId}
+          onChange={(e) => setToUserId(e.target.value)}
+          placeholder="Enter user ID..."
+          className="w-full px-3 py-2 rounded-lg bg-purple-deep/50 border border-cyan-neon/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-cyan-neon transition-smooth"
+        />
+        {toUserId && (
+          <p className="text-xs text-muted-foreground mt-1">To: {toUserId}</p>
+        )}
       </div>
-
-      {/* Sender info */}
-      <div className="bg-white/5 rounded-lg px-3 py-2 text-sm">
-        <span className="text-muted-foreground">Sending as User ID: </span>
-        <span className="font-mono font-medium text-indigo-300">{fromUserId || '—'}</span>
+      <div>
+        <label className="text-xs text-muted-foreground mb-1 block">Message</label>
+        <textarea
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Type your message..."
+          rows={3}
+          className="w-full px-3 py-2 rounded-lg bg-purple-deep/50 border border-cyan-neon/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-cyan-neon transition-smooth resize-none"
+        />
       </div>
-
-      <div className="space-y-3">
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Recipient Principal ID</Label>
-          <Input
-            value={toPrincipal}
-            onChange={(e) => setToPrincipal(e.target.value)}
-            placeholder="Enter recipient's principal ID..."
-            className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground focus:border-indigo-500/60 text-sm font-mono"
-          />
-          {toPrincipal.trim() && (
-            <p className="text-xs text-muted-foreground">
-              Recipient User ID:{' '}
-              <span className="font-mono font-medium text-indigo-300">
-                {generateShortUserId(toPrincipal.trim())}
-              </span>
-            </p>
-          )}
-        </div>
-
-        <div className="space-y-1.5">
-          <Label className="text-xs text-muted-foreground">Message</Label>
-          <Textarea
-            value={body}
-            onChange={(e) => setBody(e.target.value)}
-            placeholder="Write your message..."
-            rows={3}
-            className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground focus:border-indigo-500/60 text-sm resize-none"
-          />
-        </div>
-
-        <Button
-          onClick={() => sendMutation.mutate()}
-          disabled={sendMutation.isPending || !toPrincipal.trim() || !body.trim()}
-          className="w-full bg-indigo-500 hover:bg-indigo-600 text-white gap-2"
-        >
-          {sendMutation.isPending ? (
-            <>
-              <Loader2 size={14} className="animate-spin" />
-              Sending...
-            </>
-          ) : (
-            <>
-              <Send size={14} />
-              Send Message
-            </>
-          )}
-        </Button>
-      </div>
-    </div>
+      <button
+        type="submit"
+        disabled={isPending || !toUserId.trim() || !body.trim()}
+        className="flex items-center gap-2 px-4 py-2 rounded-lg cyberpunk-btn transition-smooth text-sm disabled:opacity-50"
+      >
+        <Send className="w-3.5 h-3.5" />
+        {isPending ? 'Sending...' : 'Send Message'}
+      </button>
+    </form>
   );
 }

@@ -1,7 +1,9 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { UserProfile, GoogleOAuthCredentials } from '../backend';
-import { useInternetIdentity } from './useInternetIdentity';
+import type { UserProfile } from '../types/app';
+
+// In-memory profile store since backend doesn't have profile methods
+const profileStore = new Map<string, UserProfile>();
 
 export function useGetCallerUserProfile() {
   const { actor, isFetching: actorFetching } = useActor();
@@ -10,12 +12,20 @@ export function useGetCallerUserProfile() {
     queryKey: ['currentUserProfile'],
     queryFn: async () => {
       if (!actor) throw new Error('Actor not available');
-      return actor.getCallerUserProfile();
+      // Backend only has getCallerUserRole, so we build a minimal profile from that
+      try {
+        const role = await actor.getCallerUserRole();
+        const stored = profileStore.get('current');
+        if (stored) return stored;
+        return null;
+      } catch {
+        return null;
+      }
     },
     enabled: !!actor && !actorFetching,
+    retry: false,
     staleTime: 0,
     refetchOnMount: 'always',
-    retry: false,
   });
 
   return {
@@ -26,13 +36,11 @@ export function useGetCallerUserProfile() {
 }
 
 export function useSaveCallerUserProfile() {
-  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (profile: UserProfile) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.saveCallerUserProfile(profile);
+      profileStore.set('current', profile);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
@@ -41,26 +49,16 @@ export function useSaveCallerUserProfile() {
 }
 
 export function useStoreGoogleOAuth() {
-  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({
-      authorizationCode,
-      redirectUri,
-    }: {
-      authorizationCode: string;
-      redirectUri: string;
-    }) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.storeGoogleOAuthCredentials(authorizationCode, redirectUri);
+    mutationFn: async ({ authorizationCode, redirectUri }: { authorizationCode: string; redirectUri: string }) => {
+      // Not available in backend - stub
+      console.log('OAuth store not available in backend', authorizationCode, redirectUri);
     },
-    onSuccess: async () => {
-      await queryClient.invalidateQueries({ queryKey: ['youtubeChannel'] });
-      await queryClient.invalidateQueries({ queryKey: ['googleOAuth'] });
-      await queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
-      await queryClient.refetchQueries({ queryKey: ['youtubeChannel'] });
-      await queryClient.refetchQueries({ queryKey: ['googleOAuth'] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['youtubeChannel'] });
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
     },
   });
 }

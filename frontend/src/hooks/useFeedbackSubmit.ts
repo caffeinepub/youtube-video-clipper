@@ -1,29 +1,45 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import { SubmissionType } from '../backend';
 import { toast } from 'sonner';
+import type { SubmissionType, FeedbackSubmission } from '../types/app';
 
-interface SubmitFeedbackParams {
-  submissionType: SubmissionType;
-  title: string;
-  description: string;
+let feedbackStore: FeedbackSubmission[] = [];
+let feedbackIdCounter = 1;
+
+export function getFeedbackStore(): FeedbackSubmission[] {
+  return feedbackStore;
 }
 
 export function useFeedbackSubmit() {
-  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async ({ submissionType, title, description }: SubmitFeedbackParams) => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.submitFeedback(submissionType, title, description);
+    mutationFn: async ({
+      submissionType,
+      title,
+      description,
+    }: {
+      submissionType: SubmissionType;
+      title: string;
+      description: string;
+    }) => {
+      const submission: FeedbackSubmission = {
+        id: BigInt(feedbackIdCounter++),
+        submitterPrincipal: 'local',
+        submitterUserId: 'local',
+        submissionType,
+        title,
+        description,
+        timestamp: Date.now(),
+      };
+      feedbackStore = [submission, ...feedbackStore];
+      return submission;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feedbackSubmissions'] });
-      toast.success('Feedback submitted successfully! Thank you.');
+      toast.success('Feedback submitted!');
     },
-    onError: (error) => {
-      toast.error(error instanceof Error ? error.message : 'Failed to submit feedback. Please try again.');
+    onError: () => {
+      toast.error('Failed to submit feedback');
     },
   });
 }

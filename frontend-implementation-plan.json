@@ -1,95 +1,616 @@
 {
   "kind": "implementation_plan",
   "version": "1.0",
-  "title": "Fix YouTube channel connection status, fix downloads, and show principal IDs in admin panel",
+  "title": "Gaming Clip App: Cyberpunk UI, Social Feed, Hype Detection & Advanced Editing Features",
   "requirements": [
     {
       "id": "REQ-1",
-      "summary": "Fix YouTube channel connection status display to correctly reflect connected state when valid credentials exist",
+      "summary": "Add user profile section with activity history and public social feed showing recent clip activity from all users",
       "acceptanceCriteria": [
-        "After a user completes the YouTube OAuth flow, the ChannelConnection component shows the channel as connected on subsequent page loads",
-        "The useYouTubeChannel hook returns a connected status when valid credentials exist in the backend",
-        "The connected state persists across page refreshes without requiring the user to reconnect"
+        "A dedicated Profile page shows the logged-in user's display name, avatar, and a chronological list of their clips and actions",
+        "A Social Feed page lists recent clip activity from all users with creator name, clip title, viral score, and time",
+        "Profile page is accessible from the sidebar navigation",
+        "Social Feed page is accessible from the sidebar navigation"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useYouTubeChannel.ts",
-          "operation": "modify",
-          "description": "Fix the connected state derivation logic in useYouTubeChannel hook. Ensure the hook correctly reads and returns the connected status from the backend by checking both hasGoogleOAuthCredentials() and isYouTubeChannelConnected(). Update the query logic to properly reflect when a user has already connected their YouTube channel so that ChannelConnection component displays the correct state on page load."
+          "path": "frontend/src/pages/ProfilePage.tsx",
+          "operation": "create",
+          "description": "Create a Profile page that displays the authenticated user's display name, avatar (from their user profile), and a chronological activity history of their clips with titles, timestamps, and viral scores. Use the useGetCallerUserProfile hook to fetch profile data and useClips to fetch the user's clips. Apply Cyberpunk dark theme styling with glassmorphism cards and neon cyan accents."
         },
         {
-          "path": "frontend/src/components/ChannelConnection.tsx",
-          "operation": "modify",
-          "description": "Update the ChannelConnection component to correctly use the connected state from useYouTubeChannel hook. Ensure the component properly displays 'connected' status when valid credentials exist in the backend and handles the loading states appropriately to avoid showing 'not connected' while data is being fetched."
+          "path": "frontend/src/pages/SocialFeedPage.tsx",
+          "operation": "create",
+          "description": "Create a Social Feed page that displays recent clip activity from all users using a backend query. Show each entry with the creator's name (fetched via getUserProfile), clip title, viral score badge, and timestamp. Apply Cyberpunk styling with glassmorphism cards and neon cyan highlights. Include loading and empty states."
         },
         {
-          "path": "frontend/src/pages/OAuthCallback.tsx",
+          "path": "frontend/src/hooks/useSocialFeed.ts",
+          "operation": "create",
+          "description": "Create a React Query hook that fetches the social feed from the backend getSocialFeed method. Poll every 30 seconds for updates. Return an array of feed entries with clip metadata and user principals. Include combined loading and error states."
+        },
+        {
+          "path": "frontend/src/App.tsx",
           "operation": "modify",
-          "description": "Verify that the OAuthCallback page properly invalidates the YouTube channel connection queries after storing credentials, ensuring the updated connected state is reflected immediately after OAuth flow completion. Add query invalidation for both 'googleOAuthCredentials' and 'youtubeChannelConnection' query keys."
+          "description": "Add routes for /profile and /social-feed pages. Wire ProfilePage and SocialFeedPage into the router with appropriate authentication guards using AccountStatusGuard."
+        },
+        {
+          "path": "frontend/src/components/SideNavigation.tsx",
+          "operation": "modify",
+          "description": "Add navigation items for Profile and Social Feed to the sidebar navigation. Use User and Users icons respectively. Filter both items to show only for authenticated users with at least 'user' role."
+        },
+        {
+          "path": "frontend/src/components/BottomNavigation.tsx",
+          "operation": "modify",
+          "description": "Add Profile and Social Feed navigation items to the mobile bottom navigation bar. Ensure role filtering matches the sidebar navigation."
         }
       ]
     },
     {
       "id": "REQ-2",
-      "summary": "Fix clip download functionality to successfully trigger file downloads in the browser",
+      "summary": "Implement in-app notification system with toast popups and persistent notification inbox accessible from a bell icon",
       "acceptanceCriteria": [
-        "Clicking the download button on a ClipCard triggers a file download in the browser",
-        "The download hook fetches a valid URL from the backend before triggering the download",
-        "If the download fails, an error toast or message is shown to the user"
+        "A bell icon in the navigation shows an unread count badge",
+        "Clicking the bell opens a dropdown/panel listing recent notifications with message and timestamp",
+        "New notifications appear as toast popups in the corner of the screen",
+        "Backend stores notifications per user principal and marks them as read when viewed"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useDownloadClip.ts",
-          "operation": "modify",
-          "description": "Fix the download mutation logic to correctly fetch the download URL from the backend via actor.generateDownloadVideoUrl() and ensure the programmatic browser download trigger works. Verify the anchor element creation, URL assignment, click trigger, and cleanup logic. Add proper error handling with toast notifications if the URL fetch or download trigger fails. Ensure the mutation properly awaits the backend response before attempting the download."
+          "path": "frontend/src/hooks/useNotifications.ts",
+          "operation": "create",
+          "description": "Create a React Query hook that fetches the current user's notifications from the backend getMyNotifications method, polling every 15 seconds. Return notifications array with id, message, type, timestamp, and isRead status. Include a mutation to mark notifications as read via backend markNotificationRead."
         },
         {
-          "path": "frontend/src/components/ClipCard.tsx",
+          "path": "frontend/src/components/NotificationBell.tsx",
+          "operation": "create",
+          "description": "Create a notification bell icon component that displays an unread count badge using data from useNotifications. When clicked, open a dropdown panel listing recent notifications with message text and timestamps. Apply Cyberpunk styling with glassmorphism dropdown, neon cyan accents, and smooth transitions. Include a 'Mark All Read' button."
+        },
+        {
+          "path": "frontend/src/components/NotificationToast.tsx",
+          "operation": "create",
+          "description": "Create a toast notification component that displays new notifications as non-blocking popups in the corner of the screen. Use framer-motion for smooth slide-in animations. Style with Cyberpunk dark theme, glassmorphism background, neon cyan border, and auto-dismiss after 5 seconds."
+        },
+        {
+          "path": "frontend/src/hooks/useNotificationPoller.tsx",
+          "operation": "create",
+          "description": "Create a React hook that polls for new notifications and triggers NotificationToast popups when unread notifications are detected. Track previously seen notification IDs in local state to avoid duplicate toasts. Return a NotificationToastContainer component that renders active toast notifications."
+        },
+        {
+          "path": "frontend/src/components/SideNavigation.tsx",
           "operation": "modify",
-          "description": "Verify the ClipCard component correctly wires the download button to the useDownloadClip mutation and passes the required clip parameters (videoId, startTime, endTime). Ensure loading states are shown during download and that error states from the mutation are surfaced to the user via toast notifications."
+          "description": "Add the NotificationBell component to the sidebar header area, positioned near the user profile section. Ensure it's visible only for authenticated users."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Add the NotificationToastContainer from useNotificationPoller to the root App component so toasts appear globally across all pages."
         }
       ]
     },
     {
       "id": "REQ-3",
-      "summary": "Display user Principal IDs with copy-to-clipboard in admin panel's user management section",
+      "summary": "Add Smart Transcription feature with timestamped transcript panel for YouTube videos",
       "acceptanceCriteria": [
-        "Each user entry in the UserStatusManagement component displays the user's full Principal ID",
-        "A copy-to-clipboard button is present next to each Principal ID",
-        "Clicking the copy button copies the full Principal ID to the clipboard",
-        "The Principal ID is visible in user search results within the component"
+        "After a YouTube video is loaded, a Transcript panel appears below or beside the video",
+        "The transcript shows time-segmented entries with timestamps and text labels",
+        "The transcript panel is scrollable and visually distinct with the Cyberpunk dark styling"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/components/UserStatusManagement.tsx",
+          "path": "frontend/src/hooks/useTranscriptGenerator.ts",
+          "operation": "create",
+          "description": "Create a hook that generates a mock timestamped transcript for a YouTube video based on its duration. Segment the timeline into 15-second intervals with placeholder labels like '[Segment 1]', '[Segment 2]', etc. Return an array of transcript entries with startTime, endTime, and text fields."
+        },
+        {
+          "path": "frontend/src/components/TranscriptPanel.tsx",
+          "operation": "create",
+          "description": "Create a scrollable transcript panel component that displays timestamped transcript segments. Each row shows the time range (MM:SS - MM:SS) and segment text. Apply Cyberpunk dark styling with glassmorphism card background, neon cyan borders for rows, and custom scrollbar. Include loading skeleton for when transcript is being generated."
+        },
+        {
+          "path": "frontend/src/pages/MyClipsPage.tsx",
           "operation": "modify",
-          "description": "Add Principal ID display to each user entry in the UserStatusManagement component. Include the full Principal ID alongside the existing user ID (generated from the principal). Add a copy-to-clipboard button next to each Principal ID that uses navigator.clipboard.writeText() to copy the full principal string. Ensure the Principal ID is visible in both the user search results and any user detail views within the component. Use a monospace font for the Principal ID and add a visual confirmation (toast or icon change) when copied successfully."
+          "description": "Add the TranscriptPanel component below the YouTubePlayer component. Pass the current video ID and duration to generate the transcript. Ensure responsive layout with the panel taking full width on mobile and sitting beside the video on desktop."
         }
       ]
     },
     {
       "id": "REQ-4",
-      "summary": "Display clip owner Principal IDs with copy-to-clipboard in admin panel's clip management section",
+      "summary": "Add Text-to-Clip functionality: clicking transcript segments populates clip timestamp fields",
       "acceptanceCriteria": [
-        "Each clip entry in the admin clip management section displays the clip owner's full Principal ID",
-        "A copy-to-clipboard button is present next to each Principal ID",
-        "Clicking the copy button copies the full Principal ID to the clipboard"
+        "Clicking a transcript segment highlights it and populates the Start Time and End Time fields in ClipTimestampControls",
+        "The selected segment is visually highlighted in the transcript panel",
+        "The clip creation form reflects the selected timestamps immediately"
       ],
       "file_operations": [
         {
-          "path": "frontend/src/hooks/useClips.ts",
+          "path": "frontend/src/components/TranscriptPanel.tsx",
           "operation": "modify",
-          "description": "Update the useClips hook to fetch and include the clip owner's Principal ID in the returned clip data. Modify the query to call actor.getAllClips() with admin context and enrich each clip with owner principal information by cross-referencing with user profile data or by updating the backend query to include owner principals directly in the response."
-        },
-        {
-          "path": "frontend/src/components/ClipCard.tsx",
-          "operation": "modify",
-          "description": "Add owner Principal ID display to the ClipCard component when rendered in an admin context. Show the full Principal ID of the clip owner with a copy-to-clipboard button. Use conditional rendering to only show this information when the current user is an admin. Add a monospace font for the Principal ID and visual feedback (toast or icon change) when successfully copied to clipboard."
+          "description": "Add click handlers to each transcript segment row. When clicked, call an onSegmentSelect callback with the segment's start and end times. Visually highlight the selected segment with a neon cyan background and glow effect."
         },
         {
           "path": "frontend/src/pages/MyClipsPage.tsx",
           "operation": "modify",
-          "description": "Update MyClipsPage to conditionally render clip owner Principal IDs when viewed by an admin. Pass an isAdminView prop or context to ClipCard components so they know to display owner principal information. Ensure the page queries include owner data when accessed by an admin user."
+          "description": "Wire the TranscriptPanel's onSegmentSelect callback to populate the ClipTimestampControls component's start and end time fields. Convert segment timestamps to minutes:seconds format and update the input states."
+        },
+        {
+          "path": "frontend/src/components/ClipTimestampControls.tsx",
+          "operation": "modify",
+          "description": "Add a prop to accept external timestamp updates from transcript segment selection. When timestamps are set externally, update the input field states to reflect the new values."
+        }
+      ]
+    },
+    {
+      "id": "REQ-5",
+      "summary": "Add 'Vertical Mode' toggle for 9:16 aspect ratio clip preview with center-crop visual indicator",
+      "acceptanceCriteria": [
+        "A 'Vertical Mode' toggle button appears in the clip editor area",
+        "When toggled on, the preview switches to 9:16 aspect ratio with a center-crop visual indicator",
+        "A label 'Auto-Reframe: Subject Centered' appears when vertical mode is active"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/VerticalModeToggle.tsx",
+          "operation": "create",
+          "description": "Create a toggle button component for Vertical Mode with Cyberpunk styling (neon cyan when active, purple when inactive). Include smooth transition animations and an icon (e.g., aspect ratio icon)."
+        },
+        {
+          "path": "frontend/src/components/ClipPreviewCard.tsx",
+          "operation": "create",
+          "description": "Create a clip preview component that displays the YouTube video embed. When vertical mode is active, apply 9:16 aspect ratio styling and overlay crop guide lines (dashed neon cyan borders) to simulate center-crop framing. Show the 'Auto-Reframe: Subject Centered' label badge when vertical mode is enabled."
+        },
+        {
+          "path": "frontend/src/pages/MyClipsPage.tsx",
+          "operation": "modify",
+          "description": "Add the VerticalModeToggle and ClipPreviewCard components to the clip editor area. Manage vertical mode state and pass it to ClipPreviewCard to control the aspect ratio and crop indicators."
+        }
+      ]
+    },
+    {
+      "id": "REQ-6",
+      "summary": "Implement visual timeline seek bar with frame-preview thumbnails and millisecond precision",
+      "acceptanceCriteria": [
+        "A custom seek bar renders below the YouTube player",
+        "Hovering over the seek bar shows a frame thumbnail preview",
+        "Clicking on the seek bar updates the displayed timestamp in MM:SS format",
+        "The current timestamp is displayed in real time"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/TimelineScrubber.tsx",
+          "operation": "create",
+          "description": "Create a custom timeline seek bar component that renders below the YouTube player. Display a horizontal progress bar styled with Cyberpunk neon cyan fill. On hover, show a tooltip with a frame thumbnail using YouTube's thumbnail API (https://img.youtube.com/vi/{videoId}/0.jpg). On click, calculate the timestamp based on click position and call an onSeek callback. Display the current playback timestamp in MM:SS:ms format below the bar."
+        },
+        {
+          "path": "frontend/src/pages/MyClipsPage.tsx",
+          "operation": "modify",
+          "description": "Add the TimelineScrubber component below the YouTubePlayer. Wire the onSeek callback to update the YouTube player's current time. Track playback progress and pass it to the TimelineScrubber to update the progress bar in real time."
+        },
+        {
+          "path": "frontend/src/components/YouTubePlayer.tsx",
+          "operation": "modify",
+          "description": "Expose methods to seek to a specific timestamp and get the current playback time via a ref. Add an onTimeUpdate callback prop that fires periodically with the current playback position."
+        }
+      ]
+    },
+    {
+      "id": "REQ-7",
+      "summary": "Add three One-Touch Preset buttons: 'Last 30s', 'Last 60s', and 'Auto-Highlight' for quick clip timestamp selection",
+      "acceptanceCriteria": [
+        "Three preset buttons appear in the clip editor: 'Last 30s', 'Last 60s', 'Auto-Highlight'",
+        "Clicking 'Last 30s' or 'Last 60s' populates the timestamp fields accordingly",
+        "Clicking 'Auto-Highlight' triggers audio analysis and auto-fills timestamps around the peak volume moment",
+        "A loading state is shown while Auto-Highlight is processing"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/OnePresets.tsx",
+          "operation": "create",
+          "description": "Create a component with three preset buttons: 'Last 30s', 'Last 60s', and 'Auto-Highlight'. Style buttons with Cyberpunk theme (glassmorphism, neon cyan glow on hover). Include a loading spinner for Auto-Highlight. Wire button clicks to callback props that receive the calculated timestamps."
+        },
+        {
+          "path": "frontend/src/hooks/useAudioPeakDetection.ts",
+          "operation": "create",
+          "description": "Create a hook that uses the Web Audio API to analyze a YouTube video's audio track and detect the loudest volume peak. Return the timestamp of the peak and a loading state. Use a simulated analysis with a 2-second delay for demonstration since direct audio extraction from YouTube embeds is restricted."
+        },
+        {
+          "path": "frontend/src/pages/MyClipsPage.tsx",
+          "operation": "modify",
+          "description": "Add the OneTouchPresets component to the clip editor area above ClipTimestampControls. Wire the 'Last 30s' and 'Last 60s' buttons to set clip timestamps based on current playback position minus 30/60 seconds. Wire 'Auto-Highlight' to trigger audio peak detection and populate timestamps around the detected peak (peak ± 15 seconds)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-8",
+      "summary": "Overhaul entire application UI to use Cyberpunk dark theme with deep purple backgrounds, neon cyan accents, glassmorphism, and smooth transitions",
+      "acceptanceCriteria": [
+        "Background colors use #240046 deep purple as the primary dark base",
+        "All accent colors, borders, and highlights use #00f2ff neon cyan",
+        "Cards and panels use a glassmorphism effect (backdrop-filter blur, semi-transparent backgrounds)",
+        "Buttons have neon glow effects on hover using #00f2ff",
+        "All interactive state changes use smooth CSS transitions (200-300ms)",
+        "Theme is consistent across all pages including admin panel, profile, feed, and clip editor"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/index.css",
+          "operation": "modify",
+          "description": "Update global CSS to use Cyberpunk dark theme colors. Set --background to #240046 (deep purple), --accent and --primary to #00f2ff (neon cyan). Add glassmorphism utility classes (.glass-card, .glass-panel) using backdrop-filter: blur(10px) and semi-transparent backgrounds. Define neon glow utility classes (.neon-glow, .neon-border) using box-shadow and border with #00f2ff. Add smooth transition classes (.transition-smooth) with 200-300ms duration."
+        },
+        {
+          "path": "frontend/tailwind.config.js",
+          "operation": "modify",
+          "description": "Update Tailwind config to include Cyberpunk theme colors: purple-deep (#240046), cyan-neon (#00f2ff). Add custom box-shadow utilities for neon glow effects. Ensure all color tokens reference the new Cyberpunk palette."
+        },
+        {
+          "path": "frontend/src/components/ClipCard.tsx",
+          "operation": "modify",
+          "description": "Apply Cyberpunk styling to ClipCard: glassmorphism card background, neon cyan borders, smooth hover transitions with glow effect. Update badge colors to use cyan-neon for viral scores."
+        },
+        {
+          "path": "frontend/src/components/ViralScoreBadge.tsx",
+          "operation": "modify",
+          "description": "Update ViralScoreBadge styling to use neon cyan (#00f2ff) for high scores and deep purple (#240046) for background with glassmorphism effect."
+        },
+        {
+          "path": "frontend/src/components/SideNavigation.tsx",
+          "operation": "modify",
+          "description": "Apply Cyberpunk theme to sidebar: deep purple background (#240046), glassmorphism effect, neon cyan active state highlights, smooth transitions on navigation items."
+        },
+        {
+          "path": "frontend/src/components/BottomNavigation.tsx",
+          "operation": "modify",
+          "description": "Apply Cyberpunk theme to mobile bottom navigation: deep purple background, glassmorphism, neon cyan active icons, smooth transitions."
+        },
+        {
+          "path": "frontend/src/components/AdminPanel.tsx",
+          "operation": "modify",
+          "description": "Apply Cyberpunk styling to admin panel: glassmorphism collapsible sections, neon cyan section headers, deep purple backgrounds, smooth transitions on expand/collapse."
+        },
+        {
+          "path": "frontend/src/components/AppShell.tsx",
+          "operation": "modify",
+          "description": "Update AppShell layout to use deep purple (#240046) background and ensure glassmorphism effects are applied consistently across all layout sections."
+        }
+      ]
+    },
+    {
+      "id": "REQ-9",
+      "summary": "Add 'Burn-in Captions' toggle with animated caption overlay at the bottom of clip preview",
+      "acceptanceCriteria": [
+        "A 'Burn-in Captions' toggle appears in the clip editor",
+        "When enabled, caption text animates at the bottom of the clip preview in sync with transcript segments",
+        "Captions have a visually distinct style (bold text, dark background bar, fade-in animation)"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/BurnInCaptionsToggle.tsx",
+          "operation": "create",
+          "description": "Create a toggle button component for Burn-in Captions with Cyberpunk styling (neon cyan when active). Include smooth transition animations."
+        },
+        {
+          "path": "frontend/src/components/CaptionOverlay.tsx",
+          "operation": "create",
+          "description": "Create a caption overlay component that displays text at the bottom of the clip preview. Style captions as bold white text on a semi-transparent dark bar (rgba(36, 0, 70, 0.8)). Use framer-motion for fade-in animations when each caption segment appears. Sync caption display to current playback timestamp based on transcript segments."
+        },
+        {
+          "path": "frontend/src/pages/MyClipsPage.tsx",
+          "operation": "modify",
+          "description": "Add BurnInCaptionsToggle to the clip editor toolbar. When enabled, overlay CaptionOverlay on top of the ClipPreviewCard, passing the current transcript segments and playback position to sync captions."
+        }
+      ]
+    },
+    {
+      "id": "REQ-10",
+      "summary": "Add Multi-Format Export dropdown with MP4, GIF, and MP3 options",
+      "acceptanceCriteria": [
+        "A dropdown selector appears near the download button with three format options",
+        "Selecting a format and clicking download triggers the download with the correct format label",
+        "A toast notification confirms the export format selected"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ExportFormatDropdown.tsx",
+          "operation": "create",
+          "description": "Create a dropdown component with three export format options: 'MP4 (High Res)', 'GIF (Meme Format)', 'MP3 (Audio Only)'. Style with Cyberpunk theme (glassmorphism dropdown, neon cyan highlights on hover). Return the selected format via onChange callback."
+        },
+        {
+          "path": "frontend/src/components/ClipCard.tsx",
+          "operation": "modify",
+          "description": "Replace the download button with an ExportFormatDropdown and Download button pair. When download is clicked, append the selected format label to the filename and trigger the existing download flow. Show a toast notification confirming the export format."
+        },
+        {
+          "path": "frontend/src/hooks/useDownloadClip.ts",
+          "operation": "modify",
+          "description": "Add a formatLabel parameter to the download mutation. Append the format label (e.g., '.mp4', '.gif', '.mp3') to the filename before triggering the download."
+        }
+      ]
+    },
+    {
+      "id": "REQ-11",
+      "summary": "Add 'Share Clip' button that generates YouTube timestamped URLs and quick-share buttons for X and Discord",
+      "acceptanceCriteria": [
+        "A 'Share Clip' button appears on ClipCard and in the clip editor",
+        "Clicking it copies a YouTube timestamped URL to clipboard with a toast confirmation",
+        "'Share to X' opens a Twitter/X intent URL pre-filled with the clip link",
+        "'Share to Discord' copies the clip link to clipboard with a Discord-ready message format"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/ShareClipButton.tsx",
+          "operation": "create",
+          "description": "Create a Share Clip button component that generates a YouTube timestamped URL (https://youtu.be/{videoId}?t={startSeconds}) and copies it to clipboard. Show a toast confirmation with 'Copied to clipboard!' message. Style with Cyberpunk theme (glassmorphism, neon cyan glow on hover)."
+        },
+        {
+          "path": "frontend/src/components/QuickShareButtons.tsx",
+          "operation": "create",
+          "description": "Create quick-share buttons for X and Discord. 'Share to X' opens a Twitter intent URL (https://twitter.com/intent/tweet?text=...) pre-filled with the clip link. 'Share to Discord' copies the clip link with a Discord-friendly message format ('Check out this clip: [URL]') and shows a toast. Style with Cyberpunk theme and brand colors (X black, Discord purple)."
+        },
+        {
+          "path": "frontend/src/components/ClipCard.tsx",
+          "operation": "modify",
+          "description": "Add ShareClipButton and QuickShareButtons to the ClipCard action button row. Pass the clip's videoId and start timestamp to generate the shareable URL."
+        },
+        {
+          "path": "frontend/src/pages/MyClipsPage.tsx",
+          "operation": "modify",
+          "description": "Add ShareClipButton and QuickShareButtons to the clip editor toolbar for the currently edited clip."
+        }
+      ]
+    },
+    {
+      "id": "REQ-12",
+      "summary": "Add 'Detect Hype' button that analyzes audio and places clickable markers on the timeline seek bar",
+      "acceptanceCriteria": [
+        "A 'Detect Hype' button appears in the clip editor",
+        "Clicking it analyzes audio and renders colored markers on the seek bar at detected peak timestamps",
+        "Each marker is clickable and sets the playback position to that timestamp",
+        "A loading indicator is shown while detection runs"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/DetectHypeButton.tsx",
+          "operation": "create",
+          "description": "Create a Detect Hype button with Cyberpunk styling (neon cyan glow, glassmorphism). Include a loading spinner icon when analysis is running. Wire onClick to trigger audio peak detection."
+        },
+        {
+          "path": "frontend/src/hooks/useAudioPeakDetection.ts",
+          "operation": "modify",
+          "description": "Extend the audio peak detection hook to return an array of all detected peak timestamps (not just the loudest one). Simulate detecting 3-5 peaks across the video duration. Return loading state while analysis runs."
+        },
+        {
+          "path": "frontend/src/components/TimelineScrubber.tsx",
+          "operation": "modify",
+          "description": "Add support for rendering clickable hype markers on the timeline at specified timestamps. Style markers as small vertical bars with neon cyan color and a pulsing glow effect. When a marker is clicked, call the onSeek callback with that marker's timestamp."
+        },
+        {
+          "path": "frontend/src/pages/MyClipsPage.tsx",
+          "operation": "modify",
+          "description": "Add DetectHypeButton to the clip editor toolbar. When clicked, trigger audio peak detection and pass the detected peak timestamps to TimelineScrubber to render markers. Wire marker clicks to seek the video player to that timestamp."
+        }
+      ]
+    },
+    {
+      "id": "REQ-13",
+      "summary": "Add 'Smart Clips' suggestion panel that highlights gaming keywords in transcript and surfaces them as clickable suggestions",
+      "acceptanceCriteria": [
+        "Transcript segments containing gaming keywords ('Victory', 'Eliminated', 'Level Up', etc.) are highlighted with a special badge",
+        "A 'Smart Clips' panel lists these detected moments with timestamps",
+        "Clicking a Smart Clip suggestion populates the clip timestamp fields"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/hooks/useSmartClipDetection.ts",
+          "operation": "create",
+          "description": "Create a hook that scans transcript segments for gaming keywords ('Victory', 'Eliminated', 'Level Up', 'Kill', 'Win', etc.). Return an array of detected Smart Clip suggestions with segment index, timestamp, and matched keyword. Use pattern-matching on transcript text."
+        },
+        {
+          "path": "frontend/src/components/SmartClipsPanel.tsx",
+          "operation": "create",
+          "description": "Create a Smart Clips panel component that displays detected gaming moments as a list of clickable suggestions. Each suggestion shows the timestamp, matched keyword badge (styled with neon cyan), and a preview snippet. Style with Cyberpunk glassmorphism and smooth transitions. Include empty state when no smart clips are detected."
+        },
+        {
+          "path": "frontend/src/components/TranscriptPanel.tsx",
+          "operation": "modify",
+          "description": "Highlight transcript segments that contain gaming keywords with a special badge (e.g., '⚡ Smart Clip'). Use neon cyan highlighting and a glow effect to make these segments stand out visually."
+        },
+        {
+          "path": "frontend/src/pages/MyClipsPage.tsx",
+          "operation": "modify",
+          "description": "Add SmartClipsPanel next to the TranscriptPanel. When a Smart Clip suggestion is clicked, populate the ClipTimestampControls fields with the suggestion's timestamp range (e.g., keyword timestamp ± 10 seconds)."
+        }
+      ]
+    },
+    {
+      "id": "REQ-14",
+      "summary": "Add 'TikTokify' preset button with Dual-View Layout and Neon Caption style toggle",
+      "acceptanceCriteria": [
+        "A 'TikTokify' preset button appears in the clip editor",
+        "Activating it shows a 9:16 preview with a webcam placeholder (top) and video (bottom)",
+        "A 'Neon Captions' toggle renders captions in bold yellow-green (#CCFF00) with black stroke at the bottom of the preview",
+        "Captions sync to the current transcript segment based on playback position"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/TikTokifyPresetButton.tsx",
+          "operation": "create",
+          "description": "Create a TikTokify preset button with Cyberpunk styling and a TikTok icon. When clicked, activate TikTok mode via a callback."
+        },
+        {
+          "path": "frontend/src/components/DualViewPreview.tsx",
+          "operation": "create",
+          "description": "Create a Dual-View Layout preview component that displays a 9:16 vertical frame. Show a webcam placeholder at the top half (simulated with a gray box labeled 'Webcam') and the gameplay video at the bottom half. Apply Cyberpunk styling with neon cyan borders and glassmorphism."
+        },
+        {
+          "path": "frontend/src/components/NeonCaptionsToggle.tsx",
+          "operation": "create",
+          "description": "Create a Neon Captions toggle button with Cyberpunk styling (neon cyan when active)."
+        },
+        {
+          "path": "frontend/src/components/NeonCaptionOverlay.tsx",
+          "operation": "create",
+          "description": "Create a caption overlay component that displays transcript text in bold yellow-green (#CCFF00) with a black text stroke (-webkit-text-stroke: 2px black). Sync caption display to playback position and transcript segments. Use framer-motion for smooth fade-in animations."
+        },
+        {
+          "path": "frontend/src/pages/MyClipsPage.tsx",
+          "operation": "modify",
+          "description": "Add TikTokifyPresetButton, NeonCaptionsToggle to the clip editor toolbar. When TikTokify is active, replace the standard clip preview with DualViewPreview. When Neon Captions is enabled, overlay NeonCaptionOverlay on the preview."
+        }
+      ]
+    },
+    {
+      "id": "REQ-15",
+      "summary": "Add 'Slow-Mo' toggle that indicates the last 2 seconds will be rendered at 0.5x speed",
+      "acceptanceCriteria": [
+        "A 'Slow-Mo' toggle appears in the clip editor toolbar",
+        "When enabled, a badge 'Slow-Mo: Last 2s @ 0.5x' appears on the clip preview",
+        "The toggle state is preserved when saving clip settings"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/SlowMoToggle.tsx",
+          "operation": "create",
+          "description": "Create a Slow-Mo toggle button with Cyberpunk styling (neon cyan when active, purple when inactive). Include a timer icon and smooth transitions."
+        },
+        {
+          "path": "frontend/src/components/SlowMoBadge.tsx",
+          "operation": "create",
+          "description": "Create a badge component that displays 'Slow-Mo: Last 2s @ 0.5x' styled with Cyberpunk glassmorphism, neon cyan text, and a semi-transparent background. Position it as an overlay on the clip preview."
+        },
+        {
+          "path": "frontend/src/pages/MyClipsPage.tsx",
+          "operation": "modify",
+          "description": "Add SlowMoToggle to the clip editor toolbar. Manage slow-mo state and display SlowMoBadge on the clip preview when slow-mo is enabled. Include slow-mo state when saving clip metadata to backend."
+        }
+      ]
+    },
+    {
+      "id": "REQ-16",
+      "summary": "Add 'Send to Discord' feature with webhook URL input and POST request from frontend",
+      "acceptanceCriteria": [
+        "A 'Send to Discord' button appears on ClipCard and in the clip editor",
+        "Clicking it opens a small form with a webhook URL input and Send button",
+        "On submit, a POST request is made to the entered Discord webhook URL with clip details",
+        "A success or error toast is shown after the attempt"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/SendToDiscordButton.tsx",
+          "operation": "create",
+          "description": "Create a Send to Discord button that opens a modal form when clicked. Style with Cyberpunk theme and Discord brand purple color."
+        },
+        {
+          "path": "frontend/src/components/DiscordWebhookForm.tsx",
+          "operation": "create",
+          "description": "Create a modal form with a webhook URL input field and Send button. Style with Cyberpunk glassmorphism. On submit, validate the webhook URL format and trigger the send mutation."
+        },
+        {
+          "path": "frontend/src/hooks/useSendToDiscord.ts",
+          "operation": "create",
+          "description": "Create a mutation hook that posts a formatted message to a Discord webhook URL via fetch POST. Include clip title, timestamp range, and YouTube URL in the message payload. Return loading, success, and error states. Show toast notifications for success or error."
+        },
+        {
+          "path": "frontend/src/components/ClipCard.tsx",
+          "operation": "modify",
+          "description": "Add SendToDiscordButton to the ClipCard action button row. Pass the clip's metadata to the modal form."
+        },
+        {
+          "path": "frontend/src/pages/MyClipsPage.tsx",
+          "operation": "modify",
+          "description": "Add SendToDiscordButton to the clip editor toolbar for the currently edited clip."
+        }
+      ]
+    },
+    {
+      "id": "REQ-17",
+      "summary": "Add 'Meme Overlay' asset library panel with sound effect buttons and green-screen overlay toggles",
+      "acceptanceCriteria": [
+        "A 'Meme Overlays' collapsible panel appears in the clip editor",
+        "Sound effect buttons ('Airhorn', 'Bruh', 'Mission Failed', 'Victory Royale') play synthesized audio tones on click",
+        "Green-screen overlay buttons toggle a color tint on the clip preview",
+        "The panel uses the Cyberpunk dark UI styling"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MemeOverlayPanel.tsx",
+          "operation": "create",
+          "description": "Create a collapsible Meme Overlay panel with two sections: Sound Effects and Visual Overlays. Use Cyberpunk styling with glassmorphism, neon cyan section headers, and smooth expand/collapse transitions."
+        },
+        {
+          "path": "frontend/src/components/SoundEffectButtons.tsx",
+          "operation": "create",
+          "description": "Create a grid of sound effect buttons ('Airhorn', 'Bruh', 'Mission Failed', 'Victory Royale'). Each button plays a synthesized audio tone when clicked using the Web Audio API (use simple oscillator tones as placeholders). Style with Cyberpunk theme, glassmorphism, and neon cyan glow on hover. Display the generated meme-overlays-icons.dim_512x128.png image as button icons."
+        },
+        {
+          "path": "frontend/src/components/GreenScreenOverlayButtons.tsx",
+          "operation": "create",
+          "description": "Create a grid of green-screen overlay buttons with placeholder thumbnail images. Each button toggles a color tint overlay on the clip preview (e.g., green, red, blue tints). Style with Cyberpunk theme and visual feedback when an overlay is active."
+        },
+        {
+          "path": "frontend/src/hooks/useSoundEffect.ts",
+          "operation": "create",
+          "description": "Create a hook that uses the Web Audio API to generate and play simple synthesized tones for sound effects. Return a playSound function that accepts a tone type parameter."
+        },
+        {
+          "path": "frontend/src/pages/MyClipsPage.tsx",
+          "operation": "modify",
+          "description": "Add MemeOverlayPanel to the clip editor layout, positioned below the clip preview. Wire sound effect buttons to play audio and overlay buttons to apply color tints to the ClipPreviewCard."
+        }
+      ]
+    },
+    {
+      "id": "REQ-18",
+      "summary": "Add 'Mint to Gallery' button that stores clip metadata as a digital collectible and displays a 'Minted ✓' badge",
+      "acceptanceCriteria": [
+        "A 'Mint to Gallery' button appears on ClipCard and in the clip editor",
+        "Clicking it calls a backend function that records the clip as a minted collectible tied to the user's principal",
+        "Minted clips display a 'Minted ✓' badge with neon cyan styling",
+        "A 'My Gallery' page lists all minted collectibles for the logged-in user with their metadata"
+      ],
+      "file_operations": [
+        {
+          "path": "frontend/src/components/MintToGalleryButton.tsx",
+          "operation": "create",
+          "description": "Create a Mint to Gallery button with Cyberpunk styling (glassmorphism, neon cyan glow). Include a sparkle/star icon and a loading state during minting."
+        },
+        {
+          "path": "frontend/src/hooks/useMintClip.ts",
+          "operation": "create",
+          "description": "Create a mutation hook that calls the backend mintClip method with clip metadata (title, videoId, timestamps, viral score). Return loading and error states. Show a toast notification on success or error. Invalidate the minted collectibles query cache on success."
+        },
+        {
+          "path": "frontend/src/components/MintedBadge.tsx",
+          "operation": "create",
+          "description": "Create a 'Minted ✓' badge component styled with neon cyan color, glassmorphism, and a checkmark icon. Include a subtle glow animation."
+        },
+        {
+          "path": "frontend/src/components/ClipCard.tsx",
+          "operation": "modify",
+          "description": "Add MintToGalleryButton to the ClipCard action button row. Display MintedBadge on the card if the clip has been minted (check clip metadata for minted flag)."
+        },
+        {
+          "path": "frontend/src/pages/MyGalleryPage.tsx",
+          "operation": "create",
+          "description": "Create a My Gallery page that fetches and displays all minted collectibles for the authenticated user using a backend query. Show each collectible as a card with thumbnail, title, mint date, and viral score. Apply Cyberpunk styling with glassmorphism cards and neon cyan accents. Include loading and empty states."
+        },
+        {
+          "path": "frontend/src/hooks/useMintedCollectibles.ts",
+          "operation": "create",
+          "description": "Create a React Query hook that fetches the user's minted collectibles from the backend getMintedCollectibles method. Return an array of collectible metadata with combined loading and error states."
+        },
+        {
+          "path": "frontend/src/App.tsx",
+          "operation": "modify",
+          "description": "Add a route for /gallery that renders MyGalleryPage with authentication guard."
+        },
+        {
+          "path": "frontend/src/components/SideNavigation.tsx",
+          "operation": "modify",
+          "description": "Add a 'My Gallery' navigation item to the sidebar with a gallery icon. Filter to show only for authenticated users."
+        },
+        {
+          "path": "frontend/src/components/BottomNavigation.tsx",
+          "operation": "modify",
+          "description": "Add a 'My Gallery' navigation item to the mobile bottom navigation bar."
         }
       ]
     }

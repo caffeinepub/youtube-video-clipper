@@ -1,16 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import type { VideoClip } from '../backend';
+import { getClipsStore } from './useClips';
+import type { VideoClip } from '../types/app';
 
 export function useTrendingClips() {
-  const { actor, isFetching } = useActor();
-
   return useQuery<VideoClip[]>({
     queryKey: ['trendingClips'],
     queryFn: async () => {
-      if (!actor) return [];
-      return actor.getTrendingClips();
+      const clips = getClipsStore();
+      return [...clips].sort((a, b) => b.score - a.score).slice(0, 10);
     },
-    enabled: !!actor && !isFetching,
+    staleTime: 30000,
   });
 }

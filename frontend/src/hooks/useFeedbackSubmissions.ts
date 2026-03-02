@@ -1,16 +1,17 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import type { FeedbackSubmission } from '../backend';
+import { getFeedbackStore } from './useFeedbackSubmit';
+import type { FeedbackSubmission } from '../types/app';
 
 export function useFeedbackSubmissions() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching } = useActor();
 
   return useQuery<FeedbackSubmission[]>({
     queryKey: ['feedbackSubmissions'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getFeedbackSubmissions();
+      return getFeedbackStore();
     },
-    enabled: !!actor && !actorFetching,
+    enabled: !!actor && !isFetching,
+    staleTime: 10000,
   });
 }

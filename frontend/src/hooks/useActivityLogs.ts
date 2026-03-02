@@ -1,19 +1,25 @@
 import { useQuery } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import { ActivityLog } from '../backend';
-import { useIsOwner } from './useIsOwner';
+import type { ActivityLog } from '../types/app';
+
+// In-memory activity log store
+let activityLogs: ActivityLog[] = [];
+
+export function addActivityLog(userPrincipal: string, action: string) {
+  activityLogs = [
+    {
+      id: `log-${Date.now()}`,
+      userPrincipal,
+      action,
+      timestamp: BigInt(Date.now() * 1_000_000),
+    },
+    ...activityLogs,
+  ];
+}
 
 export function useActivityLogs() {
-  const { actor, isFetching } = useActor();
-  const { data: isAdmin } = useIsOwner();
-
   return useQuery<ActivityLog[]>({
     queryKey: ['activityLogs'],
-    queryFn: async () => {
-      if (!actor) return [];
-      return actor.getActivityLogs();
-    },
-    enabled: !!actor && !isFetching && !!isAdmin,
-    refetchInterval: 15_000,
+    queryFn: async () => [...activityLogs],
+    staleTime: 10000,
   });
 }

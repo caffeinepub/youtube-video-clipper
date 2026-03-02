@@ -1,34 +1,34 @@
 import Map "mo:core/Map";
+import Principal "mo:core/Principal";
 import List "mo:core/List";
-import Nat "mo:core/Nat";
 import Time "mo:core/Time";
+import Nat "mo:core/Nat";
 import Float "mo:core/Float";
 import Storage "blob-storage/Storage";
 
 module {
-  type OldAdminMessage = {
-    id : Text;
-    fromPrincipal : Text;
-    toPrincipal : Text;
-    body : Text;
-    sentAt : Time.Time;
-  };
-
-  type OldUserRole = {
+  type UserRole = {
     #owner;
     #admin;
     #user;
     #friend;
   };
 
-  type OldUserStatus = {
+  type SystemStatus = {
+    #running;
+    #restarting;
+    #shutting_down;
+    #paused;
+  };
+
+  type UserStatus = {
     #active;
     #inactive;
     #banned;
     #suspended;
   };
 
-  type OldVideoClip = {
+  type VideoClip = {
     id : Text;
     title : Text;
     videoUrl : Text;
@@ -39,7 +39,7 @@ module {
     score : Float;
   };
 
-  type OldGoogleOAuthCredentials = {
+  type GoogleOAuthCredentials = {
     accessToken : Text;
     refreshToken : Text;
     expiresAt : Time.Time;
@@ -48,7 +48,7 @@ module {
     scope : Text;
   };
 
-  type OldYouTubeChannelAuth = {
+  type YouTubeChannelAuth = {
     accessToken : Text;
     refreshToken : Text;
     channelId : Text;
@@ -56,72 +56,16 @@ module {
     expiresAt : Time.Time;
   };
 
-  type OldUserProfile = {
+  type UserProfile = {
     name : Text;
-    youtubeAuth : ?OldYouTubeChannelAuth;
-    googleOAuthCredentials : ?OldGoogleOAuthCredentials;
-    role : OldUserRole;
-    status : OldUserStatus;
+    youtubeAuth : ?YouTubeChannelAuth;
+    googleOAuthCredentials : ?GoogleOAuthCredentials;
+    role : UserRole;
+    status : UserStatus;
     profilePicture : ?Storage.ExternalBlob;
   };
 
-  type OldScheduledUpload = {
-    id : Text;
-    clipId : Text;
-    scheduledAt : Time.Time;
-    createdAt : Time.Time;
-  };
-
-  type OldContentEntry = {
-    id : Text;
-    title : Text;
-    body : Text;
-    createdAt : Time.Time;
-    updatedAt : Time.Time;
-  };
-
-  type OldActivityLog = {
-    id : Text;
-    userPrincipal : Text;
-    action : Text;
-    timestamp : Time.Time;
-  };
-
-  type OldSystemControlResult = {
-    success : Bool;
-    message : Text;
-  };
-
-  type OldSystemActionLog = {
-    id : Text;
-    action : Text;
-    caller : Principal;
-    timestamp : Time.Time;
-  };
-
-  type OldVideoUploadStats = {
-    hour : Int;
-    count : Nat;
-  };
-
-  type OldSystemStatus = {
-    #running;
-    #restarting;
-    #shutting_down;
-  };
-
-  type OldActor = {
-    systemStatus : OldSystemStatus;
-    videoClips : Map.Map<Text, OldVideoClip>;
-    userProfiles : Map.Map<Principal, OldUserProfile>;
-    adminPrincipals : Map.Map<Principal, ()>;
-    scheduledUploads : Map.Map<Principal, List.List<OldScheduledUpload>>;
-    contentEntries : Map.Map<Text, OldContentEntry>;
-    activityLogs : [OldActivityLog];
-    userMessages : Map.Map<Principal, List.List<OldAdminMessage>>;
-  };
-
-  type NewAdminMessage = {
+  type AdminMessage = {
     id : Text;
     fromPrincipal : Text;
     toPrincipal : Text;
@@ -131,22 +75,32 @@ module {
     sentAt : Time.Time;
   };
 
-  type NewSystemStatus = {
-    #running;
-    #restarting;
-    #shutting_down;
-    #paused;
+  type SystemControlResult = {
+    success : Bool;
+    message : Text;
+  };
+
+  type SystemActionLog = {
+    id : Text;
+    action : Text;
+    caller : Principal;
+    timestamp : Time.Time;
+  };
+
+  type OldActor = {
+    videoClips : Map.Map<Text, VideoClip>;
+    userProfiles : Map.Map<Principal, UserProfile>;
+    adminPrincipals : Map.Map<Principal, ()>;
+    userMessages : Map.Map<Principal, List.List<AdminMessage>>;
+    systemActionLogs : [SystemActionLog];
   };
 
   type NewActor = {
-    videoClips : Map.Map<Text, OldVideoClip>;
-    userProfiles : Map.Map<Principal, OldUserProfile>;
+    videoClips : Map.Map<Text, VideoClip>;
+    userProfiles : Map.Map<Principal, UserProfile>;
     adminPrincipals : Map.Map<Principal, ()>;
-    scheduledUploads : Map.Map<Principal, List.List<OldScheduledUpload>>;
-    contentEntries : Map.Map<Text, OldContentEntry>;
-    activityLogs : [OldActivityLog];
-    userMessages : Map.Map<Principal, List.List<NewAdminMessage>>;
-    systemStatus : NewSystemStatus;
+    userMessages : Map.Map<Principal, List.List<AdminMessage>>;
+    systemActionLogs : [SystemActionLog];
   };
 
   public func run(old : OldActor) : NewActor {
@@ -154,31 +108,8 @@ module {
       videoClips = old.videoClips;
       userProfiles = old.userProfiles;
       adminPrincipals = old.adminPrincipals;
-      scheduledUploads = old.scheduledUploads;
-      contentEntries = old.contentEntries;
-      activityLogs = old.activityLogs;
-      userMessages = convertUserMessages(old.userMessages);
-      systemStatus = #running;
+      userMessages = old.userMessages;
+      systemActionLogs = old.systemActionLogs;
     };
-  };
-
-  func convertUserMessages(oldMessages : Map.Map<Principal, List.List<OldAdminMessage>>) : Map.Map<Principal, List.List<NewAdminMessage>> {
-    oldMessages.map<Principal, List.List<OldAdminMessage>, List.List<NewAdminMessage>>(
-      func(_, oldList) {
-        oldList.map<OldAdminMessage, NewAdminMessage>(
-          func(oldMsg : OldAdminMessage) : NewAdminMessage {
-            {
-              id = oldMsg.id;
-              fromPrincipal = oldMsg.fromPrincipal;
-              toPrincipal = oldMsg.toPrincipal;
-              body = oldMsg.body;
-              sentAt = oldMsg.sentAt;
-              fromUserId = "";
-              toUserId = "";
-            };
-          }
-        );
-      }
-    );
   };
 };

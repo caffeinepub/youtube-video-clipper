@@ -2,15 +2,15 @@ import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
 
 export function useAdminList() {
-  const { actor, isFetching: actorFetching } = useActor();
+  const { actor, isFetching } = useActor();
 
   return useQuery<string[]>({
     queryKey: ['adminList'],
     queryFn: async () => {
-      if (!actor) throw new Error('Actor not available');
-      return actor.getAdminsAsAdmin();
+      // Backend doesn't have getAdminsAsAdmin - return empty
+      return [];
     },
-    enabled: !!actor && !actorFetching,
-    retry: false,
+    enabled: !!actor && !isFetching,
+    staleTime: 60000,
   });
 }

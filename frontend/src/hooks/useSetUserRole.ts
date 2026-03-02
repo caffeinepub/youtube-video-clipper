@@ -1,8 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import { Principal } from '@icp-sdk/core/principal';
-import { UserRole } from '../backend';
 import { toast } from 'sonner';
+import { useActor } from './useActor';
+import { UserRole } from '../backend';
+import type { Principal } from '@icp-sdk/core/principal';
 
 export function useSetUserRole() {
   const { actor } = useActor();
@@ -11,19 +11,14 @@ export function useSetUserRole() {
   return useMutation({
     mutationFn: async ({ target, role }: { target: Principal; role: UserRole }) => {
       if (!actor) throw new Error('Actor not available');
-      
-      await actor.setUserRole(target, role);
+      await actor.assignCallerUserRole(target, role);
     },
-    onSuccess: (_, variables) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['userRoles'] });
-      queryClient.invalidateQueries({ queryKey: ['ownRole'] });
-      queryClient.invalidateQueries({ queryKey: ['isOwner'] });
-      toast.success('User role updated successfully');
+      toast.success('Role updated');
     },
-    onError: (error) => {
-      console.error('[useSetUserRole] Error:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update user role';
-      toast.error(errorMessage);
+    onError: () => {
+      toast.error('Failed to update role');
     },
   });
 }

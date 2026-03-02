@@ -1,34 +1,41 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import { useInternetIdentity } from './useInternetIdentity';
-import { generateShortUserId } from '../utils/userIdGenerator';
 import { toast } from 'sonner';
-
-interface SendMessageParams {
-  toUserId: string; // principal string of recipient
-  body: string;
-}
+import { addMessageToStore } from './useMyMessages';
+import type { AdminMessage } from '../types/app';
 
 export function useSendAdminMessage() {
-  const { actor } = useActor();
-  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
-  const principalStr = identity?.getPrincipal().toString() ?? '';
-  const fromUserId = principalStr ? generateShortUserId(principalStr) : '';
-
   return useMutation({
-    mutationFn: async ({ toUserId, body }: SendMessageParams) => {
-      if (!actor) throw new Error('Actor not available');
-      const recipientUserId = generateShortUserId(toUserId);
-      return actor.sendMessage(toUserId, recipientUserId, body, fromUserId);
+    mutationFn: async ({
+      toPrincipal,
+      toUserId,
+      body,
+      fromUserId,
+    }: {
+      toPrincipal: string;
+      toUserId: string;
+      body: string;
+      fromUserId: string;
+    }) => {
+      const msg: AdminMessage = {
+        id: `msg-${Date.now()}`,
+        fromPrincipal: 'local',
+        toPrincipal,
+        fromUserId,
+        toUserId,
+        body,
+        sentAt: BigInt(Date.now() * 1_000_000),
+      };
+      addMessageToStore(msg);
+      return msg;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['activityLogs'] });
-      toast.success('Message sent successfully');
+      queryClient.invalidateQueries({ queryKey: ['myMessages'] });
+      toast.success('Message sent');
     },
-    onError: (error: Error) => {
-      toast.error(`Failed to send message: ${error.message}`);
+    onError: () => {
+      toast.error('Failed to send message');
     },
   });
 }

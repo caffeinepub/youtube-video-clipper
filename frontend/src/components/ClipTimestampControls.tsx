@@ -1,12 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import React, { useEffect, useState } from 'react';
 import { Loader2, Save, Scissors } from 'lucide-react';
 import { useClipTimestamps } from '../hooks/useClipTimestamps';
 import { useClipCreation } from '../hooks/useClipCreation';
 import { toast } from 'sonner';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface ClipTimestampControlsProps {
   videoUrl: string;
@@ -40,7 +38,9 @@ export default function ClipTimestampControls({
     isValid,
   } = useClipTimestamps();
 
-  const { createClip, isCreating } = useClipCreation();
+  // useClipCreation now returns UseMutationResult directly
+  const clipCreationMutation = useClipCreation();
+  const isCreating = clipCreationMutation.isPending;
 
   const formatTimeDisplay = (minutes: string, seconds: string): string => {
     const mins = parseInt(minutes) || 0;
@@ -81,10 +81,12 @@ export default function ClipTimestampControls({
     const thumbnailUrl = `https://img.youtube.com/vi/${videoId}/maxresdefault.jpg`;
 
     try {
-      await createClip(title.trim(), videoUrl, thumbnailUrl, startTime, endTime);
-
-      toast.success('Clip saved!', {
-        description: `"${title}" has been saved successfully`,
+      await clipCreationMutation.mutateAsync({
+        title: title.trim(),
+        videoUrl,
+        thumbnailUrl,
+        startTime,
+        endTime,
       });
 
       if (onClipSaved) {
@@ -98,109 +100,100 @@ export default function ClipTimestampControls({
       setEndMinutes('0');
       setEndSeconds('0');
     } catch (error) {
-      toast.error('Failed to save clip', {
-        description: error instanceof Error ? error.message : 'An error occurred',
-      });
+      // Error toast is handled in the mutation
     }
   };
 
   return (
-    <Card className="bg-transparent border-0 shadow-none p-0">
-      <CardHeader className="px-0 pt-0">
-        <CardTitle className="flex items-center gap-2 text-white">
-          <Scissors className="w-5 h-5 text-indigo-400" />
-          Create Clip
-        </CardTitle>
-        <CardDescription>
-          Set the start and end timestamps for your clip
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4 px-0">
+    <div className="glass-card rounded-2xl p-4 border border-cyan-neon/20 space-y-4">
+      <div className="flex items-center gap-2">
+        <Scissors className="w-4 h-4 text-cyan-neon" />
+        <h3 className="font-orbitron text-xs text-cyan-neon">CREATE CLIP</h3>
+      </div>
+
+      <div className="space-y-2">
+        <Label className="text-xs text-muted-foreground">Clip Title</Label>
+        <input
+          placeholder="Enter clip title..."
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          className="w-full px-3 py-2 rounded-lg bg-purple-deep/50 border border-cyan-neon/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-cyan-neon transition-smooth"
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label htmlFor="title" className="text-muted-foreground text-xs">Clip Title</Label>
-          <Input
-            id="title"
-            placeholder="Enter clip title"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground focus:border-indigo-500/60"
-          />
+          <Label className="text-xs text-muted-foreground">Start Time</Label>
+          <div className="flex gap-2 items-center">
+            <Input
+              type="number"
+              min="0"
+              placeholder="MM"
+              value={startMinutes}
+              onChange={(e) => setStartMinutes(e.target.value)}
+              className="w-20 bg-purple-deep/50 border-cyan-neon/20 text-foreground focus:border-cyan-neon"
+            />
+            <span className="text-muted-foreground">:</span>
+            <Input
+              type="number"
+              min="0"
+              max="59"
+              placeholder="SS"
+              value={startSeconds}
+              onChange={(e) => setStartSeconds(e.target.value)}
+              className="w-20 bg-purple-deep/50 border-cyan-neon/20 text-foreground focus:border-cyan-neon"
+            />
+          </div>
+          <p className="text-xs text-muted-foreground font-mono">
+            {formatTimeDisplay(startMinutes, startSeconds)}
+          </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-muted-foreground text-xs">Start Time</Label>
-            <div className="flex gap-2 items-center">
-              <Input
-                type="number"
-                min="0"
-                placeholder="MM"
-                value={startMinutes}
-                onChange={(e) => setStartMinutes(e.target.value)}
-                className="w-20 bg-white/5 border-white/10 text-white focus:border-indigo-500/60"
-              />
-              <span className="text-muted-foreground">:</span>
-              <Input
-                type="number"
-                min="0"
-                max="59"
-                placeholder="SS"
-                value={startSeconds}
-                onChange={(e) => setStartSeconds(e.target.value)}
-                className="w-20 bg-white/5 border-white/10 text-white focus:border-indigo-500/60"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {formatTimeDisplay(startMinutes, startSeconds)}
-            </p>
+        <div className="space-y-2">
+          <Label className="text-xs text-muted-foreground">End Time</Label>
+          <div className="flex gap-2 items-center">
+            <Input
+              type="number"
+              min="0"
+              placeholder="MM"
+              value={endMinutes}
+              onChange={(e) => setEndMinutes(e.target.value)}
+              className="w-20 bg-purple-deep/50 border-cyan-neon/20 text-foreground focus:border-cyan-neon"
+            />
+            <span className="text-muted-foreground">:</span>
+            <Input
+              type="number"
+              min="0"
+              max="59"
+              placeholder="SS"
+              value={endSeconds}
+              onChange={(e) => setEndSeconds(e.target.value)}
+              className="w-20 bg-purple-deep/50 border-cyan-neon/20 text-foreground focus:border-cyan-neon"
+            />
           </div>
-
-          <div className="space-y-2">
-            <Label className="text-muted-foreground text-xs">End Time</Label>
-            <div className="flex gap-2 items-center">
-              <Input
-                type="number"
-                min="0"
-                placeholder="MM"
-                value={endMinutes}
-                onChange={(e) => setEndMinutes(e.target.value)}
-                className="w-20 bg-white/5 border-white/10 text-white focus:border-indigo-500/60"
-              />
-              <span className="text-muted-foreground">:</span>
-              <Input
-                type="number"
-                min="0"
-                max="59"
-                placeholder="SS"
-                value={endSeconds}
-                onChange={(e) => setEndSeconds(e.target.value)}
-                className="w-20 bg-white/5 border-white/10 text-white focus:border-indigo-500/60"
-              />
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {formatTimeDisplay(endMinutes, endSeconds)}
-            </p>
-          </div>
+          <p className="text-xs text-muted-foreground font-mono">
+            {formatTimeDisplay(endMinutes, endSeconds)}
+          </p>
         </div>
+      </div>
 
-        <Button
-          onClick={handleSaveClip}
-          disabled={isCreating || !isValid || !title.trim()}
-          className="w-full bg-indigo-500 hover:bg-indigo-600 text-white"
-        >
-          {isCreating ? (
-            <>
-              <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Saving...
-            </>
-          ) : (
-            <>
-              <Save className="w-4 h-4 mr-2" />
-              Save Clip
-            </>
-          )}
-        </Button>
-      </CardContent>
-    </Card>
+      <button
+        onClick={handleSaveClip}
+        disabled={isCreating || !isValid || !title.trim()}
+        className="w-full flex items-center justify-center gap-2 py-2 rounded-lg cyberpunk-btn transition-smooth text-sm font-semibold disabled:opacity-50"
+      >
+        {isCreating ? (
+          <>
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Saving...
+          </>
+        ) : (
+          <>
+            <Save className="w-4 h-4" />
+            Save Clip
+          </>
+        )}
+      </button>
+    </div>
   );
 }

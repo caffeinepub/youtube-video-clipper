@@ -1,50 +1,55 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import { VideoClip } from '../backend';
-import { useInternetIdentity } from './useInternetIdentity';
-import { useState } from 'react';
-import { toast } from 'sonner';
+import type { VideoClip } from '../types/app';
+
+// In-memory clip store since backend doesn't have clip methods
+let clipsStore: VideoClip[] = [];
+let clipsListeners: Array<() => void> = [];
+
+export function notifyClipsListeners() {
+  clipsListeners.forEach((fn) => fn());
+}
+
+export function addClipToStore(clip: VideoClip) {
+  clipsStore = [clip, ...clipsStore];
+  notifyClipsListeners();
+}
+
+export function removeClipFromStore(id: string) {
+  clipsStore = clipsStore.filter((c) => c.id !== id);
+  notifyClipsListeners();
+}
+
+export function getClipsStore(): VideoClip[] {
+  return clipsStore;
+}
 
 export function useClips() {
-  const { actor, isFetching } = useActor();
-  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
-  const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
 
   const query = useQuery<VideoClip[]>({
-    queryKey: ['myClips', identity?.getPrincipal().toString()],
+    queryKey: ['clips'],
     queryFn: async () => {
-      if (!actor) return [];
-      return actor.getAllClips('');
+      return [...clipsStore];
     },
-    enabled: !!actor && !isFetching && !!identity,
+    staleTime: 0,
+    refetchOnMount: 'always',
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (clipId: string) => {
-      if (!actor) throw new Error('Actor not available');
-      setIsDeletingId(clipId);
-      await actor.deleteClip(clipId);
-      try {
-        await actor.logUserActivity('clip_deleted');
-      } catch (_) {}
+      removeClipFromStore(clipId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myClips'] });
-      queryClient.invalidateQueries({ queryKey: ['trendingClips'] });
-      queryClient.invalidateQueries({ queryKey: ['activityLogs'] });
-      setIsDeletingId(null);
-      toast.success('Clip deleted');
-    },
-    onError: (error: Error) => {
-      setIsDeletingId(null);
-      toast.error(`Failed to delete clip: ${error.message}`);
+      queryClient.invalidateQueries({ queryKey: ['clips'] });
     },
   });
 
   return {
-    ...query,
+    data: query.data ?? [],
+    isLoading: query.isLoading,
+    error: query.error,
     deleteClip: deleteMutation.mutate,
-    isDeletingId,
+    isDeleting: deleteMutation.isPending,
+    deletingId: deleteMutation.variables,
   };
 }

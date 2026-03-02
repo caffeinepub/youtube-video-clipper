@@ -1,181 +1,152 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from '@tanstack/react-router';
 import {
-  Home,
-  Scissors,
-  TrendingUp,
-  Calendar,
-  FileText,
-  Shield,
-  LogOut,
-  Zap,
-  Bug,
-  MessageSquare,
+  Scissors, TrendingUp, MessageSquare, LogOut, LogIn,
+  User, Users, Sparkles, Bell, Loader2, FileText
 } from 'lucide-react';
 import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { useQueryClient } from '@tanstack/react-query';
 import { useGetCallerUserProfile } from '../hooks/useQueries';
 import { useGetOwnRole } from '../hooks/useGetOwnRole';
-import UserRoleBadge from './UserRoleBadge';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { UserRole } from '../backend';
+import { useIsOwner } from '../hooks/useIsOwner';
 import FeedbackModal from './FeedbackModal';
-
-function getGreeting(): string {
-  const hour = new Date().getHours();
-  if (hour < 12) return 'Good morning';
-  if (hour < 17) return 'Good afternoon';
-  return 'Good evening';
-}
-
-const navItems = [
-  { path: '/', label: 'Dashboard', icon: Home, roles: ['owner', 'admin', 'user', 'friend'] },
-  { path: '/clips', label: 'My Clips', icon: Scissors, roles: ['owner', 'admin', 'user', 'friend'] },
-  { path: '/trending', label: 'Trending', icon: TrendingUp, roles: ['owner', 'admin', 'user', 'friend'] },
-  { path: '/scheduler', label: 'Scheduler', icon: Calendar, roles: ['owner', 'admin', 'user', 'friend'] },
-  { path: '/messages', label: 'Messages', icon: MessageSquare, roles: ['owner', 'admin', 'user', 'friend'] },
-  { path: '/content-manager', label: 'Content', icon: FileText, roles: ['owner', 'admin'] },
-  { path: '/admin', label: 'Admin Panel', icon: Shield, roles: ['owner', 'admin'] },
-];
+import NotificationBell from './NotificationBell';
 
 export default function SideNavigation() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { clear, identity } = useInternetIdentity();
+  const { login, clear, loginStatus, identity } = useInternetIdentity();
   const queryClient = useQueryClient();
   const { data: userProfile } = useGetCallerUserProfile();
-  const { data: ownRole } = useGetOwnRole();
+  const { data: userRole } = useGetOwnRole();
+  const { data: isAdmin } = useIsOwner();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
 
   const isAuthenticated = !!identity;
-  const greeting = getGreeting();
-  const userName = userProfile?.name || 'User';
-  const userInitials = userName.slice(0, 2).toUpperCase();
+  const isLoggingIn = loginStatus === 'logging-in';
 
-  // Normalize role to string for comparison
-  const roleStr = ownRole
-    ? (typeof ownRole === 'object' ? Object.keys(ownRole)[0] : String(ownRole))
-    : null;
+  const handleAuth = async () => {
+    if (isAuthenticated) {
+      await clear();
+      queryClient.clear();
+    } else {
+      try {
+        await login();
+      } catch (error: any) {
+        if (error.message === 'User is already authenticated') {
+          await clear();
+          setTimeout(() => login(), 300);
+        }
+      }
+    }
+  };
 
-  const filteredNavItems = navItems.filter(item => {
-    if (!roleStr) return item.roles.includes('user');
-    return item.roles.includes(roleStr);
+  const navItems = [
+    { path: '/', label: 'My Clips', icon: Scissors, requireAuth: false },
+    { path: '/trending', label: 'Trending', icon: TrendingUp, requireAuth: false },
+    { path: '/social', label: 'Social Feed', icon: Users, requireAuth: true },
+    { path: '/profile', label: 'Profile', icon: User, requireAuth: true },
+    { path: '/gallery', label: 'My Gallery', icon: Sparkles, requireAuth: true },
+    { path: '/messages', label: 'Messages', icon: MessageSquare, requireAuth: true },
+    { path: '/content', label: 'Content', icon: FileText, requireAuth: true, adminOnly: true },
+  ];
+
+  const visibleItems = navItems.filter(item => {
+    if (item.adminOnly && !isAdmin) return false;
+    if (item.requireAuth && !isAuthenticated) return false;
+    return true;
   });
 
-  const handleLogout = async () => {
-    await clear();
-    queryClient.clear();
-  };
-
-  const isActive = (path: string) => {
-    if (path === '/') return location.pathname === '/';
-    return location.pathname.startsWith(path);
-  };
-
-  let profilePicUrl: string | undefined;
-  if (userProfile?.profilePicture) {
-    profilePicUrl = userProfile.profilePicture.getDirectURL();
-  }
-
-  // Convert roleStr to UserRole enum for UserRoleBadge
-  const userRoleEnum: UserRole | null = roleStr ? (roleStr as UserRole) : null;
-
   return (
-    <>
-      <aside className="w-64 h-screen flex flex-col bg-white/3 backdrop-blur-xl border-r border-white/8 sticky top-0">
-        {/* Logo */}
-        <div className="p-6 border-b border-white/8">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-indigo-500 flex items-center justify-center indigo-glow-sm">
-              <Zap className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <h1 className="font-display font-bold text-white text-lg leading-none">Beast</h1>
-              <p className="text-indigo-400 text-xs font-medium tracking-wider uppercase">Clipping</p>
-            </div>
+    <div className="w-64 h-screen flex flex-col glass-panel border-r border-cyan-neon/20 sticky top-0">
+      {/* Logo */}
+      <div className="p-4 border-b border-cyan-neon/20">
+        <div className="flex items-center gap-3">
+          <img
+            src="/assets/generated/beast-clipping-logo.dim_256x256.png"
+            alt="Beast Clipping"
+            className="w-10 h-10 rounded-lg"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+          <div>
+            <h1 className="font-orbitron text-sm font-bold neon-text">BEAST</h1>
+            <p className="font-orbitron text-xs text-cyan-neon/60">CLIPPING</p>
           </div>
         </div>
+      </div>
 
-        {/* User Profile */}
-        {isAuthenticated && (
-          <div className="p-4 border-b border-white/8">
-            <div className="glass-card p-3 rounded-xl">
-              <div className="flex items-center gap-3 mb-2">
-                <Avatar className="w-10 h-10 ring-2 ring-indigo-500/40">
-                  {profilePicUrl && <AvatarImage src={profilePicUrl} alt={userName} />}
-                  <AvatarFallback className="bg-indigo-600 text-white text-sm font-semibold">
-                    {userInitials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-white font-semibold text-sm truncate">{userName}</p>
-                  {userRoleEnum && (
-                    <UserRoleBadge role={userRoleEnum} size="sm" />
-                  )}
-                </div>
+      {/* User Info */}
+      {isAuthenticated && (
+        <div className="p-4 border-b border-cyan-neon/20">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-full bg-cyan-neon/20 border border-cyan-neon/40 flex items-center justify-center shrink-0">
+                <User className="w-4 h-4 text-cyan-neon" />
               </div>
-              <p className="text-muted-foreground text-xs">
-                {greeting},{' '}
-                <span className="text-indigo-400 font-medium">{userName.split(' ')[0]}</span> 👋
-              </p>
+              <div>
+                <p className="text-xs font-semibold text-foreground truncate max-w-[100px]">
+                  {userProfile?.name || 'Player'}
+                </p>
+                <p className="text-xs text-muted-foreground capitalize">{userRole || 'user'}</p>
+              </div>
             </div>
+            <NotificationBell />
           </div>
-        )}
-
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
-          {filteredNavItems.map((item) => {
-            const Icon = item.icon;
-            const active = isActive(item.path);
-            return (
-              <button
-                key={item.path}
-                onClick={() => navigate({ to: item.path })}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  active
-                    ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 indigo-glow-sm'
-                    : 'text-muted-foreground hover:text-white hover:bg-white/5'
-                }`}
-              >
-                <Icon className={`w-4 h-4 flex-shrink-0 ${active ? 'text-indigo-400' : ''}`} />
-                {item.label}
-                {active && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-indigo-400" />
-                )}
-              </button>
-            );
-          })}
-        </nav>
-
-        {/* Footer */}
-        <div className="p-4 border-t border-white/8 space-y-2">
-          {/* Report a Bug / Request a Feature */}
-          {isAuthenticated && (
-            <button
-              onClick={() => setFeedbackOpen(true)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-indigo-300 hover:bg-indigo-500/10 transition-all duration-200"
-            >
-              <Bug className="w-4 h-4" />
-              Report a Bug / Feature
-            </button>
-          )}
-
-          {isAuthenticated && (
-            <button
-              onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </button>
-          )}
-          <p className="text-center text-xs text-muted-foreground/50 pt-1">
-            © {new Date().getFullYear()} Beast Clipping
-          </p>
         </div>
-      </aside>
+      )}
+
+      {/* Navigation Items */}
+      <nav className="flex-1 p-3 space-y-1 overflow-y-auto scrollbar-cyber">
+        {visibleItems.map((item) => {
+          const Icon = item.icon;
+          const isActive = location.pathname === item.path;
+          return (
+            <button
+              key={item.path}
+              onClick={() => navigate({ to: item.path })}
+              className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-smooth text-left ${
+                isActive
+                  ? 'cyberpunk-btn-active neon-text font-semibold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-cyan-neon/5'
+              }`}
+            >
+              <Icon className={`w-4 h-4 shrink-0 ${isActive ? 'text-cyan-neon' : ''}`} />
+              <span className="text-sm font-rajdhani">{item.label}</span>
+            </button>
+          );
+        })}
+      </nav>
+
+      {/* Footer Actions */}
+      <div className="p-3 border-t border-cyan-neon/20 space-y-2">
+        {isAuthenticated && (
+          <button
+            onClick={() => setFeedbackOpen(true)}
+            className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-cyan-neon/5 transition-smooth text-sm"
+          >
+            <Bell className="w-4 h-4" />
+            <span>Feedback</span>
+          </button>
+        )}
+        <button
+          onClick={handleAuth}
+          disabled={isLoggingIn}
+          className="w-full flex items-center gap-3 px-3 py-2 rounded-lg transition-smooth text-sm cyberpunk-btn"
+        >
+          {isLoggingIn ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : isAuthenticated ? (
+            <LogOut className="w-4 h-4" />
+          ) : (
+            <LogIn className="w-4 h-4" />
+          )}
+          <span>{isLoggingIn ? 'Logging in...' : isAuthenticated ? 'Logout' : 'Login'}</span>
+        </button>
+      </div>
 
       <FeedbackModal open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
-    </>
+    </div>
   );
 }

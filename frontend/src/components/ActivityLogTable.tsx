@@ -1,91 +1,59 @@
 import React, { useState } from 'react';
-import { Activity, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useActivityLogs } from '../hooks/useActivityLogs';
-import { Skeleton } from '@/components/ui/skeleton';
 import { generateShortUserId } from '../utils/userIdGenerator';
-
-function formatDate(timestamp: bigint): string {
-  const date = new Date(Number(timestamp) / 1_000_000);
-  return date.toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  });
-}
+import { Search, Activity } from 'lucide-react';
+import { formatDistanceToNow } from 'date-fns';
 
 export default function ActivityLogTable() {
+  const { data: logs = [], isLoading } = useActivityLogs();
   const [search, setSearch] = useState('');
-  const { data: logs, isLoading } = useActivityLogs();
 
-  const filtered = (logs ?? []).filter(
-    (log) =>
-      log.action.toLowerCase().includes(search.toLowerCase()) ||
-      log.userPrincipal.toLowerCase().includes(search.toLowerCase())
+  const filtered = logs.filter(
+    (l) =>
+      l.action.toLowerCase().includes(search.toLowerCase()) ||
+      l.userPrincipal.toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center justify-between gap-3 flex-wrap">
-        <div className="flex items-center gap-2">
-          <Activity size={18} className="text-indigo-400" />
-          <h3 className="text-base font-semibold text-white font-display">Activity Logs</h3>
-          {logs && (
-            <span className="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 text-xs">
-              {logs.length}
-            </span>
-          )}
-        </div>
-        <div className="relative">
-          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="Filter by action..."
-            className="pl-8 bg-white/5 border-white/10 text-white placeholder:text-muted-foreground focus:border-indigo-500/60 text-sm w-48"
-          />
-        </div>
+      <div className="relative">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search logs..."
+          className="w-full pl-9 pr-3 py-2 rounded-lg bg-purple-deep/50 border border-cyan-neon/20 text-foreground text-sm placeholder:text-muted-foreground focus:outline-none focus:border-cyan-neon transition-smooth"
+        />
       </div>
 
       {isLoading ? (
         <div className="space-y-2">
-          {[...Array(5)].map((_, i) => (
-            <Skeleton key={i} className="h-10 w-full rounded-lg bg-white/5" />
+          {[1, 2, 3].map((i) => (
+            <div key={i} className="h-10 rounded-lg bg-cyan-neon/5 animate-pulse" />
           ))}
         </div>
       ) : filtered.length === 0 ? (
         <div className="text-center py-8 text-muted-foreground text-sm">
-          {search ? 'No logs match your filter.' : 'No activity logs yet.'}
+          <Activity className="w-8 h-8 mx-auto mb-2 opacity-30" />
+          <p>No activity logs yet</p>
         </div>
       ) : (
-        <div className="overflow-x-auto max-h-64 overflow-y-auto scrollbar-thin rounded-xl border border-white/5">
-          <Table>
-            <TableHeader>
-              <TableRow className="border-white/5 hover:bg-transparent">
-                <TableHead className="text-indigo-300 text-xs">User ID</TableHead>
-                <TableHead className="text-indigo-300 text-xs">Action</TableHead>
-                <TableHead className="text-indigo-300 text-xs">Timestamp</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {filtered.slice(0, 100).map((log) => (
-                <TableRow key={log.id} className="border-white/5 hover:bg-white/3">
-                  <TableCell className="text-xs font-mono text-muted-foreground">
-                    {generateShortUserId(log.userPrincipal)}
-                  </TableCell>
-                  <TableCell className="text-xs text-white/80 max-w-[200px] truncate">
-                    {log.action}
-                  </TableCell>
-                  <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                    {formatDate(log.timestamp)}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+        <div className="space-y-2">
+          {filtered.map((log) => (
+            <div
+              key={log.id}
+              className="flex items-center gap-3 p-3 rounded-xl bg-cyan-neon/5 border border-cyan-neon/10 text-sm"
+            >
+              <span className="text-xs text-muted-foreground font-mono shrink-0">
+                #{generateShortUserId(log.userPrincipal)}
+              </span>
+              <span className="text-foreground flex-1">{log.action}</span>
+              <span className="text-xs text-muted-foreground shrink-0">
+                {formatDistanceToNow(new Date(Number(log.timestamp) / 1_000_000), { addSuffix: true })}
+              </span>
+            </div>
+          ))}
         </div>
       )}
     </div>
