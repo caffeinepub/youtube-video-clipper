@@ -1,35 +1,47 @@
-import React from 'react';
-import { Zap, TrendingUp, Minus } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { TrendingUp, Flame, Sparkles } from 'lucide-react';
 
 interface ViralScoreBadgeProps {
   score: number;
+  showLabel?: boolean;
+  size?: 'sm' | 'default' | 'lg';
 }
 
-export default function ViralScoreBadge({ score }: ViralScoreBadgeProps) {
-  const numScore = typeof score === 'number' ? score : Number(score) || 0;
+export default function ViralScoreBadge({ score, showLabel = true, size = 'default' }: ViralScoreBadgeProps) {
+  const getScoreColor = (score: number) => {
+    if (score >= 80) return 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20';
+    if (score >= 50) return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20';
+    return 'bg-slate-500/10 text-slate-600 dark:text-slate-400 border-slate-500/20';
+  };
 
-  if (numScore >= 80) {
-    return (
-      <span className="flex items-center gap-1 text-xs font-orbitron px-2 py-0.5 rounded-full bg-cyan-neon/20 border border-cyan-neon/50 text-cyan-neon neon-glow-sm">
-        <Zap className="w-3 h-3" />
-        {numScore.toFixed(0)}
-      </span>
-    );
-  }
+  const getIcon = (score: number) => {
+    if (score >= 80) return <Flame className="w-3 h-3" />;
+    if (score >= 50) return <TrendingUp className="w-3 h-3" />;
+    return <Sparkles className="w-3 h-3" />;
+  };
 
-  if (numScore >= 50) {
-    return (
-      <span className="flex items-center gap-1 text-xs font-orbitron px-2 py-0.5 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-400">
-        <TrendingUp className="w-3 h-3" />
-        {numScore.toFixed(0)}
-      </span>
-    );
-  }
+  const getLabel = (score: number) => {
+    if (score >= 80) return 'High Viral Potential';
+    if (score >= 50) return 'Medium Viral Potential';
+    return 'Low Viral Potential';
+  };
+
+  const sizeClasses = {
+    sm: 'text-xs px-2 py-0.5',
+    default: 'text-sm px-2.5 py-1',
+    lg: 'text-base px-3 py-1.5'
+  };
 
   return (
-    <span className="flex items-center gap-1 text-xs font-orbitron px-2 py-0.5 rounded-full bg-white/5 border border-white/10 text-muted-foreground">
-      <Minus className="w-3 h-3" />
-      {numScore.toFixed(0)}
-    </span>
+    <Badge 
+      variant="outline" 
+      className={`${getScoreColor(score)} ${sizeClasses[size]} font-medium flex items-center gap-1.5 w-fit`}
+    >
+      {getIcon(score)}
+      <span>{score}%</span>
+      {showLabel && size !== 'sm' && (
+        <span className="hidden sm:inline">• {getLabel(score)}</span>
+      )}
+    </Badge>
   );
 }

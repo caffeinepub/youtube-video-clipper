@@ -1,8 +1,8 @@
 import React from 'react';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import UserMessages from '../components/UserMessages';
 import { MessageSquare, LogIn } from 'lucide-react';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
 import { Button } from '@/components/ui/button';
+import UserMessages from '../components/UserMessages';
 
 export default function MessagesPage() {
   const { identity, login, loginStatus } = useInternetIdentity();
@@ -10,29 +10,34 @@ export default function MessagesPage() {
 
   if (!isAuthenticated) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen gap-4 p-8">
-        <MessageSquare size={64} className="text-muted-foreground/30" />
-        <h2 className="text-xl font-semibold text-foreground">Sign in to view messages</h2>
-        <p className="text-muted-foreground text-center max-w-sm">
-          Connect with Internet Identity to access your messages.
+      <div className="flex flex-col items-center justify-center min-h-[60vh] gap-4 px-4">
+        <MessageSquare className="w-12 h-12 text-muted-foreground opacity-40" />
+        <h2 className="text-xl font-semibold text-white">Sign in to view messages</h2>
+        <p className="text-muted-foreground text-sm text-center">
+          You need to be logged in to access your messages.
         </p>
         <Button
           onClick={() => login()}
           disabled={loginStatus === 'logging-in'}
-          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+          className="gap-2 bg-indigo-500 hover:bg-indigo-600"
         >
-          <LogIn size={16} className="mr-2" />
-          {loginStatus === 'logging-in' ? 'Logging in...' : 'Login'}
+          <LogIn className="w-4 h-4" />
+          {loginStatus === 'logging-in' ? 'Logging in…' : 'Login'}
         </Button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="p-4 md:p-6 max-w-2xl mx-auto">
       <div className="flex items-center gap-3 mb-6">
-        <MessageSquare size={24} className="text-primary" />
-        <h1 className="text-2xl font-bold text-foreground">Messages</h1>
+        <div className="w-10 h-10 rounded-xl bg-indigo-500/20 flex items-center justify-center">
+          <MessageSquare className="w-5 h-5 text-indigo-400" />
+        </div>
+        <div>
+          <h1 className="text-white font-bold text-2xl font-display">My Messages</h1>
+          <p className="text-muted-foreground text-sm">Messages from admins and replies</p>
+        </div>
       </div>
       <UserMessages />
     </div>

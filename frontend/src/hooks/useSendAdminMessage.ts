@@ -4,30 +4,31 @@ import { useInternetIdentity } from './useInternetIdentity';
 import { generateShortUserId } from '../utils/userIdGenerator';
 import { toast } from 'sonner';
 
+interface SendMessageParams {
+  toUserId: string; // principal string of recipient
+  body: string;
+}
+
 export function useSendAdminMessage() {
   const { actor } = useActor();
   const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
 
+  const principalStr = identity?.getPrincipal().toString() ?? '';
+  const fromUserId = principalStr ? generateShortUserId(principalStr) : '';
+
   return useMutation({
-    mutationFn: async (params: { toPrincipal: string; toUserId: string; body: string }) => {
+    mutationFn: async ({ toUserId, body }: SendMessageParams) => {
       if (!actor) throw new Error('Actor not available');
-      const fromPrincipal = identity?.getPrincipal().toString() || '';
-      const fromUserId = fromPrincipal ? generateShortUserId(fromPrincipal) : 'admin';
-      await (actor as any).sendMessage?.({
-        toPrincipal: params.toPrincipal,
-        toUserId: params.toUserId,
-        body: params.body,
-        fromUserId,
-        fromPrincipal,
-      });
+      const recipientUserId = generateShortUserId(toUserId);
+      return actor.sendMessage(toUserId, recipientUserId, body, fromUserId);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['myMessages'] });
-      toast.success('Message sent successfully!');
+      queryClient.invalidateQueries({ queryKey: ['activityLogs'] });
+      toast.success('Message sent successfully');
     },
-    onError: (err: any) => {
-      toast.error(`Failed to send message: ${err.message}`);
+    onError: (error: Error) => {
+      toast.error(`Failed to send message: ${error.message}`);
     },
   });
 }

@@ -1,68 +1,96 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
 import { useAddAdmin } from '../hooks/useAddAdmin';
 import AdminList from './AdminList';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { UserPlus } from 'lucide-react';
-import { toast } from 'sonner';
 
 export default function AdminManagement() {
-  const [principalId, setPrincipalId] = useState('');
-  const addAdmin = useAddAdmin();
+  const [userId, setUserId] = useState('');
+  const [successMessage, setSuccessMessage] = useState('');
+  const { mutate: addAdmin, isPending, error } = useAddAdmin();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!principalId.trim()) {
-      toast.error('Please enter a principal ID');
+    
+    if (!userId.trim()) {
       return;
     }
-    try {
-      await addAdmin.mutateAsync(principalId.trim());
-      toast.success('Admin added successfully!');
-      setPrincipalId('');
-    } catch (err: any) {
-      toast.error(`Failed to add admin: ${err.message}`);
-    }
+
+    addAdmin(userId.trim(), {
+      onSuccess: () => {
+        setSuccessMessage('Admin added successfully!');
+        setUserId('');
+        setTimeout(() => setSuccessMessage(''), 3000);
+      },
+    });
   };
 
   return (
-    <div className="space-y-4">
-      <div className="bg-card rounded-lg border border-border/50 p-4 space-y-3">
-        <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-          <UserPlus size={16} className="text-primary" />
-          Add New Admin
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="space-y-1">
-            <Label className="text-xs text-muted-foreground">Principal ID</Label>
-            <Input
-              value={principalId}
-              onChange={(e) => setPrincipalId(e.target.value)}
-              placeholder="Enter principal ID..."
-              className="bg-background border-border text-foreground text-sm font-mono"
-            />
-          </div>
-          <Button
-            type="submit"
-            disabled={addAdmin.isPending || !principalId.trim()}
-            className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-            size="sm"
-          >
-            {addAdmin.isPending ? (
-              <span className="flex items-center gap-2">
-                <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-foreground" />
-                Adding...
-              </span>
-            ) : (
-              <span className="flex items-center gap-2">
-                <UserPlus size={14} />
-                Add Admin
-              </span>
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Add New Admin</CardTitle>
+          <CardDescription>
+            Grant admin access to a user by entering their full Principal ID
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="userId">Principal ID</Label>
+              <Input
+                id="userId"
+                type="text"
+                placeholder="Enter full principal ID (e.g., 2vxsx-fae...)"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+                disabled={isPending}
+                className="font-mono text-sm"
+              />
+              <p className="text-xs text-muted-foreground">
+                Note: You must enter the full Principal ID, not the short User ID displayed in the header.
+              </p>
+            </div>
+
+            {successMessage && (
+              <Alert className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                <AlertDescription className="text-green-800 dark:text-green-200">
+                  {successMessage}
+                </AlertDescription>
+              </Alert>
             )}
-          </Button>
-        </form>
-      </div>
+
+            {error && (
+              <Alert variant="destructive">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  {error instanceof Error ? error.message : 'Failed to add admin'}
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <Button type="submit" disabled={isPending || !userId.trim()} className="w-full">
+              {isPending ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                  Adding Admin...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  Add Admin
+                </>
+              )}
+            </Button>
+          </form>
+        </CardContent>
+      </Card>
+
       <AdminList />
     </div>
   );

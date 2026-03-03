@@ -1,59 +1,62 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
+import { ScheduledUpload } from '../backend';
 import { toast } from 'sonner';
-import type { ScheduledUpload } from '../types/app';
-
-let scheduledStore: ScheduledUpload[] = [];
-let scheduledIdCounter = 1;
+import { useInternetIdentity } from './useInternetIdentity';
 
 export function useScheduledUploads() {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
 
   return useQuery<ScheduledUpload[]>({
     queryKey: ['scheduledUploads'],
-    queryFn: async () => [...scheduledStore],
-    enabled: !!actor && !isFetching,
-    staleTime: 30000,
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getMyScheduledUploads();
+    },
+    enabled: !!actor && !isFetching && !!identity,
   });
 }
 
 export function useAddScheduledUpload() {
+  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ clipId, scheduledAt }: { clipId: string; scheduledAt: bigint }) => {
-      const entry: ScheduledUpload = {
-        id: `sched-${scheduledIdCounter++}`,
-        clipId,
-        scheduledAt,
-        createdAt: BigInt(Date.now() * 1_000_000),
-      };
-      scheduledStore = [entry, ...scheduledStore];
-      return entry.id;
+      if (!actor) throw new Error('Actor not available');
+      const id = await actor.addScheduledUpload(clipId, scheduledAt);
+      try {
+        await actor.logUserActivity('scheduler_add');
+      } catch (_) {}
+      return id;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduledUploads'] });
-      toast.success('Upload scheduled');
+      queryClient.invalidateQueries({ queryKey: ['activityLogs'] });
+      toast.success('Upload scheduled successfully');
     },
-    onError: () => {
-      toast.error('Failed to schedule upload');
+    onError: (error: Error) => {
+      toast.error(`Failed to schedule upload: ${error.message}`);
     },
   });
 }
 
 export function useDeleteScheduledUpload() {
+  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (entryId: string) => {
-      scheduledStore = scheduledStore.filter((e) => e.id !== entryId);
+      if (!actor) throw new Error('Actor not available');
+      return actor.deleteScheduledUpload(entryId);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['scheduledUploads'] });
-      toast.success('Schedule removed');
+      toast.success('Scheduled upload removed');
     },
-    onError: () => {
-      toast.error('Failed to remove schedule');
+    onError: (error: Error) => {
+      toast.error(`Failed to remove scheduled upload: ${error.message}`);
     },
   });
 }

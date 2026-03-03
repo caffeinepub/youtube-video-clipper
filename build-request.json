@@ -1,163 +1,91 @@
 {
   "kind": "build_request",
-  "title": "Restore v69 features: user profiles, admin panel, YouTube connection, feedback button, trending, and messaging",
+  "title": "Fix YouTube channel connection status, fix downloads, and show principal IDs in admin panel",
   "projectName": "Beast Clipping",
   "priority": "high",
   "requirements": [
     {
       "id": "REQ-1",
-      "text": "Restore the user profile/account functionality: ensure ProfilePage displays the authenticated user's principal ID, display name, stats (total clips, average score, viral clips count), and a chronological clip activity list. Ensure ProfileSetup modal fires on first login to collect a display name. Ensure UserIdDisplay, UserRoleBadge, and related profile hooks (useQueries, useGetOwnRole) are wired up and visible in the UI.",
+      "text": "Fix the YouTube channel connection status display so that when a user has already connected their YouTube channel (i.e., valid Google OAuth credentials are stored in the backend), the ChannelConnection component correctly reflects the connected state instead of showing 'not connected'. Investigate the useYouTubeChannel hook and the OAuthCallback flow to ensure the stored credentials are being read and the connected status is correctly derived and returned.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-7"
         ],
         "quotes": [
-          "the user stuff"
+          "my YouTube channel isn't connected"
         ]
       },
       "acceptanceCriteria": [
-        "Authenticated users can navigate to their profile page and see their display name, principal ID, and clip stats",
-        "ProfileSetup modal appears on first login for new users",
-        "UserRoleBadge and UserIdDisplay are rendered correctly in the profile and sidebar"
+        "After a user completes the YouTube OAuth flow, the ChannelConnection component shows the channel as connected on subsequent page loads",
+        "The useYouTubeChannel hook returns a connected status when valid credentials exist in the backend",
+        "The connected state persists across page refreshes without requiring the user to reconnect"
       ]
     },
     {
       "id": "REQ-2",
-      "text": "Restore the full AdminPanel: ensure it renders collapsible sections for system controls (pause/resume/restart/shutdown via SystemControls), analytics (AppAnalytics with clip counts and upload bar chart), user management (UserStatusManagement for listing/searching/managing user roles and statuses), admin messaging (AdminMessaging to send messages to specific users), feedback submissions (FeedbackSubmissions list with delete), activity logs (ActivityLogTable), admin list/management (AdminManagement, AdminList), and the AdminDebugPanel. The panel must only be visible to owner-role users.",
+      "text": "Fix the clip download functionality so that clicking the download button on a ClipCard successfully triggers a file download in the browser. Investigate the useDownloadClip hook to ensure it correctly fetches the download URL from the backend and that the programmatic browser download trigger (e.g., anchor element click) works as expected. Ensure error states are surfaced to the user if download fails.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-7"
         ],
         "quotes": [
-          "the admin panel"
+          "I still can't download from the website"
         ]
       },
       "acceptanceCriteria": [
-        "Admin panel is visible only to users with owner role",
-        "All collapsible sections (system controls, analytics, user management, messaging, feedback, activity logs) are present and functional",
-        "Admins can send messages to users, manage roles/statuses, delete feedback, and view activity logs"
+        "Clicking the download button on a ClipCard triggers a file download in the browser",
+        "The download hook fetches a valid URL from the backend before triggering the download",
+        "If the download fails, an error toast or message is shown to the user"
       ]
     },
     {
       "id": "REQ-3",
-      "text": "Restore the YouTube channel connection UI: ensure ChannelConnection component is displayed in the Scheduler page and/or sidebar, using the useYouTubeChannel hook to show connected or disconnected state. Ensure the Scheduler page renders the YouTube channel connection status alongside the scheduled uploads list and clip scheduling form.",
+      "text": "In the admin panel's user management section (UserStatusManagement component), display each user's full Principal ID alongside their existing user ID. Add a copy-to-clipboard button next to the Principal ID so admins can easily copy it. The Principal ID should be visible in the user list/search results and in any user detail view within the component.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-7"
         ],
         "quotes": [
-          "the YouTube connection stuff"
+          "make it show the user principal id in the admin panel in the user and clip management section so I can copy it from the app"
         ]
       },
       "acceptanceCriteria": [
-        "ChannelConnection component is visible on the Scheduler page",
-        "Connected/disconnected state is shown based on useYouTubeChannel hook",
-        "Scheduler page allows selecting a clip and datetime and shows existing scheduled uploads"
+        "Each user entry in the UserStatusManagement component displays the user's full Principal ID",
+        "A copy-to-clipboard button is present next to each Principal ID",
+        "Clicking the copy button copies the full Principal ID to the clipboard",
+        "The Principal ID is visible in user search results within the component"
       ]
     },
     {
       "id": "REQ-4",
-      "text": "Restore the Report a Bug / Request a Feature button: ensure the FeedbackModal trigger button is present in both the SideNavigation (desktop) and BottomNavigation (mobile). The modal must allow users to choose between 'Bug Report' and 'Feature Request' types and submit a title and description via the useFeedbackSubmit hook.",
+      "text": "In the admin panel's clip management section (any clip listing/management view available to admins), display the owner's full Principal ID for each clip alongside existing owner information. Add a copy-to-clipboard button next to each Principal ID so admins can easily copy it.",
       "target": "frontend",
       "source": {
         "messageIds": [
-          "msg-4"
+          "msg-7"
         ],
         "quotes": [
-          "the report a bug / request a feature button"
+          "make it show the user principal id in the admin panel in the user and clip management section so I can copy it from the app"
         ]
       },
       "acceptanceCriteria": [
-        "A feedback button is visible in the sidebar on desktop and in the bottom navigation on mobile",
-        "Clicking it opens FeedbackModal with Bug Report and Feature Request options",
-        "Submissions are stored and visible in the admin panel's FeedbackSubmissions section"
-      ]
-    },
-    {
-      "id": "REQ-5",
-      "text": "Restore the Trending Now section: ensure TrendingPage is accessible via navigation and renders the top trending clips sorted by viral/trending score, including the TrendingSidebar top-5 leaderboard and a responsive grid of ClipCards. Ensure the 'Trending' nav link appears in SideNavigation and BottomNavigation for all users (authenticated and anonymous).",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "trending now"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Trending page is accessible from both desktop sidebar and mobile bottom nav",
-        "Top trending clips are displayed in ranked order with viral scores",
-        "TrendingSidebar top-5 leaderboard is visible on the trending page"
-      ]
-    },
-    {
-      "id": "REQ-6",
-      "text": "Restore messaging functionality: ensure the MessagesPage is accessible via navigation for authenticated users, displaying the UserMessages component which lists the user's messages and allows viewing individual messages and composing replies. Ensure the 'Messages' nav item appears in SideNavigation and BottomNavigation for authenticated users. Ensure useSendAdminMessage and useMyMessages hooks are correctly wired to the message store.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "messaging"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Authenticated users can navigate to a Messages page from sidebar and bottom nav",
-        "Users can view received messages and send replies",
-        "Admin messaging from the admin panel correctly delivers messages visible in the user's message list"
-      ]
-    },
-    {
-      "id": "REQ-7",
-      "text": "Restore the Social Feed: ensure SocialFeedPage is accessible via navigation, showing recent clip creation activity from all users with avatar initials, clip thumbnails, time ranges, and relative timestamps. Ensure the 'Feed' nav link appears in SideNavigation and BottomNavigation.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "the stuff I had in version 69"
-        ]
-      },
-      "acceptanceCriteria": [
-        "Social feed page is accessible from navigation",
-        "Feed displays clip activity items with user avatars, thumbnails, and timestamps",
-        "Loading skeletons and empty state are shown appropriately"
-      ]
-    },
-    {
-      "id": "REQ-8",
-      "text": "Ensure all navigation links — Clips, Trending, Feed, Gallery, Profile, Messages, Scheduler — are present and correctly routed in both SideNavigation (desktop) and BottomNavigation (mobile), filtered appropriately by authentication state. Confirm that all routes defined in App.tsx correspond to their respective page components.",
-      "target": "frontend",
-      "source": {
-        "messageIds": [
-          "msg-4"
-        ],
-        "quotes": [
-          "Add back all of the past stuff"
-        ]
-      },
-      "acceptanceCriteria": [
-        "All main nav links are visible and working on both desktop and mobile",
-        "Auth-gated links (Gallery, Profile, Messages) only appear when the user is logged in",
-        "All routes resolve to the correct page components without 404 errors"
+        "Each clip entry in the admin clip management section displays the clip owner's full Principal ID",
+        "A copy-to-clipboard button is present next to each Principal ID",
+        "Clicking the copy button copies the full Principal ID to the clipboard"
       ]
     }
   ],
   "constraints": [
-    "Preserve the cyberpunk dark theme introduced in version 70 — do not revert the visual styling",
-    "Do not modify files under frontend/src/hooks/useInternetIdentity.ts, frontend/src/hooks/useActor.ts, frontend/src/main.tsx, or frontend/src/components/ui",
-    "All Motoko logic must remain in the single backend/main.mo actor file"
+    "Do not modify files listed in frontend.immutablePaths",
+    "Do not change the backend data schema or existing actor interfaces unless strictly required to fix the download or YouTube connection bugs"
   ],
   "nonGoals": [
-    "Reverting the cyberpunk UI redesign from version 70",
-    "Implementing real YouTube OAuth token exchange (stub/disconnected state is acceptable)",
-    "Fixing the preset buttons (Last 30s, Last 60s, Auto-Highlight) — that is a separate known issue"
+    "Redesigning the admin panel layout",
+    "Adding new YouTube OAuth scopes or changing the OAuth provider configuration",
+    "Adding Principal ID display outside of the admin panel"
   ],
   "imageRequirements": {
     "required": [],

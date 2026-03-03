@@ -1,46 +1,54 @@
 import { useQuery } from '@tanstack/react-query';
 import { useActor } from './useActor';
-import { getClipsStore } from './useClips';
-import type { TrendingClipAnalytics } from '../types/app';
+import type { TrendingClipAnalytics } from '../backend';
 
 export function useAdminStats() {
   const { actor, isFetching } = useActor();
 
-  return useQuery({
-    queryKey: ['adminStats'],
+  const totalClipsQuery = useQuery<bigint>({
+    queryKey: ['adminStats', 'totalClips'],
     queryFn: async () => {
-      const clips = getClipsStore();
-      const totalClips = clips.length;
-
-      const trendingAnalytics: TrendingClipAnalytics[] = clips
-        .sort((a, b) => b.score - a.score)
-        .slice(0, 10)
-        .map((c) => ({
-          id: c.id,
-          title: c.title,
-          scoreMetrics: c.score,
-          trendingScore: c.score,
-        }));
-
-      const videoUploadStats = Array.from({ length: 12 }, (_, i) => ({
-        hour: i * 2,
-        count: Math.floor(Math.random() * 5),
-      }));
-
-      return { totalClips, trendingAnalytics, videoUploadStats };
+      if (!actor) {
+        throw new Error('Actor not available');
+      }
+      try {
+        const result = await actor.getTotalClipsCount();
+        console.log('[useAdminStats] Total clips count:', result);
+        return result;
+      } catch (error) {
+        console.error('[useAdminStats] Error fetching total clips:', error);
+        throw error;
+      }
     },
     enabled: !!actor && !isFetching,
-    staleTime: 60000,
+    retry: 2,
+    staleTime: 10000,
   });
-}
 
-// Named exports for direct use
-export function useTotalClips() {
-  const { data } = useAdminStats();
-  return data?.totalClips ?? 0;
-}
+  const trendingAnalyticsQuery = useQuery<TrendingClipAnalytics[]>({
+    queryKey: ['adminStats', 'trendingAnalytics'],
+    queryFn: async () => {
+      if (!actor) {
+        throw new Error('Actor not available');
+      }
+      try {
+        const result = await actor.getTrendingClipsAnalytics();
+        console.log('[useAdminStats] Trending analytics:', result);
+        return result;
+      } catch (error) {
+        console.error('[useAdminStats] Error fetching trending analytics:', error);
+        throw error;
+      }
+    },
+    enabled: !!actor && !isFetching,
+    retry: 2,
+    staleTime: 10000,
+  });
 
-export function useTrendingAnalytics() {
-  const { data } = useAdminStats();
-  return data?.trendingAnalytics ?? [];
+  return {
+    totalClips: totalClipsQuery.data,
+    trendingAnalytics: trendingAnalyticsQuery.data || [],
+    isLoading: totalClipsQuery.isLoading || trendingAnalyticsQuery.isLoading,
+    error: totalClipsQuery.error || trendingAnalyticsQuery.error,
+  };
 }

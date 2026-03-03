@@ -1,55 +1,95 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { toast } from 'sonner';
-import { addClipToStore } from './useClips';
-import type { VideoClip } from '../types/app';
+import { useActor } from './useActor';
 
-interface CreateClipParams {
-  title: string;
-  videoUrl: string;
-  thumbnailUrl: string;
-  startTime: number;
-  endTime: number;
-}
+// Calculate a viral potential score based on clip characteristics
+function calculateViralScore(startTime: number, endTime: number, title: string): number {
+  const duration = endTime - startTime;
+  
+  // Ideal duration for viral clips: 15-60 seconds
+  let durationScore = 0;
+  if (duration >= 15 && duration <= 60) {
+    durationScore = 100;
+  } else if (duration < 15) {
+    durationScore = (duration / 15) * 100;
+  } else if (duration <= 90) {
+    durationScore = 100 - ((duration - 60) / 30) * 30;
+  } else {
+    durationScore = Math.max(0, 70 - ((duration - 90) / 30) * 10);
+  }
 
-function calculateViralScore(params: CreateClipParams): number {
-  const duration = params.endTime - params.startTime;
-  let score = 50;
-  if (duration >= 15 && duration <= 60) score += 20;
-  if (duration < 15) score += 10;
-  if (params.title.length > 10) score += 10;
-  const keywords = ['epic', 'clutch', 'insane', 'crazy', 'best', 'win', 'kill', 'ace'];
-  if (keywords.some((k) => params.title.toLowerCase().includes(k))) score += 20;
-  return Math.min(100, score);
+  // Title engagement factors
+  let titleScore = 50;
+  const titleLower = title.toLowerCase();
+  const viralKeywords = ['epic', 'insane', 'crazy', 'amazing', 'unbelievable', 'shocking', 'best', 'worst', 'fail', 'win', 'moment', 'reaction'];
+  const hasViralKeyword = viralKeywords.some(keyword => titleLower.includes(keyword));
+  if (hasViralKeyword) titleScore += 20;
+  if (title.includes('!')) titleScore += 10;
+  if (title.length >= 10 && title.length <= 60) titleScore += 20;
+
+  // Weighted average
+  const finalScore = (durationScore * 0.7) + (titleScore * 0.3);
+  
+  return Math.round(Math.min(100, Math.max(0, finalScore)));
 }
 
 export function useClipCreation() {
+  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   const mutation = useMutation({
-    mutationFn: async (params: CreateClipParams) => {
-      const score = calculateViralScore(params);
-      const clip: VideoClip = {
-        id: `clip-${Date.now()}-${Math.random().toString(36).slice(2)}`,
-        title: params.title,
-        videoUrl: params.videoUrl,
-        thumbnailUrl: params.thumbnailUrl,
-        startTime: params.startTime,
-        endTime: params.endTime,
-        createdAt: BigInt(Date.now() * 1_000_000),
-        score,
-      };
-      addClipToStore(clip);
-      return clip;
+    mutationFn: async ({
+      title,
+      videoUrl,
+      thumbnailUrl,
+      startTime,
+      endTime,
+    }: {
+      title: string;
+      videoUrl: string;
+      thumbnailUrl: string;
+      startTime: number;
+      endTime: number;
+    }) => {
+      if (!actor) {
+        throw new Error('Actor not initialized');
+      }
+
+      const viralScore = calculateViralScore(startTime, endTime, title);
+
+      return await actor.saveClip(
+        title,
+        videoUrl,
+        thumbnailUrl,
+        BigInt(startTime),
+        BigInt(endTime),
+        viralScore
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['clips'] });
       queryClient.invalidateQueries({ queryKey: ['trendingClips'] });
-      toast.success('Clip saved!');
-    },
-    onError: () => {
-      toast.error('Failed to save clip');
     },
   });
 
-  return mutation;
+  const createClip = async (
+    title: string,
+    videoUrl: string,
+    thumbnailUrl: string,
+    startTime: number,
+    endTime: number
+  ) => {
+    return mutation.mutateAsync({
+      title,
+      videoUrl,
+      thumbnailUrl,
+      startTime,
+      endTime,
+    });
+  };
+
+  return {
+    createClip,
+    isCreating: mutation.isPending,
+    error: mutation.error,
+  };
 }

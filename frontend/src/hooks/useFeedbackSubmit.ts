@@ -1,9 +1,10 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useActor } from './useActor';
+import { SubmissionType } from '../backend';
 import { toast } from 'sonner';
 
-interface FeedbackParams {
-  submissionType: { BugReport: null } | { FeatureRequest: null };
+interface SubmitFeedbackParams {
+  submissionType: SubmissionType;
   title: string;
   description: string;
 }
@@ -13,15 +14,16 @@ export function useFeedbackSubmit() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: FeedbackParams) => {
+    mutationFn: async ({ submissionType, title, description }: SubmitFeedbackParams) => {
       if (!actor) throw new Error('Actor not available');
-      await (actor as any).submitFeedback?.(params.submissionType, params.title, params.description);
+      return actor.submitFeedback(submissionType, title, description);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feedbackSubmissions'] });
+      toast.success('Feedback submitted successfully! Thank you.');
     },
-    onError: (err: any) => {
-      console.error('Feedback submit error:', err);
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to submit feedback. Please try again.');
     },
   });
 }

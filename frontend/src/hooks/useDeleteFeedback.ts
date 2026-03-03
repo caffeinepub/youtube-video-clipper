@@ -9,14 +9,14 @@ export function useDeleteFeedback() {
   return useMutation({
     mutationFn: async (id: bigint) => {
       if (!actor) throw new Error('Actor not available');
-      await (actor as any).deleteFeedbackSubmission?.(id);
+      return actor.deleteFeedbackSubmission(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['feedbackSubmissions'] });
-      toast.success('Feedback deleted');
+      toast.success('Feedback submission deleted.');
     },
-    onError: (err: any) => {
-      toast.error(`Failed to delete: ${err.message}`);
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : 'Failed to delete submission.');
     },
   });
 }

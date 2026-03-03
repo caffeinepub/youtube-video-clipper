@@ -1,83 +1,113 @@
 import React, { useState } from 'react';
-import { useSendAdminMessage } from '../hooks/useSendAdminMessage';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useActor } from '../hooks/useActor';
+import { useInternetIdentity } from '../hooks/useInternetIdentity';
+import { generateShortUserId } from '../utils/userIdGenerator';
+import { Send, Loader2, MessageSquare } from 'lucide-react';
+import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Send, MessageSquare } from 'lucide-react';
-import { generateShortUserId } from '../utils/userIdGenerator';
 
 export function AdminMessaging() {
+  const { actor } = useActor();
+  const { identity } = useInternetIdentity();
+  const queryClient = useQueryClient();
+
   const [toPrincipal, setToPrincipal] = useState('');
   const [body, setBody] = useState('');
-  const sendMessage = useSendAdminMessage();
 
-  const toUserId = toPrincipal.trim() ? generateShortUserId(toPrincipal.trim()) : '';
+  const principalStr = identity?.getPrincipal().toString() ?? '';
+  const fromUserId = principalStr ? generateShortUserId(principalStr) : '';
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!toPrincipal.trim() || !body.trim()) return;
-    await sendMessage.mutateAsync({
-      toPrincipal: toPrincipal.trim(),
-      toUserId,
-      body: body.trim(),
-    });
-    setToPrincipal('');
-    setBody('');
-  };
+  const sendMutation = useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error('Not connected to backend');
+      if (!toPrincipal.trim()) throw new Error('Recipient principal is required');
+      if (!body.trim()) throw new Error('Message body is required');
+
+      const toUserId = generateShortUserId(toPrincipal.trim());
+
+      return actor.sendMessage(
+        toPrincipal.trim(),
+        toUserId,
+        body.trim(),
+        fromUserId,
+      );
+    },
+    onSuccess: () => {
+      toast.success('Message sent successfully');
+      setToPrincipal('');
+      setBody('');
+      queryClient.invalidateQueries({ queryKey: ['myMessages'] });
+    },
+    onError: (err: Error) => {
+      toast.error('Failed to send message', { description: err.message });
+    },
+  });
 
   return (
-    <div className="bg-card rounded-lg border border-border/50 p-4 space-y-4">
-      <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <MessageSquare size={16} className="text-primary" />
-        Send Message to User
+    <div className="space-y-4">
+      <div className="flex items-center gap-2">
+        <MessageSquare size={18} className="text-indigo-400" />
+        <h3 className="text-base font-semibold text-white font-display">Message User</h3>
       </div>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="space-y-1">
+
+      {/* Sender info */}
+      <div className="bg-white/5 rounded-lg px-3 py-2 text-sm">
+        <span className="text-muted-foreground">Sending as User ID: </span>
+        <span className="font-mono font-medium text-indigo-300">{fromUserId || '—'}</span>
+      </div>
+
+      <div className="space-y-3">
+        <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">Recipient Principal ID</Label>
           <Input
             value={toPrincipal}
             onChange={(e) => setToPrincipal(e.target.value)}
-            placeholder="Enter principal ID..."
-            className="bg-background border-border text-foreground text-sm font-mono"
+            placeholder="Enter recipient's principal ID..."
+            className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground focus:border-indigo-500/60 text-sm font-mono"
           />
-          {toUserId && (
+          {toPrincipal.trim() && (
             <p className="text-xs text-muted-foreground">
-              User ID: <span className="text-primary font-mono">{toUserId}</span>
+              Recipient User ID:{' '}
+              <span className="font-mono font-medium text-indigo-300">
+                {generateShortUserId(toPrincipal.trim())}
+              </span>
             </p>
           )}
         </div>
-        <div className="space-y-1">
+
+        <div className="space-y-1.5">
           <Label className="text-xs text-muted-foreground">Message</Label>
           <Textarea
             value={body}
             onChange={(e) => setBody(e.target.value)}
-            placeholder="Type your message..."
-            className="bg-background border-border text-foreground resize-none text-sm"
-            rows={4}
+            placeholder="Write your message..."
+            rows={3}
+            className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground focus:border-indigo-500/60 text-sm resize-none"
           />
         </div>
+
         <Button
-          type="submit"
-          disabled={sendMessage.isPending || !toPrincipal.trim() || !body.trim()}
-          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground"
-          size="sm"
+          onClick={() => sendMutation.mutate()}
+          disabled={sendMutation.isPending || !toPrincipal.trim() || !body.trim()}
+          className="w-full bg-indigo-500 hover:bg-indigo-600 text-white gap-2"
         >
-          {sendMessage.isPending ? (
-            <span className="flex items-center gap-2">
-              <div className="animate-spin rounded-full h-3 w-3 border-b-2 border-primary-foreground" />
+          {sendMutation.isPending ? (
+            <>
+              <Loader2 size={14} className="animate-spin" />
               Sending...
-            </span>
+            </>
           ) : (
-            <span className="flex items-center gap-2">
+            <>
               <Send size={14} />
               Send Message
-            </span>
+            </>
           )}
         </Button>
-      </form>
+      </div>
     </div>
   );
 }
-
-export default AdminMessaging;

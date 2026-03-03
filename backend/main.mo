@@ -1,16 +1,14 @@
 import Map "mo:core/Map";
-import Nat "mo:core/Nat";
-import Int "mo:core/Int";
-import List "mo:core/List";
 import Time "mo:core/Time";
-import Blob "mo:core/Blob";
-import Text "mo:core/Text";
+import List "mo:core/List";
 import Float "mo:core/Float";
 import Order "mo:core/Order";
 import VarArray "mo:core/VarArray";
+import Int "mo:core/Int";
 import Runtime "mo:core/Runtime";
 import Principal "mo:core/Principal";
-
+import Nat "mo:core/Nat";
+import Text "mo:core/Text";
 import OutCall "http-outcalls/outcall";
 import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
@@ -231,4 +229,1048 @@ actor {
     );
     activityLogs := newArray;
   };
+
+  func compareScoresAscending(a : { clipId : Text; similarityScore : Float }, b : { clipId : Text; similarityScore : Float }) : Order.Order {
+    Float.compare(a.similarityScore, b.similarityScore);
+  };
+
+  func getClipSimilarityScore(clipA : VideoClip, clipB : VideoClip) : Float {
+    var engagementScore : Float = 0;
+    if (clipA.score > 0 and clipB.score > 0) {
+      let min = if (clipA.score < clipB.score) { clipA.score } else { clipB.score };
+      let max = if (clipA.score > clipB.score) { clipB.score } else { clipA.score };
+      engagementScore := (min / max) * 1000;
+    };
+
+    let durationA = if (clipA.endTime > clipA.startTime) {
+      Int.abs(clipA.endTime.toInt() - clipA.startTime.toInt()).toFloat();
+    } else { 0.0 };
+    let durationB = if (clipB.endTime > clipB.startTime) {
+      Int.abs(clipB.endTime.toInt() - clipB.startTime.toInt()).toFloat();
+    } else { 0.0 };
+
+    var lengthScore : Float = if (durationB > 0) {
+      1000 - Int.abs(durationA.toInt() - durationB.toInt()).toFloat();
+    } else { 0.0 };
+
+    if (lengthScore < 0) { lengthScore := 0 };
+
+    if (clipA.title == clipB.title) {
+      lengthScore := lengthScore * 1.5;
+    };
+
+    engagementScore + lengthScore + 300;
+  };
+
+  func calculateClipEngagementScore(clip : VideoClip) : Float {
+    let baseScore : Float = clip.score;
+    let length = if (clip.endTime > clip.startTime) {
+      Int.abs(clip.endTime.toInt() - clip.startTime.toInt()).toFloat();
+    } else { 0.0 };
+    let lengthPenalty : Float = if (length > 0) { 1000.0 / length } else { 0.0 };
+    baseScore + lengthPenalty;
+  };
+
+  // --- System Status ---
+
+  // getSystemStatus is intentionally open to all callers (including guests/anonymous)
+  // so that the frontend can display the maintenance/paused screen to unauthenticated users.
+  public query func getSystemStatus() : async SystemStatus {
+    systemStatus;
+  };
+
+  // Pause/Resume toggle — admin-only
+  public shared ({ caller }) func togglePauseSystem() : async SystemControlResult {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      return {
+        success = false;
+        message = "Unauthorized: Only the owner and admins can pause or resume the system";
+      };
+    };
+
+    switch (systemStatus) {
+      case (#paused) {
+        systemStatus := #running;
+        recordSystemActionLog(#running, caller);
+        {
+          success = true;
+          message = "Application resumed from paused state";
+        };
+      };
+      case (_) {
+        systemStatus := #paused;
+        recordSystemActionLog(#paused, caller);
+        {
+          success = true;
+          message = "Application paused successfully";
+        };
+      };
+    };
+  };
+
+  // --- System/Clips ---
+  public query ({ caller }) func getAllClips(_searchText : Text) : async [VideoClip] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access this endpoint");
+    };
+    // Non-admin users cannot use the app while it is paused
+    switch (systemStatus) {
+      case (#paused) {
+        if (not AccessControl.isAdmin(accessControlState, caller)) {
+          Runtime.trap("The application is currently paused for system maintenance");
+        };
+      };
+      case (_) {};
+    };
+    videoClips.values().toArray();
+  };
+
+  public shared ({ caller }) func serverRestartAction() : async SystemControlResult {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      return {
+        success = false;
+        message = "Unauthorized: Only the owner can perform a server restart";
+      };
+    };
+    systemStatus := #restarting;
+    recordSystemActionLog(#restarting, caller);
+    messageCounter := 0;
+    systemStatus := #running;
+    {
+      success = true;
+      message = "Server restarted successfully";
+    };
+  };
+
+  public shared ({ caller }) func serverShutdownAction() : async SystemControlResult {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      return {
+        success = false;
+        message = "Unauthorized: Only the owner can shut down the server";
+      };
+    };
+    systemStatus := #shutting_down;
+    recordSystemActionLog(#shutting_down, caller);
+    {
+      success = true;
+      message = "Server shutdown initiated";
+    };
+  };
+
+  public shared ({ caller }) func deleteClipsByUser(userId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins or the owner can delete user clips");
+    };
+    let keysArray = videoClips.keys().toArray();
+    for (clipId in keysArray.values()) {
+      let clip = switch (videoClips.get(clipId)) {
+        case (?c) { c };
+        case (null) { Runtime.trap("Clip not found: " # clipId) };
+      };
+      if (clip.videoUrl.contains(#text userId)) {
+        videoClips.remove(clipId);
+      };
+    };
+  };
+
+  func recordSystemActionLog(action : SystemStatus, caller : Principal) {
+    let id = systemActionCounter.toText() # "_" # Time.now().toText();
+    systemActionCounter += 1;
+    let logEntry : SystemActionLog = {
+      id;
+      action = switch (action) {
+        case (#restarting) { "restart" };
+        case (#shutting_down) { "shutdown" };
+        case (#running) { "run" };
+        case (#paused) { "paused" };
+      };
+      caller;
+      timestamp = Time.now();
+    };
+    let newSize = systemActionLogs.size() + 1;
+    let newArray = Array.tabulate(
+      newSize,
+      func(i) {
+        if (i < systemActionLogs.size()) { systemActionLogs[i] } else { logEntry };
+      },
+    );
+    systemActionLogs := newArray;
+  };
+
+  public shared ({ caller }) func getClickStats() : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admin and owner can access this endpoint");
+    };
+    var clickCount = 0;
+    for (log in activityLogs.values()) {
+      if (log.action.contains(#text "clip_interaction") or log.action.contains(#text "clip_download")) {
+        clickCount += 1;
+      };
+    };
+    clickCount;
+  };
+
+  public shared ({ caller }) func getVideosPerHour() : async [VideoUploadStats] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      return [];
+    };
+    let currentTime = Time.now();
+    let oneHourNanos = 3600 * 1_000_000_000;
+
+    let hourCounts = Map.empty<Int, Nat>();
+
+    for (log in activityLogs.values()) {
+      let hourDiff = Int.abs(currentTime - log.timestamp) / oneHourNanos;
+      if (hourDiff < 24) {
+        let count = switch (hourCounts.get(hourDiff)) {
+          case (?c) { c + 1 };
+          case (null) { 1 };
+        };
+        hourCounts.add(hourDiff, count);
+      };
+    };
+
+    let resultsList = List.empty<VideoUploadStats>();
+    for ((hour, count) in hourCounts.entries()) {
+      resultsList.add({
+        hour;
+        count;
+      });
+    };
+    resultsList.toArray();
+  };
+
+  public query ({ caller }) func findRelatedClips(clipId : Text) : async [Text] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access this endpoint");
+    };
+
+    let targetClip = switch (videoClips.get(clipId)) {
+      case (?clip) { clip };
+      case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
+    };
+
+    let nonTargetClipIds = videoClips.keys().toArray().filter(func(id) { id != clipId });
+
+    let relatedClipScores = List.empty<{ clipId : Text; similarityScore : Float }>();
+
+    for (otherClipId in nonTargetClipIds.values()) {
+      let similarityScore = switch (videoClips.get(otherClipId)) {
+        case (?clip) { getClipSimilarityScore(targetClip, clip) };
+        case (null) { 0.0 };
+      };
+
+      if (similarityScore > 0) {
+        relatedClipScores.add({
+          clipId = otherClipId;
+          similarityScore;
+        });
+      };
+    };
+
+    let sortedScores = relatedClipScores.toArray().sort(
+      compareScoresAscending
+    );
+
+    if (sortedScores.size() == 0) {
+      return [];
+    };
+
+    sortedScores.map(func(score) { score.clipId });
+  };
+
+  public query ({ caller }) func getTrendingClips() : async [VideoClip] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access this endpoint");
+    };
+
+    let allClipsArray = videoClips.values().toArray();
+    func compareByEngagement(a : VideoClip, b : VideoClip) : Order.Order {
+      Float.compare(
+        calculateClipEngagementScore(a),
+        calculateClipEngagementScore(b),
+      );
+    };
+
+    let sortedClips = allClipsArray.sort(
+      compareByEngagement
+    );
+
+    let resultArray = sortedClips.toVarArray<VideoClip>();
+    let size = resultArray.size();
+
+    if (size > 10) {
+      resultArray.sliceToArray(0, 10);
+    } else {
+      resultArray.toArray();
+    };
+  };
+
+  public query ({ caller }) func getTrendingClipsAnalytics() : async [TrendingClipAnalytics] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access this endpoint");
+    };
+
+    let allClipsArray = videoClips.values().toArray();
+    if (allClipsArray.size() == 0) {
+      return [];
+    };
+
+    func compareByTrends(a : VideoClip, b : VideoClip) : Order.Order {
+      Float.compare(
+        calculateClipEngagementScore(a),
+        calculateClipEngagementScore(b),
+      );
+    };
+
+    let sortedClips = allClipsArray.sort(
+      compareByTrends
+    );
+
+    let analytics = sortedClips.map(func(clip) {
+      {
+        id = clip.id;
+        title = clip.title;
+        scoreMetrics = clip.score;
+        trendingScore = calculateClipEngagementScore(clip);
+      };
+    });
+
+    let resultArray = analytics.toVarArray<TrendingClipAnalytics>();
+    let size = resultArray.size();
+
+    if (size > 10) {
+      resultArray.sliceToArray(0, 10);
+    } else {
+      resultArray.toArray();
+    };
+  };
+
+  public query ({ caller }) func getClipById(clipId : Text) : async VideoClip {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access this endpoint");
+    };
+    switch (videoClips.get(clipId)) {
+      case (?clip) { clip };
+      case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
+    };
+  };
+
+  public query ({ caller }) func getTotalClipsCount() : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access this endpoint");
+    };
+    videoClips.size();
+  };
+
+  public shared ({ caller }) func saveClip(
+    title : Text,
+    videoUrl : Text,
+    thumbnailUrl : Text,
+    startTime : Nat,
+    endTime : Nat,
+    score : Float,
+  ) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can save clips");
+    };
+    let id = title.concat(Time.now().toText());
+    let newVideoClip : VideoClip = {
+      id;
+      title;
+      videoUrl;
+      thumbnailUrl;
+      startTime;
+      endTime;
+      createdAt = Time.now();
+      score;
+    };
+    videoClips.add(id, newVideoClip);
+    recordActivity(caller, "clip_created:" # id);
+    id;
+  };
+
+  public query ({ caller }) func getCallerUserProfile() : async ?UserProfile {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can access profiles");
+    };
+    userProfiles.get(caller);
+  };
+
+  public query ({ caller }) func getUserProfile(user : Principal) : async ?UserProfile {
+    if (caller != user and not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Can only view your own profile");
+    };
+    userProfiles.get(user);
+  };
+
+  public shared ({ caller }) func saveCallerUserProfile(profile : UserProfile) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can save profiles");
+    };
+    userProfiles.add(caller, profile);
+  };
+
+  public shared ({ caller }) func updateUserStatus(target : Principal, newStatus : UserStatus) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update user status");
+    };
+
+    let existingProfile = switch (userProfiles.get(target)) {
+      case (?profile) { profile };
+      case (null) { Runtime.trap("User not found") };
+    };
+
+    let updatedProfile = { existingProfile with status = newStatus };
+    userProfiles.add(target, updatedProfile);
+  };
+
+  public shared ({ caller }) func deleteClip(clipId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete clips");
+    };
+    switch (videoClips.get(clipId)) {
+      case (null) { Runtime.trap("Clip with ID " # clipId # " not found") };
+      case (_) {
+        videoClips.remove(clipId);
+        recordActivity(caller, "clip_deleted:" # clipId);
+      };
+    };
+  };
+
+  public query ({ caller }) func generateClipsAutomatically(_youtubeVideoId : Text) : async [AutoGeneratedClipSuggestion] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can generate clips automatically");
+    };
+    [];
+  };
+
+  public query ({ caller }) func generateDownloadVideoUrl(videoId : Text, startTime : Nat, endTime : Nat) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can generate download links");
+    };
+    if (startTime >= endTime) {
+      Runtime.trap("Invalid timestamps: start time must be less than end time");
+    };
+
+    "https://clipvod.com/download?videoId=" # videoId # "&startTime=" # startTime.toText() # "&endTime=" # endTime.toText();
+  };
+
+  public shared ({ caller }) func addAdminByUserId(userId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can add other admins");
+    };
+
+    let userPrincipal = Principal.fromText(userId);
+
+    let existingProfile = switch (userProfiles.get(userPrincipal)) {
+      case (?profile) { profile };
+      case (null) {
+        {
+          name = "Admin User";
+          youtubeAuth = null;
+          googleOAuthCredentials = null;
+          role = #admin;
+          status = #active;
+          profilePicture = null;
+        };
+      };
+    };
+
+    let updatedProfile = { existingProfile with role = #admin };
+    userProfiles.add(userPrincipal, updatedProfile);
+
+    AccessControl.assignRole(accessControlState, caller, userPrincipal, #admin);
+    adminPrincipals.add(userPrincipal, ());
+  };
+
+  public query ({ caller }) func getAdminsAsAdmin() : async [Text] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view the admin list");
+    };
+
+    adminPrincipals.keys().toArray().map(func(p : Principal) : Text { p.toText() });
+  };
+
+  public shared ({ caller }) func connectYouTubeChannel(
+    accessToken : Text,
+    refreshToken : Text,
+    channelId : Text,
+    channelName : Text,
+    expiresAt : Time.Time,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can connect YouTube channels");
+    };
+    let youtubeAuth : YouTubeChannelAuth = {
+      accessToken;
+      refreshToken;
+      channelId;
+      channelName;
+      expiresAt;
+    };
+
+    let currentProfile : UserProfile = switch (userProfiles.get(caller)) {
+      case (null) {
+        {
+          name = "Guest";
+          youtubeAuth = ?youtubeAuth;
+          googleOAuthCredentials = null;
+          role = #user;
+          status = #active;
+          profilePicture = null;
+        };
+      };
+      case (?profile) {
+        { profile with youtubeAuth = ?youtubeAuth };
+      };
+    };
+
+    userProfiles.add(caller, currentProfile);
+  };
+
+  public query ({ caller }) func isYouTubeChannelConnected() : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can check YouTube connection status");
+    };
+    switch (userProfiles.get(caller)) {
+      case (null) { false };
+      case (?profile) {
+        switch (profile.youtubeAuth) {
+          case (null) { false };
+          case (?auth) { Time.now() < auth.expiresAt };
+        };
+      };
+    };
+  };
+
+  public query ({ caller }) func hasGoogleOAuthCredentials() : async Bool {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can check Google OAuth status");
+    };
+    switch (userProfiles.get(caller)) {
+      case (null) { false };
+      case (?profile) {
+        switch (profile.googleOAuthCredentials) {
+          case (null) { false };
+          case (?credentials) { Time.now() < credentials.expiresAt };
+        };
+      };
+    };
+  };
+
+  public query ({ caller }) func transform(input : OutCall.TransformationInput) : async OutCall.TransformationOutput {
+    OutCall.transform(input);
+  };
+
+  public shared ({ caller }) func storeGoogleOAuthCredentials(
+    authorizationCode : Text,
+    redirectUri : Text,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can connect Google OAuth");
+    };
+
+    let clientId = "YOUR_CLIENT_ID_HERE";
+    let clientSecret = "YOUR_CLIENT_SECRET_HERE";
+
+    let url = "https://oauth2.googleapis.com/token";
+    let headers = [
+      {
+        name = "Content-Type";
+        value = "application/x-www-form-urlencoded";
+      }
+    ];
+    let requestBody = "code=" # authorizationCode #
+    "&client_id=" # clientId #
+    "&client_secret=" # clientSecret #
+    "&redirect_uri=" # redirectUri #
+    "&grant_type=authorization_code";
+
+    let _response = await OutCall.httpPostRequest(
+      url,
+      headers,
+      requestBody,
+      transform,
+    );
+
+    let credentials : GoogleOAuthCredentials = {
+      accessToken = "token_from_response";
+      refreshToken = "refresh_token_from_response";
+      expiresAt = Time.now() + (3600 * 1_000_000_000);
+      tokenType = "Bearer";
+      idToken = "id_token_from_response";
+      scope = "scope_from_response";
+    };
+
+    let currentProfile : UserProfile = switch (userProfiles.get(caller)) {
+      case (null) {
+        {
+          name = "User";
+          youtubeAuth = null;
+          googleOAuthCredentials = ?credentials;
+          role = #user;
+          status = #active;
+          profilePicture = null;
+        };
+      };
+      case (?profile) {
+        { profile with googleOAuthCredentials = ?credentials };
+      };
+    };
+
+    userProfiles.add(caller, currentProfile);
+  };
+
+  public shared ({ caller }) func postClipToYouTube(clipMetadata : ClipMetadata) : async YouTubePostResult {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can post clips to YouTube");
+    };
+
+    let userProfile = switch (userProfiles.get(caller)) {
+      case (null) {
+        Runtime.trap("No user profile found. Please connect your YouTube channel first.");
+      };
+      case (?profile) { profile };
+    };
+
+    let youtubeAuth = switch (userProfile.youtubeAuth) {
+      case (null) {
+        Runtime.trap("YouTube channel not connected. Please connect your channel first.");
+      };
+      case (?auth) { auth };
+    };
+
+    if (Time.now() >= youtubeAuth.expiresAt) {
+      Runtime.trap("YouTube authentication expired. Please reconnect your channel.");
+    };
+
+    if (clipMetadata.startTimestamp >= clipMetadata.endTimestamp) {
+      Runtime.trap("Invalid clip: start timestamp must be before end timestamp");
+    };
+
+    let clipDuration = Int.abs(clipMetadata.endTimestamp.toInt() - clipMetadata.startTimestamp.toInt());
+    if (clipDuration > 60) {
+      Runtime.trap("Invalid clip: YouTube Shorts must be 60 seconds or less");
+    };
+
+    // Simulate successful post
+    recordActivity(caller, "youtube_post:" # clipMetadata.videoId);
+
+    {
+      success = true;
+      videoUrl = "https://youtube.com/shorts/" # clipMetadata.videoId # "?t=" # clipMetadata.startTimestamp.toText();
+      errorMessage = "";
+    };
+  };
+
+  public shared ({ caller }) func setUserRole(target : Principal, userRole : UserRole) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update user roles");
+    };
+
+    switch (userRole, caller == target) {
+      case (#admin, true) {
+        Runtime.trap("Administrators cannot be removed as administrators.");
+      };
+      case (#owner, true) {
+        Runtime.trap("The owner cannot be removed as the owner.");
+      };
+      case (#owner, false) {
+        Runtime.trap("The system can only have one exclusive owner.");
+      };
+      case (_) {};
+    };
+
+    let existingProfile = switch (userProfiles.get(target)) {
+      case (?profile) {
+        profile;
+      };
+      case (null) {
+        Runtime.trap("User does not exist!");
+      };
+    };
+
+    let updatedProfile = { existingProfile with role = userRole };
+    userProfiles.add(target, updatedProfile);
+
+    switch (userRole) {
+      case (#owner) {
+        AccessControl.assignRole(accessControlState, caller, target, #admin);
+      };
+      case (#admin) {
+        AccessControl.assignRole(accessControlState, caller, target, #admin);
+      };
+      case (#user) {
+        AccessControl.assignRole(accessControlState, caller, target, #user);
+      };
+      case (#friend) {
+        AccessControl.assignRole(accessControlState, caller, target, #user);
+      };
+    };
+  };
+
+  public query ({ caller }) func getOwnRole() : async ?UserRole {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      return null;
+    };
+    switch (userProfiles.get(caller)) {
+      case (?profile) { ?profile.role };
+      case (null) { null };
+    };
+  };
+
+  public query ({ caller }) func getAllUserRoles() : async [(Principal, UserRole)] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can access this endpoint");
+    };
+    let allUserProfiles = userProfiles.toArray();
+    allUserProfiles.map(func((principal, profile)) { (principal, profile.role) });
+  };
+
+  public shared ({ caller }) func submitFeedback(
+    submissionType : SubmissionType,
+    title : Text,
+    description : Text,
+  ) : async Nat {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only logged in users can submit feedback and feature requests");
+    };
+
+    let submitterPrincipal = caller.toText();
+    let submitterUserId = submitterPrincipal;
+    let submissionId = currentSubmissionId;
+
+    let submission : FeedbackSubmission = {
+      id = submissionId;
+      submitterPrincipal;
+      submitterUserId;
+      submissionType;
+      title;
+      description;
+      timestamp = Time.now();
+    };
+
+    let newSize = feedbackSubmissions.size() + 1;
+    let newArray = Array.tabulate(
+      newSize,
+      func(i) {
+        if (i < feedbackSubmissions.size()) { feedbackSubmissions[i] } else { submission };
+      },
+    );
+
+    feedbackSubmissions := newArray;
+
+    currentSubmissionId += 1;
+    submissionId;
+  };
+
+  public query ({ caller }) func getFeedbackSubmissions() : async [FeedbackSubmission] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("You must be an admin to fetch feedback submissions");
+    };
+    feedbackSubmissions;
+  };
+
+  public shared ({ caller }) func deleteFeedbackSubmission(id : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("You must be an admin to delete feedback submissions");
+    };
+
+    var newIndex = 0;
+    let filteredArray = Array.tabulate(
+      feedbackSubmissions.size(),
+      func(i) {
+        if (feedbackSubmissions[i].id != id) {
+          newIndex += 1;
+          feedbackSubmissions[i];
+        } else {
+          {
+            id = 0;
+            submitterPrincipal = "";
+            submitterUserId = "";
+            submissionType = #BugReport;
+            title = "";
+            description = "";
+            timestamp = 0;
+          };
+        };
+      },
+    );
+
+    let finalSize = newIndex;
+    let finalArray = Array.tabulate(
+      finalSize,
+      func(i) { filteredArray[i] },
+    );
+
+    feedbackSubmissions := finalArray;
+  };
+
+  // ── YouTube Scheduler ──────────────────────────────────────────────────────
+
+  // Add a scheduled upload entry for the calling user.
+  public shared ({ caller }) func addScheduledUpload(clipId : Text, scheduledAt : Time.Time) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can schedule uploads");
+    };
+    let id = caller.toText() # "_" # clipId # "_" # Time.now().toText();
+    let entry : ScheduledUpload = {
+      id;
+      clipId;
+      scheduledAt;
+      createdAt = Time.now();
+    };
+    let existing = switch (scheduledUploads.get(caller)) {
+      case (?list) { list };
+      case (null) { List.empty<ScheduledUpload>() };
+    };
+    existing.add(entry);
+    scheduledUploads.add(caller, existing);
+    recordActivity(caller, "scheduler_entry_added:" # id);
+    id;
+  };
+
+  // Retrieve the calling user's scheduled uploads.
+  public query ({ caller }) func getMyScheduledUploads() : async [ScheduledUpload] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view their scheduled uploads");
+    };
+    switch (scheduledUploads.get(caller)) {
+      case (?list) { list.toArray() };
+      case (null) { [] };
+    };
+  };
+
+  // Delete a scheduled upload entry belonging to the calling user.
+  public shared ({ caller }) func deleteScheduledUpload(entryId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can delete their scheduled uploads");
+    };
+    let existing = switch (scheduledUploads.get(caller)) {
+      case (?list) { list };
+      case (null) { Runtime.trap("No scheduled uploads found") };
+    };
+    let filtered = List.empty<ScheduledUpload>();
+    var found = false;
+    for (entry in existing.values()) {
+      if (entry.id == entryId) {
+        found := true;
+      } else {
+        filtered.add(entry);
+      };
+    };
+    if (not found) {
+      Runtime.trap("Scheduled upload entry not found");
+    };
+    scheduledUploads.add(caller, filtered);
+  };
+
+  // ── Content Manager ────────────────────────────────────────────────────────
+
+  // Create a new content entry. Admin-only.
+  public shared ({ caller }) func createContentEntry(title : Text, body : Text) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can create content entries");
+    };
+    let id = "content_" # Time.now().toText() # "_" # caller.toText();
+    let entry : ContentEntry = {
+      id;
+      title;
+      body;
+      createdAt = Time.now();
+      updatedAt = Time.now();
+    };
+    contentEntries.add(id, entry);
+    recordActivity(caller, "content_entry_created:" # id);
+    id;
+  };
+
+  // Read all content entries. Admin-only.
+  public query ({ caller }) func getContentEntries() : async [ContentEntry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view content entries");
+    };
+    contentEntries.values().toArray();
+  };
+
+  // Update an existing content entry. Admin-only.
+  public shared ({ caller }) func updateContentEntry(id : Text, title : Text, body : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update content entries");
+    };
+    let existing = switch (contentEntries.get(id)) {
+      case (?entry) { entry };
+      case (null) { Runtime.trap("Content entry not found: " # id) };
+    };
+    let updated : ContentEntry = {
+      existing with
+      title;
+      body;
+      updatedAt = Time.now();
+    };
+    contentEntries.add(id, updated);
+    recordActivity(caller, "content_entry_updated:" # id);
+  };
+
+  // Delete a content entry. Admin-only.
+  public shared ({ caller }) func deleteContentEntry(id : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete content entries");
+    };
+    switch (contentEntries.get(id)) {
+      case (null) { Runtime.trap("Content entry not found: " # id) };
+      case (_) {
+        contentEntries.remove(id);
+        recordActivity(caller, "content_entry_deleted:" # id);
+      };
+    };
+  };
+
+  // ── Activity Logging ───────────────────────────────────────────────────────
+
+  // Retrieve all activity logs. Admin-only.
+  public query ({ caller }) func getActivityLogs() : async [ActivityLog] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view activity logs");
+    };
+    activityLogs;
+  };
+
+  // Allow authenticated users to explicitly log a significant action from the frontend.
+  public shared ({ caller }) func logUserActivity(action : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can log activity");
+    };
+    recordActivity(caller, action);
+  };
+
+  // --- User Messaging System ---
+
+  // Send a message to another user. Requires authentication.
+  public shared ({ caller }) func sendMessage(
+    toPrincipal : Text,
+    toUserId : Text,
+    body : Text,
+    fromUserId : Text,
+  ) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can send messages");
+    };
+
+    let recipient = Principal.fromText(toPrincipal);
+    let id = "msg_" # messageCounter.toText() # "_" # Time.now().toText();
+    messageCounter += 1;
+
+    let msg : AdminMessage = {
+      id;
+      fromPrincipal = caller.toText();
+      toPrincipal;
+      body;
+      sentAt = Time.now();
+      fromUserId;
+      toUserId;
+    };
+
+    let existing = switch (userMessages.get(recipient)) {
+      case (?list) { list };
+      case (null) { List.empty<AdminMessage>() };
+    };
+    existing.add(msg);
+    userMessages.add(recipient, existing);
+    recordActivity(caller, "message_sent_to:" # toPrincipal);
+    id;
+  };
+
+  // Retrieve the calling user's own messages. Requires authentication.
+  public query ({ caller }) func getMyMessages(fromUserId : Text) : async [AdminMessage] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view their messages");
+    };
+    switch (userMessages.get(caller)) {
+      case (?list) { list.toArray() };
+      case (null) { [] };
+    };
+  };
+
+  // Retrieve messages for any user by principal text. Admin-only.
+  public query ({ caller }) func getUserMessages(userId : Text) : async [AdminMessage] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can view other users' messages");
+    };
+    let target = Principal.fromText(userId);
+    switch (userMessages.get(target)) {
+      case (?list) { list.toArray() };
+      case (null) { [] };
+    };
+  };
+
+  // Reply to a received message. The reply is delivered to the original sender.
+  // Any authenticated user can reply to a message they received.
+  public shared ({ caller }) func replyToMessage(
+    originalMessageId : Text,
+    replyBody : Text,
+    fromUserId : Text,
+  ) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can reply to messages");
+    };
+
+    // Verify the caller actually received the original message (it must be in their inbox)
+    let callerMessages = switch (userMessages.get(caller)) {
+      case (?list) { list };
+      case (null) { Runtime.trap("Original message not found") };
+    };
+
+    var foundMessage : ?AdminMessage = null;
+    for (message in callerMessages.values()) {
+      if (message.id == originalMessageId) {
+        foundMessage := ?message;
+      };
+    };
+
+    switch (foundMessage) {
+      case (?originalMessage) {
+        let id = "reply_" # messageCounter.toText() # "_" # Time.now().toText();
+        messageCounter += 1;
+
+        let replyMessage : AdminMessage = {
+          id;
+          fromPrincipal = caller.toText();
+          toPrincipal = originalMessage.fromPrincipal;
+          body = replyBody;
+          sentAt = Time.now();
+          fromUserId;
+          toUserId = originalMessage.fromUserId;
+        };
+
+        let recipient = Principal.fromText(originalMessage.fromPrincipal);
+        let existing = switch (userMessages.get(recipient)) {
+          case (?list) { list };
+          case (null) { List.empty<AdminMessage>() };
+        };
+        existing.add(replyMessage);
+        userMessages.add(recipient, existing);
+
+        recordActivity(caller, "message_reply_sent:" # originalMessageId);
+        id;
+      };
+      case (null) {
+        Runtime.trap("Original message not found in your inbox");
+      };
+    };
+  };
+
+  public shared ({ caller }) func uploadProfilePicture(blob : Storage.ExternalBlob) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can upload profile pictures");
+    };
+    let existingProfile = switch (userProfiles.get(caller)) {
+      case (?profile) { profile };
+      case (null) { Runtime.trap("User does not exist!") };
+    };
+    let updatedProfile = { existingProfile with profilePicture = ?blob };
+    userProfiles.add(caller, updatedProfile);
+  };
 };
+

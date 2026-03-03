@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
-import { useFeedbackSubmissions } from '../hooks/useFeedbackSubmissions';
-import { useDeleteFeedback } from '../hooks/useDeleteFeedback';
-import { generateShortUserId } from '../utils/userIdGenerator';
-import { Skeleton } from '@/components/ui/skeleton';
+import { useState } from 'react';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,90 +14,158 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
-import { Bug, Lightbulb, Trash2, Inbox } from 'lucide-react';
+import { Lightbulb, Bug, Trash2, MessageSquare, User, Clock } from 'lucide-react';
+import { useFeedbackSubmissions } from '../hooks/useFeedbackSubmissions';
+import { useDeleteFeedback } from '../hooks/useDeleteFeedback';
+import { generateShortUserId } from '../utils/userIdGenerator';
+import { SubmissionType } from '../backend';
+
+function formatTimestamp(timestamp: bigint): string {
+  // Backend stores nanoseconds (ICP Time), convert to milliseconds
+  const ms = Number(timestamp) / 1_000_000;
+  const date = new Date(ms);
+  return date.toLocaleString(undefined, {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+  });
+}
 
 export default function FeedbackSubmissions() {
-  const { data: submissions = [], isLoading } = useFeedbackSubmissions();
-  const deleteFeedback = useDeleteFeedback();
+  const { data: submissions, isLoading, error } = useFeedbackSubmissions();
+  const { mutate: deleteSubmission, isPending: isDeleting } = useDeleteFeedback();
+  const [deletingId, setDeletingId] = useState<bigint | null>(null);
 
-  const formatTime = (ts: number | bigint) => {
-    const ms = typeof ts === 'bigint' ? Number(ts) / 1_000_000 : Number(ts);
-    const date = new Date(ms);
-    const now = new Date();
-    const diff = now.getTime() - date.getTime();
-    if (diff < 60_000) return 'just now';
-    if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
-    if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
-    return date.toLocaleDateString();
+  const handleDelete = (id: bigint) => {
+    setDeletingId(id);
+    deleteSubmission(id, {
+      onSettled: () => setDeletingId(null),
+    });
   };
 
   if (isLoading) {
     return (
       <div className="space-y-3">
-        {[1, 2, 3].map(i => <Skeleton key={i} className="h-24 w-full rounded-lg" />)}
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
       </div>
     );
   }
 
-  if (submissions.length === 0) {
+  if (error) {
     return (
-      <div className="text-center py-8 text-muted-foreground">
-        <Inbox size={32} className="mx-auto mb-2 opacity-30" />
-        <p className="text-sm">No feedback submissions yet</p>
+      <div className="text-center py-6 text-muted-foreground">
+        <p className="text-sm text-destructive">
+          {error instanceof Error ? error.message : 'Failed to load feedback submissions.'}
+        </p>
+      </div>
+    );
+  }
+
+  if (!submissions || submissions.length === 0) {
+    return (
+      <div className="text-center py-10 text-muted-foreground">
+        <MessageSquare className="h-10 w-10 mx-auto mb-3 opacity-40" />
+        <p className="text-sm">No feedback submissions yet.</p>
       </div>
     );
   }
 
   return (
     <div className="space-y-3">
-      {submissions.map((sub: any) => {
-        const isBug = sub.submissionType && ('BugReport' in sub.submissionType || sub.submissionType.__kind__ === 'BugReport');
-        const shortId = sub.submitterPrincipal ? generateShortUserId(sub.submitterPrincipal) : sub.submitterUserId || 'unknown';
+      {submissions.map((submission) => {
+        const isFeature = submission.submissionType === SubmissionType.FeatureRequest ||
+          (submission.submissionType as any).__kind__ === 'FeatureRequest' ||
+          String(submission.submissionType) === 'FeatureRequest';
+        const shortUserId = generateShortUserId(submission.submitterPrincipal);
+        const isCurrentlyDeleting = isDeleting && deletingId === submission.id;
+
         return (
-          <div key={String(sub.id)} className="bg-background/50 rounded-lg border border-border/30 p-3">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2">
-                {isBug ? (
-                  <Bug size={14} className="text-destructive shrink-0 mt-0.5" />
-                ) : (
-                  <Lightbulb size={14} className="text-yellow-400 shrink-0 mt-0.5" />
-                )}
-                <div>
-                  <p className="text-sm font-medium text-foreground">{sub.title}</p>
-                  <p className="text-xs text-muted-foreground">
-                    <span className="font-mono text-primary">{shortId}</span>
-                    {' · '}
-                    {formatTime(sub.timestamp)}
-                  </p>
-                </div>
-              </div>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button variant="ghost" size="icon" className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0">
-                    <Trash2 size={14} />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent className="bg-card border-border">
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Feedback</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      Are you sure you want to delete this feedback submission?
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction
-                      onClick={() => deleteFeedback.mutate(BigInt(sub.id))}
-                      className="bg-destructive hover:bg-destructive/90"
+          <Card key={String(submission.id)} className="border border-border">
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0 space-y-2">
+                  {/* Type badge + title */}
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge
+                      variant={isFeature ? 'default' : 'destructive'}
+                      className={`text-xs flex items-center gap-1 ${
+                        isFeature
+                          ? 'bg-blue-500/15 text-blue-600 border-blue-500/30 hover:bg-blue-500/20'
+                          : ''
+                      }`}
                     >
-                      Delete
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
-            </div>
-            <p className="text-xs text-muted-foreground mt-2 ml-5">{sub.description}</p>
-          </div>
+                      {isFeature ? (
+                        <Lightbulb className="w-3 h-3" />
+                      ) : (
+                        <Bug className="w-3 h-3" />
+                      )}
+                      {isFeature ? 'Feature Request' : 'Bug Report'}
+                    </Badge>
+                    <span className="font-semibold text-sm truncate">{submission.title}</span>
+                  </div>
+
+                  {/* Description */}
+                  <p className="text-sm text-muted-foreground leading-relaxed">
+                    {submission.description}
+                  </p>
+
+                  {/* Meta info */}
+                  <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <User className="w-3 h-3" />
+                      <span className="font-mono font-medium text-foreground">{shortUserId}</span>
+                    </span>
+                    <span className="flex items-center gap-1 font-mono text-[10px] opacity-70 max-w-[200px] truncate">
+                      {submission.submitterPrincipal}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Clock className="w-3 h-3" />
+                      {formatTimestamp(submission.timestamp)}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Delete button */}
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="text-muted-foreground hover:text-destructive shrink-0"
+                      disabled={isCurrentlyDeleting}
+                    >
+                      {isCurrentlyDeleting ? (
+                        <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Submission</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this feedback submission? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => handleDelete(submission.id)}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
+            </CardContent>
+          </Card>
         );
       })}
     </div>

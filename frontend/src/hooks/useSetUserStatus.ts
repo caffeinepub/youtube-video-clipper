@@ -1,22 +1,29 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useActor } from './useActor';
+import { Principal } from '@icp-sdk/core/principal';
+import { UserStatus } from '../backend';
 import { toast } from 'sonner';
-import type { UserStatus } from '../types/app';
-import type { Principal } from '@icp-sdk/core/principal';
 
 export function useSetUserStatus() {
+  const { actor } = useActor();
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async ({ target, status }: { target: Principal; status: UserStatus }) => {
-      // Backend doesn't have updateUserStatus - stub
-      console.log('Set user status not available:', target.toString(), status);
+      if (!actor) throw new Error('Actor not available');
+      
+      await actor.updateUserStatus(target, status);
     },
-    onSuccess: () => {
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['allUserRoles'] });
       queryClient.invalidateQueries({ queryKey: ['userRoles'] });
-      toast.success('Status updated (local only)');
+      queryClient.invalidateQueries({ queryKey: ['currentUserProfile'] });
+      toast.success('User status updated successfully');
     },
-    onError: () => {
-      toast.error('Failed to update status');
+    onError: (error) => {
+      console.error('[useSetUserStatus] Error:', error);
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update user status';
+      toast.error(errorMessage);
     },
   });
 }

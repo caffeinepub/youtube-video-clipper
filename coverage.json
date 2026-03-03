@@ -1,174 +1,65 @@
 {
   "kind": "coverage_report",
   "version": "1.0",
-  "generatedAt": "2026-03-02T23:09:08.371Z",
+  "generatedAt": "2026-03-01T23:08:34.067Z",
   "sources": {
     "buildRequest": true,
     "implementationPlan": true
   },
   "requirements": {
-    "total": 8,
-    "implemented": 7,
+    "total": 4,
+    "implemented": 4,
     "items": [
       {
         "id": "REQ-1",
-        "summary": "Restore the user profile/account functionality: ensure ProfilePage displays the authenticated user's principal ID, display name, stats (total clips, average score, viral clips count), and a chronological clip activity list. Ensure ProfileSetup modal fires on first login to collect a display name. Ensure UserIdDisplay, UserRoleBadge, and related profile hooks (useQueries, useGetOwnRole) are wired up and visible in the UI.",
+        "summary": "Fix the YouTube channel connection status display so that when a user has already connected their YouTube channel (i.e., valid Google OAuth credentials are stored in the backend), the ChannelConnection component correctly reflects the connected state instead of showing 'not connected'. Investigate the useYouTubeChannel hook and the OAuthCallback flow to ensure the stored credentials are being read and the connected status is correctly derived and returned.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/pages/ProfilePage.tsx",
-          "frontend/src/components/ProfileSetup.tsx",
-          "frontend/src/components/UserIdDisplay.tsx",
-          "frontend/src/components/UserRoleBadge.tsx",
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/App.tsx"
+          "frontend/src/hooks/useYouTubeChannel.ts",
+          "frontend/src/components/ChannelConnection.tsx",
+          "frontend/src/pages/OAuthCallback.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/pages/ProfilePage.tsx",
-          "frontend/src/components/ProfileSetup.tsx",
-          "frontend/src/components/UserIdDisplay.tsx",
-          "frontend/src/components/UserRoleBadge.tsx",
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/hooks/useQueries.ts",
-          "frontend/src/App.tsx"
+          "frontend/src/hooks/useYouTubeChannel.ts",
+          "frontend/src/components/ChannelConnection.tsx",
+          "frontend/src/pages/OAuthCallback.tsx"
         ]
       },
       {
         "id": "REQ-2",
-        "summary": "Restore the full AdminPanel: ensure it renders collapsible sections for system controls (pause/resume/restart/shutdown via SystemControls), analytics (AppAnalytics with clip counts and upload bar chart), user management (UserStatusManagement for listing/searching/managing user roles and statuses), admin messaging (AdminMessaging to send messages to specific users), feedback submissions (FeedbackSubmissions list with delete), activity logs (ActivityLogTable), admin list/management (AdminManagement, AdminList), and the AdminDebugPanel. The panel must only be visible to owner-role users.",
+        "summary": "Fix the clip download functionality so that clicking the download button on a ClipCard successfully triggers a file download in the browser. Investigate the useDownloadClip hook to ensure it correctly fetches the download URL from the backend and that the programmatic browser download trigger (e.g., anchor element click) works as expected. Ensure error states are surfaced to the user if download fails.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/AdminPanel.tsx",
-          "frontend/src/components/SystemControls.tsx",
-          "frontend/src/components/AppAnalytics.tsx",
-          "frontend/src/components/UserStatusManagement.tsx",
-          "frontend/src/components/AdminMessaging.tsx",
-          "frontend/src/components/FeedbackSubmissions.tsx",
-          "frontend/src/components/ActivityLogTable.tsx",
-          "frontend/src/components/AdminManagement.tsx",
-          "frontend/src/components/AdminList.tsx",
-          "frontend/src/components/AdminDebugPanel.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/hooks/useDownloadClip.ts",
+          "frontend/src/components/ClipCard.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/AdminPanel.tsx",
-          "frontend/src/components/SystemControls.tsx",
-          "frontend/src/components/AppAnalytics.tsx",
-          "frontend/src/components/UserStatusManagement.tsx",
-          "frontend/src/components/AdminMessaging.tsx",
-          "frontend/src/components/FeedbackSubmissions.tsx",
-          "frontend/src/components/ActivityLogTable.tsx",
-          "frontend/src/components/AdminManagement.tsx",
-          "frontend/src/components/AdminList.tsx",
-          "frontend/src/App.tsx"
+          "frontend/src/hooks/useDownloadClip.ts",
+          "frontend/src/components/ClipCard.tsx"
         ]
       },
       {
         "id": "REQ-3",
-        "summary": "Restore the YouTube channel connection UI: ensure ChannelConnection component is displayed in the Scheduler page and/or sidebar, using the useYouTubeChannel hook to show connected or disconnected state. Ensure the Scheduler page renders the YouTube channel connection status alongside the scheduled uploads list and clip scheduling form.",
-        "status": "missing",
+        "summary": "In the admin panel's user management section (UserStatusManagement component), display each user's full Principal ID alongside their existing user ID. Add a copy-to-clipboard button next to the Principal ID so admins can easily copy it. The Principal ID should be visible in the user list/search results and in any user detail view within the component.",
+        "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/ChannelConnection.tsx",
-          "frontend/src/pages/Scheduler.tsx",
-          "frontend/src/hooks/useYouTubeChannel.ts"
+          "frontend/src/components/UserStatusManagement.tsx"
         ],
-        "matchedFiles": []
+        "matchedFiles": [
+          "frontend/src/components/UserStatusManagement.tsx"
+        ]
       },
       {
         "id": "REQ-4",
-        "summary": "Restore the Report a Bug / Request a Feature button: ensure the FeedbackModal trigger button is present in both the SideNavigation (desktop) and BottomNavigation (mobile). The modal must allow users to choose between 'Bug Report' and 'Feature Request' types and submit a title and description via the useFeedbackSubmit hook.",
+        "summary": "In the admin panel's clip management section (any clip listing/management view available to admins), display the owner's full Principal ID for each clip alongside existing owner information. Add a copy-to-clipboard button next to each Principal ID so admins can easily copy it.",
         "status": "implemented",
         "plannedFiles": [
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx",
-          "frontend/src/components/FeedbackModal.tsx",
-          "frontend/src/hooks/useFeedbackSubmit.ts"
+          "frontend/src/hooks/useClips.ts",
+          "frontend/src/components/ClipCard.tsx",
+          "frontend/src/pages/MyClipsPage.tsx"
         ],
         "matchedFiles": [
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx",
-          "frontend/src/components/FeedbackModal.tsx",
-          "frontend/src/hooks/useFeedbackSubmit.ts"
-        ]
-      },
-      {
-        "id": "REQ-5",
-        "summary": "Restore the Trending Now section: ensure TrendingPage is accessible via navigation and renders the top trending clips sorted by viral/trending score, including the TrendingSidebar top-5 leaderboard and a responsive grid of ClipCards. Ensure the 'Trending' nav link appears in SideNavigation and BottomNavigation for all users (authenticated and anonymous).",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/TrendingPage.tsx",
-          "frontend/src/components/TrendingSidebar.tsx",
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/TrendingPage.tsx",
-          "frontend/src/components/TrendingSidebar.tsx",
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx",
-          "frontend/src/App.tsx"
-        ]
-      },
-      {
-        "id": "REQ-6",
-        "summary": "Restore messaging functionality: ensure the MessagesPage is accessible via navigation for authenticated users, displaying the UserMessages component which lists the user's messages and allows viewing individual messages and composing replies. Ensure the 'Messages' nav item appears in SideNavigation and BottomNavigation for authenticated users. Ensure useSendAdminMessage and useMyMessages hooks are correctly wired to the message store.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/MessagesPage.tsx",
-          "frontend/src/components/UserMessages.tsx",
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx",
-          "frontend/src/hooks/useMyMessages.ts",
-          "frontend/src/hooks/useSendAdminMessage.ts",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/MessagesPage.tsx",
-          "frontend/src/components/UserMessages.tsx",
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx",
-          "frontend/src/hooks/useMyMessages.ts",
-          "frontend/src/hooks/useSendAdminMessage.ts",
-          "frontend/src/App.tsx"
-        ]
-      },
-      {
-        "id": "REQ-7",
-        "summary": "Restore the Social Feed: ensure SocialFeedPage is accessible via navigation, showing recent clip creation activity from all users with avatar initials, clip thumbnails, time ranges, and relative timestamps. Ensure the 'Feed' nav link appears in SideNavigation and BottomNavigation.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/pages/SocialFeedPage.tsx",
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx",
-          "frontend/src/hooks/useSocialFeed.ts",
-          "frontend/src/App.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/pages/SocialFeedPage.tsx",
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx",
-          "frontend/src/hooks/useSocialFeed.ts",
-          "frontend/src/App.tsx"
-        ]
-      },
-      {
-        "id": "REQ-8",
-        "summary": "Ensure all navigation links — Clips, Trending, Feed, Gallery, Profile, Messages, Scheduler — are present and correctly routed in both SideNavigation (desktop) and BottomNavigation (mobile), filtered appropriately by authentication state. Confirm that all routes defined in App.tsx correspond to their respective page components.",
-        "status": "implemented",
-        "plannedFiles": [
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/MyClipsPage.tsx",
-          "frontend/src/pages/MyGalleryPage.tsx"
-        ],
-        "matchedFiles": [
-          "frontend/src/components/SideNavigation.tsx",
-          "frontend/src/components/BottomNavigation.tsx",
-          "frontend/src/App.tsx",
-          "frontend/src/pages/MyClipsPage.tsx",
-          "frontend/src/pages/MyGalleryPage.tsx"
+          "frontend/src/components/ClipCard.tsx"
         ]
       }
     ]
@@ -178,40 +69,12 @@
     "feature_evidence.json",
     "frontend-file-summaries.txt",
     "frontend-implementation-plan.json",
-    "frontend/src/App.tsx",
-    "frontend/src/components/ActivityLogTable.tsx",
-    "frontend/src/components/AdminList.tsx",
-    "frontend/src/components/AdminManagement.tsx",
-    "frontend/src/components/AdminMessaging.tsx",
-    "frontend/src/components/AdminPanel.tsx",
-    "frontend/src/components/AppAnalytics.tsx",
-    "frontend/src/components/AppShell.tsx",
-    "frontend/src/components/BottomNavigation.tsx",
-    "frontend/src/components/FeedbackModal.tsx",
-    "frontend/src/components/FeedbackSubmissions.tsx",
-    "frontend/src/components/ProfileSetup.tsx",
-    "frontend/src/components/SideNavigation.tsx",
-    "frontend/src/components/SystemControls.tsx",
-    "frontend/src/components/TrendingSidebar.tsx",
-    "frontend/src/components/UserIdDisplay.tsx",
-    "frontend/src/components/UserMessages.tsx",
-    "frontend/src/components/UserRoleBadge.tsx",
+    "frontend/src/components/ChannelConnection.tsx",
+    "frontend/src/components/ClipCard.tsx",
     "frontend/src/components/UserStatusManagement.tsx",
-    "frontend/src/hooks/useDeleteFeedback.ts",
-    "frontend/src/hooks/useFeedbackSubmissions.ts",
-    "frontend/src/hooks/useFeedbackSubmit.ts",
-    "frontend/src/hooks/useGetOwnRole.ts",
-    "frontend/src/hooks/useIsOwner.ts",
-    "frontend/src/hooks/useMyMessages.ts",
-    "frontend/src/hooks/useQueries.ts",
-    "frontend/src/hooks/useSendAdminMessage.ts",
-    "frontend/src/hooks/useSocialFeed.ts",
-    "frontend/src/pages/MessagesPage.tsx",
-    "frontend/src/pages/MyClipsPage.tsx",
-    "frontend/src/pages/MyGalleryPage.tsx",
-    "frontend/src/pages/ProfilePage.tsx",
-    "frontend/src/pages/SocialFeedPage.tsx",
-    "frontend/src/pages/TrendingPage.tsx",
+    "frontend/src/hooks/useDownloadClip.ts",
+    "frontend/src/hooks/useYouTubeChannel.ts",
+    "frontend/src/pages/OAuthCallback.tsx",
     "project_state.json",
     "scratch/component-selection.json",
     "spec.md",

@@ -1,7 +1,6 @@
 import React from 'react';
 import SideNavigation from './SideNavigation';
 import BottomNavigation from './BottomNavigation';
-import NotificationToastContainer from './NotificationToastContainer';
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -9,23 +8,23 @@ interface AppShellProps {
 
 export default function AppShell({ children }: AppShellProps) {
   return (
-    <div className="flex h-screen bg-background text-foreground overflow-hidden">
-      {/* Desktop sidebar */}
-      <div className="hidden md:flex md:shrink-0">
+    <div className="min-h-screen bg-[#0B0E14] text-foreground flex">
+      {/* Desktop Sidebar */}
+      <div className="hidden md:flex md:flex-shrink-0">
         <SideNavigation />
       </div>
 
-      {/* Main content */}
-      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
-        {children}
+      {/* Main Content */}
+      <main className="flex-1 flex flex-col min-h-screen overflow-hidden">
+        <div className="flex-1 overflow-y-auto scrollbar-thin pb-20 md:pb-0">
+          {children}
+        </div>
       </main>
 
-      {/* Mobile bottom nav */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 z-50">
+      {/* Mobile Bottom Navigation */}
+      <div className="md:hidden">
         <BottomNavigation />
       </div>
-
-      <NotificationToastContainer />
     </div>
   );
 }
