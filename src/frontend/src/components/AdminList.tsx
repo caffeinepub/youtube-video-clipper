@@ -1,9 +1,15 @@
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Shield, AlertCircle } from 'lucide-react';
-import { useAdminList } from '../hooks/useAdminList';
-import { generateShortUserId } from '../utils/userIdGenerator';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
+import { AlertCircle, Shield } from "lucide-react";
+import { useAdminList } from "../hooks/useAdminList";
+import { generateShortUserId } from "../utils/userIdGenerator";
 
 export default function AdminList() {
   const { data: adminList, isLoading, error } = useAdminList();
@@ -37,7 +43,8 @@ export default function AdminList() {
           <Alert variant="destructive">
             <AlertCircle className="h-4 w-4" />
             <AlertDescription>
-              Failed to load admin list: {error instanceof Error ? error.message : String(error)}
+              Failed to load admin list:{" "}
+              {error instanceof Error ? error.message : String(error)}
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -51,8 +58,8 @@ export default function AdminList() {
         <CardTitle>Current Admins</CardTitle>
         <CardDescription>
           {adminList && adminList.length > 0
-            ? `${adminList.length} user${adminList.length === 1 ? '' : 's'} with admin access`
-            : 'No admins found'}
+            ? `${adminList.length} user${adminList.length === 1 ? "" : "s"} with admin access`
+            : "No admins found"}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -68,7 +75,9 @@ export default function AdminList() {
                   <Shield className="h-5 w-5 text-primary flex-shrink-0" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2">
-                      <span className="text-sm font-semibold">Admin #{index + 1}</span>
+                      <span className="text-sm font-semibold">
+                        Admin #{index + 1}
+                      </span>
                       <span className="text-xs font-mono bg-primary/10 text-primary px-2 py-0.5 rounded">
                         {shortId}
                       </span>

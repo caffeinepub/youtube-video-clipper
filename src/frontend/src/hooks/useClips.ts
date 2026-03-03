@@ -1,41 +1,50 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import type { VideoClip } from '../backend';
-import { useState } from 'react';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+import { toast } from "sonner";
+import type { VideoClip } from "../backend";
+import { useActor } from "./useActor";
+import { useInternetIdentity } from "./useInternetIdentity";
 
 export function useClips() {
   const { actor, isFetching } = useActor();
+  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
-  const [isDeletingClip, setIsDeletingClip] = useState<string | null>(null);
+  const [isDeletingId, setIsDeletingId] = useState<string | null>(null);
 
-  const { data: clips = [], isLoading } = useQuery<VideoClip[]>({
-    queryKey: ['clips'],
+  const query = useQuery<VideoClip[]>({
+    queryKey: ["myClips", identity?.getPrincipal().toString()],
     queryFn: async () => {
       if (!actor) return [];
-      return await actor.getAllClips('');
+      return actor.getAllClips("");
     },
-    enabled: !!actor && !isFetching,
+    enabled: !!actor && !isFetching && !!identity,
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (clipId: string) => {
-      if (!actor) throw new Error('Actor not available');
-      setIsDeletingClip(clipId);
+      if (!actor) throw new Error("Actor not available");
+      setIsDeletingId(clipId);
       await actor.deleteClip(clipId);
+      try {
+        await actor.logUserActivity("clip_deleted");
+      } catch (_) {}
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clips'] });
-      setIsDeletingClip(null);
+      queryClient.invalidateQueries({ queryKey: ["myClips"] });
+      queryClient.invalidateQueries({ queryKey: ["trendingClips"] });
+      queryClient.invalidateQueries({ queryKey: ["activityLogs"] });
+      setIsDeletingId(null);
+      toast.success("Clip deleted");
     },
-    onError: () => {
-      setIsDeletingClip(null);
+    onError: (error: Error) => {
+      setIsDeletingId(null);
+      toast.error(`Failed to delete clip: ${error.message}`);
     },
   });
 
   return {
-    clips,
-    isLoading,
+    ...query,
     deleteClip: deleteMutation.mutate,
-    isDeletingClip,
+    isDeletingId,
   };
 }

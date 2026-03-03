@@ -1,232 +1,357 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
-import { Search, AlertCircle, Loader2 } from 'lucide-react';
-import { useUserRoles } from '../hooks/useUserRoles';
-import { useSetUserRole } from '../hooks/useSetUserRole';
-import { useSetUserStatus } from '../hooks/useSetUserStatus';
-import { UserRole, UserStatus } from '../backend';
-import UserRoleBadge from './UserRoleBadge';
-import { Principal } from '@icp-sdk/core/principal';
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Check, Copy, Search, Trash2 } from "lucide-react";
+import React, { useState } from "react";
+import { toast } from "sonner";
+import { UserRole, UserStatus } from "../backend";
+import { useActor } from "../hooks/useActor";
+import { useSetUserRole } from "../hooks/useSetUserRole";
+import { useSetUserStatus } from "../hooks/useSetUserStatus";
+import { useUserRoles } from "../hooks/useUserRoles";
+import { generateShortUserId } from "../utils/userIdGenerator";
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      toast.success("Copied to clipboard!");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Failed to copy");
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={handleCopy}
+      className="ml-1 p-0.5 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+      title="Copy to clipboard"
+    >
+      {copied ? (
+        <Check className="w-3 h-3 text-success" />
+      ) : (
+        <Copy className="w-3 h-3" />
+      )}
+    </button>
+  );
+}
 
 export default function UserStatusManagement() {
-  const { data: users, isLoading, error } = useUserRoles();
-  const setUserRoleMutation = useSetUserRole();
-  const setUserStatusMutation = useSetUserStatus();
-  const [searchTerm, setSearchTerm] = useState('');
+  const { data: users, isLoading } = useUserRoles();
+  const { mutate: setStatus, isPending: isSettingStatus } = useSetUserStatus();
+  const { mutate: setRole, isPending: isSettingRole } = useSetUserRole();
+  const { actor } = useActor();
+  const [search, setSearch] = useState("");
+  const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
+  const [isDeletingBatch, setIsDeletingBatch] = useState(false);
 
-  const handleRoleChange = async (principalText: string, newRole: UserRole) => {
-    try {
-      const principal = Principal.fromText(principalText);
-      await setUserRoleMutation.mutateAsync({ target: principal, role: newRole });
-    } catch (error) {
-      console.error('Failed to change role:', error);
-    }
-  };
-
-  const handleStatusChange = async (principalText: string, newStatus: UserStatus) => {
-    try {
-      const principal = Principal.fromText(principalText);
-      await setUserStatusMutation.mutateAsync({ target: principal, status: newStatus });
-    } catch (error) {
-      console.error('Failed to change status:', error);
-    }
-  };
-
-  const getStatusBadgeVariant = (status: UserStatus): 'default' | 'secondary' | 'destructive' | 'outline' => {
-    switch (status) {
-      case UserStatus.active:
-        return 'default';
-      case UserStatus.inactive:
-        return 'secondary';
-      case UserStatus.suspended:
-        return 'outline';
-      case UserStatus.banned:
-        return 'destructive';
-      default:
-        return 'default';
-    }
-  };
-
-  const getStatusLabel = (status: UserStatus): string => {
-    switch (status) {
-      case UserStatus.active:
-        return 'Active';
-      case UserStatus.inactive:
-        return 'Inactive';
-      case UserStatus.suspended:
-        return 'Suspended';
-      case UserStatus.banned:
-        return 'Banned';
-      default:
-        return status;
-    }
-  };
-
-  const filteredUsers = users?.filter(({ principal }) => {
-    const principalText = principal.toString();
-    return principalText.toLowerCase().includes(searchTerm.toLowerCase());
+  const filteredUsers = users?.filter((user) => {
+    const principalStr = user.principal.toString();
+    const shortId = generateShortUserId(principalStr);
+    const name = user.profile?.name ?? "";
+    const q = search.toLowerCase();
+    return (
+      principalStr.toLowerCase().includes(q) ||
+      shortId.toLowerCase().includes(q) ||
+      name.toLowerCase().includes(q)
+    );
   });
+
+  const toggleSelectUser = (principalStr: string) => {
+    setSelectedUsers((prev) => {
+      const next = new Set(prev);
+      if (next.has(principalStr)) next.delete(principalStr);
+      else next.add(principalStr);
+      return next;
+    });
+  };
+
+  const handleBatchDeleteClips = async () => {
+    if (!actor || selectedUsers.size === 0) return;
+    setIsDeletingBatch(true);
+    try {
+      await Promise.all(
+        Array.from(selectedUsers).map((principalStr) =>
+          actor.deleteClipsByUser(principalStr),
+        ),
+      );
+      toast.success(`Deleted clips for ${selectedUsers.size} user(s)`);
+      setSelectedUsers(new Set());
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Unknown error";
+      toast.error(`Failed to delete clips: ${msg}`);
+    } finally {
+      setIsDeletingBatch(false);
+    }
+  };
+
+  const getRoleBadgeVariant = (role: UserRole) => {
+    switch (role) {
+      case UserRole.owner:
+        return "default";
+      case UserRole.admin:
+        return "secondary";
+      case UserRole.friend:
+        return "outline";
+      default:
+        return "outline";
+    }
+  };
+
+  const getStatusBadgeVariant = (status: UserStatus) => {
+    switch (status) {
+      case UserStatus.active:
+        return "default";
+      case UserStatus.banned:
+        return "destructive";
+      case UserStatus.suspended:
+        return "secondary";
+      default:
+        return "outline";
+    }
+  };
 
   if (isLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle>User Status Management</CardTitle>
-          <CardDescription>Loading user data...</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <Skeleton className="h-10 w-full" />
-          <Skeleton className="h-64 w-full" />
-        </CardContent>
-      </Card>
+      <div className="flex items-center justify-center py-12 text-muted-foreground">
+        Loading users…
+      </div>
     );
   }
 
-  if (error) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>User Status Management</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Alert variant="destructive">
-            <AlertCircle className="h-4 w-4" />
-            <AlertDescription>
-              {error instanceof Error ? error.message : 'Failed to load user data'}
-            </AlertDescription>
-          </Alert>
-        </CardContent>
-      </Card>
-    );
-  }
+  // Safe derived values to avoid undefined comparisons
+  const filteredCount = filteredUsers?.length ?? 0;
+  const allSelected =
+    filteredCount > 0 &&
+    (filteredUsers?.every((u) => selectedUsers.has(u.principal.toString())) ??
+      false);
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>User Status Management</CardTitle>
-        <CardDescription>
-          Manage user roles and account status. Change roles between Owner, Admin, User, and Friend, or update account status.
-        </CardDescription>
-      </CardHeader>
-      <CardContent className="space-y-4">
-        {/* Search Input */}
-        <div className="space-y-2">
-          <Label htmlFor="search">Search Users</Label>
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              id="search"
-              placeholder="Search by Principal ID..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+    <div className="space-y-4">
+      <div className="flex items-center gap-3">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            placeholder="Search by name, short ID, or principal…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
         </div>
+        {selectedUsers.size > 0 && (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={handleBatchDeleteClips}
+            disabled={isDeletingBatch}
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="w-4 h-4" />
+            Delete Clips ({selectedUsers.size})
+          </Button>
+        )}
+      </div>
 
-        {/* Users Table */}
-        {filteredUsers && filteredUsers.length > 0 ? (
-          <div className="rounded-md border">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Principal ID</TableHead>
-                  <TableHead>Current Role</TableHead>
-                  <TableHead>Change Role</TableHead>
-                  <TableHead>Current Status</TableHead>
-                  <TableHead>Change Status</TableHead>
+      <div className="rounded-lg border border-border overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-10">
+                <Checkbox
+                  checked={allSelected}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedUsers(
+                        new Set(
+                          filteredUsers?.map((u) => u.principal.toString()) ??
+                            [],
+                        ),
+                      );
+                    } else {
+                      setSelectedUsers(new Set());
+                    }
+                  }}
+                />
+              </TableHead>
+              <TableHead>User</TableHead>
+              <TableHead>Principal ID</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Actions</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredCount === 0 && (
+              <TableRow>
+                <TableCell
+                  colSpan={6}
+                  className="text-center text-muted-foreground py-8"
+                >
+                  No users found
+                </TableCell>
+              </TableRow>
+            )}
+            {filteredUsers?.map((user) => {
+              const principalStr = user.principal.toString();
+              const shortId = generateShortUserId(principalStr);
+              const isSelected = selectedUsers.has(principalStr);
+
+              return (
+                <TableRow
+                  key={principalStr}
+                  className={isSelected ? "bg-muted/30" : ""}
+                >
+                  <TableCell>
+                    <Checkbox
+                      checked={isSelected}
+                      onCheckedChange={() => toggleSelectUser(principalStr)}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <div className="space-y-0.5">
+                      <div className="font-medium text-sm">
+                        {user.profile?.name ?? "Unknown"}
+                      </div>
+                      <div className="text-xs text-muted-foreground font-mono">
+                        #{shortId}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-1 max-w-[220px]">
+                      <span
+                        className="font-mono text-xs text-muted-foreground truncate"
+                        title={principalStr}
+                      >
+                        {principalStr}
+                      </span>
+                      <CopyButton text={principalStr} />
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Badge variant={getRoleBadgeVariant(user.role)}>
+                        {user.role}
+                      </Badge>
+                      {user.role !== UserRole.owner && (
+                        <Select
+                          value={user.role}
+                          onValueChange={(value) =>
+                            setRole({
+                              target: user.principal,
+                              role: value as UserRole,
+                            })
+                          }
+                          disabled={isSettingRole}
+                        >
+                          <SelectTrigger className="h-7 w-24 text-xs">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value={UserRole.admin}>
+                              Admin
+                            </SelectItem>
+                            <SelectItem value={UserRole.user}>User</SelectItem>
+                            <SelectItem value={UserRole.friend}>
+                              Friend
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <Badge
+                        variant={getStatusBadgeVariant(
+                          user.profile?.status ?? UserStatus.inactive,
+                        )}
+                      >
+                        {user.profile?.status ?? "unknown"}
+                      </Badge>
+                      <Select
+                        value={user.profile?.status ?? UserStatus.inactive}
+                        onValueChange={(value) =>
+                          setStatus({
+                            target: user.principal,
+                            status: value as UserStatus,
+                          })
+                        }
+                        disabled={isSettingStatus}
+                      >
+                        <SelectTrigger className="h-7 w-28 text-xs">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value={UserStatus.active}>
+                            Active
+                          </SelectItem>
+                          <SelectItem value={UserStatus.inactive}>
+                            Inactive
+                          </SelectItem>
+                          <SelectItem value={UserStatus.suspended}>
+                            Suspended
+                          </SelectItem>
+                          <SelectItem value={UserStatus.banned}>
+                            Banned
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs"
+                      onClick={() => {
+                        if (actor) {
+                          actor
+                            .deleteClipsByUser(principalStr)
+                            .then(() => {
+                              toast.success("User clips deleted");
+                            })
+                            .catch((err: unknown) => {
+                              const msg =
+                                err instanceof Error
+                                  ? err.message
+                                  : "Unknown error";
+                              toast.error(`Failed: ${msg}`);
+                            });
+                        }
+                      }}
+                    >
+                      <Trash2 className="w-3 h-3 mr-1" />
+                      Del Clips
+                    </Button>
+                  </TableCell>
                 </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredUsers.map(({ principal, role, status }) => {
-                  const principalText = principal.toString();
-                  const isRoleUpdating = setUserRoleMutation.isPending;
-                  const isStatusUpdating = setUserStatusMutation.isPending;
-                  
-                  return (
-                    <TableRow key={principalText}>
-                      <TableCell className="font-mono text-xs max-w-xs truncate">
-                        {principalText}
-                      </TableCell>
-                      <TableCell>
-                        <UserRoleBadge role={role} size="sm" />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Select
-                            value={role}
-                            onValueChange={(value) => handleRoleChange(principalText, value as UserRole)}
-                            disabled={isRoleUpdating || isStatusUpdating}
-                          >
-                            <SelectTrigger className="w-[140px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value={UserRole.owner}>Owner</SelectItem>
-                              <SelectItem value={UserRole.admin}>Admin</SelectItem>
-                              <SelectItem value={UserRole.user}>User</SelectItem>
-                              <SelectItem value={UserRole.friend}>Friend</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          {isRoleUpdating && (
-                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                          )}
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <Badge variant={getStatusBadgeVariant(status)}>
-                          {getStatusLabel(status)}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center gap-2">
-                          <Select
-                            value={status}
-                            onValueChange={(value) => handleStatusChange(principalText, value as UserStatus)}
-                            disabled={isRoleUpdating || isStatusUpdating}
-                          >
-                            <SelectTrigger className="w-[140px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value={UserStatus.active}>Active</SelectItem>
-                              <SelectItem value={UserStatus.inactive}>Inactive</SelectItem>
-                              <SelectItem value={UserStatus.suspended}>Suspended</SelectItem>
-                              <SelectItem value={UserStatus.banned}>Banned</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          {isStatusUpdating && (
-                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-                          )}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })}
-              </TableBody>
-            </Table>
-          </div>
-        ) : (
-          <div className="text-center py-8 text-muted-foreground">
-            <p>
-              {searchTerm ? 'No users found matching your search' : 'No users found'}
-            </p>
-          </div>
-        )}
-
-        {users && (
-          <p className="text-sm text-muted-foreground">
-            Total users: {users.length}
-          </p>
-        )}
-      </CardContent>
-    </Card>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </div>
+    </div>
   );
 }

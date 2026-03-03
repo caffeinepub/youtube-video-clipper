@@ -1,10 +1,14 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useActor } from "./useActor";
 
 // Calculate a viral potential score based on clip characteristics
-function calculateViralScore(startTime: number, endTime: number, title: string): number {
+function calculateViralScore(
+  startTime: number,
+  endTime: number,
+  title: string,
+): number {
   const duration = endTime - startTime;
-  
+
   // Ideal duration for viral clips: 15-60 seconds
   let durationScore = 0;
   if (duration >= 15 && duration <= 60) {
@@ -20,15 +24,30 @@ function calculateViralScore(startTime: number, endTime: number, title: string):
   // Title engagement factors
   let titleScore = 50;
   const titleLower = title.toLowerCase();
-  const viralKeywords = ['epic', 'insane', 'crazy', 'amazing', 'unbelievable', 'shocking', 'best', 'worst', 'fail', 'win', 'moment', 'reaction'];
-  const hasViralKeyword = viralKeywords.some(keyword => titleLower.includes(keyword));
+  const viralKeywords = [
+    "epic",
+    "insane",
+    "crazy",
+    "amazing",
+    "unbelievable",
+    "shocking",
+    "best",
+    "worst",
+    "fail",
+    "win",
+    "moment",
+    "reaction",
+  ];
+  const hasViralKeyword = viralKeywords.some((keyword) =>
+    titleLower.includes(keyword),
+  );
   if (hasViralKeyword) titleScore += 20;
-  if (title.includes('!')) titleScore += 10;
+  if (title.includes("!")) titleScore += 10;
   if (title.length >= 10 && title.length <= 60) titleScore += 20;
 
   // Weighted average
-  const finalScore = (durationScore * 0.7) + (titleScore * 0.3);
-  
+  const finalScore = durationScore * 0.7 + titleScore * 0.3;
+
   return Math.round(Math.min(100, Math.max(0, finalScore)));
 }
 
@@ -51,7 +70,7 @@ export function useClipCreation() {
       endTime: number;
     }) => {
       if (!actor) {
-        throw new Error('Actor not initialized');
+        throw new Error("Actor not initialized");
       }
 
       const viralScore = calculateViralScore(startTime, endTime, title);
@@ -62,12 +81,12 @@ export function useClipCreation() {
         thumbnailUrl,
         BigInt(startTime),
         BigInt(endTime),
-        viralScore
+        viralScore,
       );
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clips'] });
-      queryClient.invalidateQueries({ queryKey: ['trendingClips'] });
+      queryClient.invalidateQueries({ queryKey: ["clips"] });
+      queryClient.invalidateQueries({ queryKey: ["trendingClips"] });
     },
   });
 
@@ -76,7 +95,7 @@ export function useClipCreation() {
     videoUrl: string,
     thumbnailUrl: string,
     startTime: number,
-    endTime: number
+    endTime: number,
   ) => {
     return mutation.mutateAsync({
       title,

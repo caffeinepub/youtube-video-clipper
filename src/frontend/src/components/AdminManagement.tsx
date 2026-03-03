@@ -1,30 +1,36 @@
-import { useState } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { UserPlus, CheckCircle, AlertCircle } from 'lucide-react';
-import { useAddAdmin } from '../hooks/useAddAdmin';
-import AdminList from './AdminList';
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { AlertCircle, CheckCircle, UserPlus } from "lucide-react";
+import { useState } from "react";
+import { useAddAdmin } from "../hooks/useAddAdmin";
+import AdminList from "./AdminList";
 
 export default function AdminManagement() {
-  const [userId, setUserId] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [userId, setUserId] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const { mutate: addAdmin, isPending, error } = useAddAdmin();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!userId.trim()) {
       return;
     }
 
     addAdmin(userId.trim(), {
       onSuccess: () => {
-        setSuccessMessage('Admin added successfully!');
-        setUserId('');
-        setTimeout(() => setSuccessMessage(''), 3000);
+        setSuccessMessage("Admin added successfully!");
+        setUserId("");
+        setTimeout(() => setSuccessMessage(""), 3000);
       },
     });
   };
@@ -52,7 +58,8 @@ export default function AdminManagement() {
                 className="font-mono text-sm"
               />
               <p className="text-xs text-muted-foreground">
-                Note: You must enter the full Principal ID, not the short User ID displayed in the header.
+                Note: You must enter the full Principal ID, not the short User
+                ID displayed in the header.
               </p>
             </div>
 
@@ -69,12 +76,18 @@ export default function AdminManagement() {
               <Alert variant="destructive">
                 <AlertCircle className="h-4 w-4" />
                 <AlertDescription>
-                  {error instanceof Error ? error.message : 'Failed to add admin'}
+                  {error instanceof Error
+                    ? error.message
+                    : "Failed to add admin"}
                 </AlertDescription>
               </Alert>
             )}
 
-            <Button type="submit" disabled={isPending || !userId.trim()} className="w-full">
+            <Button
+              type="submit"
+              disabled={isPending || !userId.trim()}
+              className="w-full"
+            >
               {isPending ? (
                 <>
                   <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />

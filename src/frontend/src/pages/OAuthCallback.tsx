@@ -1,161 +1,123 @@
-import { useEffect, useState } from 'react';
-import { useNavigate } from '@tanstack/react-router';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
-import { Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
-import { useStoreGoogleOAuth } from '../hooks/useQueries';
-import { toast } from 'sonner';
+import { useQueryClient } from "@tanstack/react-query";
+import { useNavigate } from "@tanstack/react-router";
+import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import React, { useEffect, useRef, useState } from "react";
+import { useActor } from "../hooks/useActor";
 
 export default function OAuthCallback() {
   const navigate = useNavigate();
-  const { mutateAsync: storeOAuth } = useStoreGoogleOAuth();
-  const [status, setStatus] = useState<'processing' | 'success' | 'error'>('processing');
-  const [errorMessage, setErrorMessage] = useState<string>('');
-  const [errorDetails, setErrorDetails] = useState<string>('');
+  const queryClient = useQueryClient();
+  const { actor, isFetching: actorFetching } = useActor();
+  const [status, setStatus] = useState<"loading" | "success" | "error">(
+    "loading",
+  );
+  const [errorMessage, setErrorMessage] = useState("");
+  const processedRef = useRef(false);
 
   useEffect(() => {
-    const handleOAuthCallback = async () => {
-      try {
-        console.log('[OAuthCallback] Processing OAuth callback...');
-        console.log('[OAuthCallback] Current URL:', window.location.href);
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const code = urlParams.get('code');
-        const state = urlParams.get('state');
-        const error = urlParams.get('error');
-        const errorDescription = urlParams.get('error_description');
+    if (actorFetching || !actor) return;
+    if (processedRef.current) return;
+    processedRef.current = true;
 
-        console.log('[OAuthCallback] URL params:', { 
-          hasCode: !!code, 
-          hasState: !!state, 
-          error, 
-          errorDescription 
-        });
+    const handleCallback = async () => {
+      try {
+        // Parse the authorization code from URL
+        const urlParams = new URLSearchParams(window.location.search);
+        const hashParams = new URLSearchParams(
+          window.location.hash.replace("#", "?").slice(1),
+        );
+
+        const code = urlParams.get("code") || hashParams.get("code");
+        const error = urlParams.get("error") || hashParams.get("error");
 
         if (error) {
-          let userFriendlyMessage = 'OAuth authorization failed';
-          
-          if (error === 'access_denied') {
-            userFriendlyMessage = 'You cancelled the authorization';
-          } else if (errorDescription) {
-            userFriendlyMessage = errorDescription;
-          }
-          
-          throw new Error(userFriendlyMessage);
+          throw new Error(`OAuth error: ${error}`);
         }
 
         if (!code) {
-          throw new Error('No authorization code received from Google. Please try connecting again.');
+          throw new Error("No authorization code received from Google");
         }
-
-        const savedState = sessionStorage.getItem('oauth_state');
-        console.log('[OAuthCallback] State validation:', { received: state, saved: savedState });
-        
-        if (state !== savedState) {
-          throw new Error('Invalid state parameter. This may be a security issue. Please try connecting again.');
-        }
-
-        sessionStorage.removeItem('oauth_state');
 
         const redirectUri = `${window.location.origin}/oauth/callback`;
-        console.log('[OAuthCallback] Storing OAuth credentials with redirect URI:', redirectUri);
-        
-        await storeOAuth({
-          authorizationCode: code,
-          redirectUri,
+
+        // Store the OAuth credentials via backend
+        await actor.storeGoogleOAuthCredentials(code, redirectUri);
+
+        // Invalidate all connection-related queries to force a fresh fetch
+        await queryClient.invalidateQueries({ queryKey: ["youtubeChannel"] });
+        await queryClient.invalidateQueries({
+          queryKey: ["googleOAuthCredentials"],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["youtubeChannelConnection"],
+        });
+        await queryClient.invalidateQueries({
+          queryKey: ["currentUserProfile"],
         });
 
-        console.log('[OAuthCallback] OAuth credentials stored successfully');
-        setStatus('success');
-        toast.success('Google account connected successfully!');
-        
+        // Refetch to ensure updated state is loaded before navigating
+        await queryClient.refetchQueries({ queryKey: ["youtubeChannel"] });
+
+        setStatus("success");
+
+        // Navigate home after a short delay so user sees success state
         setTimeout(() => {
-          navigate({ to: '/' });
-        }, 2000);
-      } catch (err) {
-        console.error('[OAuthCallback] Error:', err);
-        setStatus('error');
-        
-        const errorMsg = err instanceof Error ? err.message : 'Failed to complete OAuth flow';
-        setErrorMessage(errorMsg);
-        
-        // Provide additional context for common errors
-        if (errorMsg.includes('Actor not available')) {
-          setErrorDetails('Please make sure you are logged in and try again.');
-        } else if (errorMsg.includes('state parameter')) {
-          setErrorDetails('Security validation failed. This can happen if you opened multiple authorization windows.');
-        } else if (errorMsg.includes('authorization code')) {
-          setErrorDetails('The authorization code from Google was invalid or missing.');
-        }
-        
-        toast.error('Connection failed', {
-          description: errorMsg,
-        });
-        
+          navigate({ to: "/" });
+        }, 1500);
+      } catch (err: unknown) {
+        const message =
+          err instanceof Error ? err.message : "Unknown error occurred";
+        console.error("[OAuthCallback] Error:", message);
+        setErrorMessage(message);
+        setStatus("error");
+
         setTimeout(() => {
-          navigate({ to: '/' });
-        }, 5000);
+          navigate({ to: "/" });
+        }, 3000);
       }
     };
 
-    handleOAuthCallback();
-  }, [navigate, storeOAuth]);
-
-  const handleRetry = () => {
-    navigate({ to: '/' });
-  };
+    handleCallback();
+  }, [actor, actorFetching, navigate, queryClient]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-background">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Connecting Your Account</CardTitle>
-          <CardDescription>
-            {status === 'processing' && 'Please wait while we connect your Google account...'}
-            {status === 'success' && 'Successfully connected!'}
-            {status === 'error' && 'Connection failed'}
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {status === 'processing' && (
-            <div className="flex flex-col items-center justify-center py-8 space-y-4">
-              <Loader2 className="w-12 h-12 animate-spin text-primary" />
-              <p className="text-sm text-muted-foreground">Connecting to Google...</p>
-              <p className="text-xs text-muted-foreground">This may take a few moments</p>
-            </div>
-          )}
-
-          {status === 'success' && (
-            <Alert>
-              <CheckCircle2 className="h-4 w-4" />
-              <AlertTitle>Success!</AlertTitle>
-              <AlertDescription>
-                Your Google account has been connected successfully. Redirecting you back to the app...
-              </AlertDescription>
-            </Alert>
-          )}
-
-          {status === 'error' && (
-            <div className="space-y-4">
-              <Alert variant="destructive">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Connection Failed</AlertTitle>
-                <AlertDescription className="space-y-2">
-                  <p>{errorMessage}</p>
-                  {errorDetails && (
-                    <p className="text-xs mt-2">{errorDetails}</p>
-                  )}
-                  <p className="text-xs mt-2">Redirecting back to home page in 5 seconds...</p>
-                </AlertDescription>
-              </Alert>
-              <Button onClick={handleRetry} className="w-full" variant="outline">
-                Return to Home Now
-              </Button>
-            </div>
-          )}
-        </CardContent>
-      </Card>
+    <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-card border border-border shadow-lg max-w-sm w-full mx-4">
+        {status === "loading" && (
+          <>
+            <Loader2 className="w-12 h-12 animate-spin text-primary" />
+            <h2 className="text-lg font-semibold text-foreground">
+              Connecting YouTube…
+            </h2>
+            <p className="text-sm text-muted-foreground text-center">
+              Please wait while we complete the connection.
+            </p>
+          </>
+        )}
+        {status === "success" && (
+          <>
+            <CheckCircle className="w-12 h-12 text-success" />
+            <h2 className="text-lg font-semibold text-foreground">
+              YouTube Connected!
+            </h2>
+            <p className="text-sm text-muted-foreground text-center">
+              Your YouTube channel has been connected successfully. Redirecting…
+            </p>
+          </>
+        )}
+        {status === "error" && (
+          <>
+            <AlertCircle className="w-12 h-12 text-destructive" />
+            <h2 className="text-lg font-semibold text-foreground">
+              Connection Failed
+            </h2>
+            <p className="text-sm text-muted-foreground text-center">
+              {errorMessage}
+            </p>
+            <p className="text-xs text-muted-foreground">Redirecting back…</p>
+          </>
+        )}
+      </div>
     </div>
   );
 }

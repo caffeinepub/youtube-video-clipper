@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import { useInternetIdentity } from './useInternetIdentity';
+import { useQuery } from "@tanstack/react-query";
+import { useActor } from "./useActor";
+import { useInternetIdentity } from "./useInternetIdentity";
 
 export interface AdminDebugInfo {
   currentPrincipal: string;
@@ -15,21 +15,21 @@ export function useAdminDebug() {
   const { identity } = useInternetIdentity();
 
   const query = useQuery<AdminDebugInfo>({
-    queryKey: ['adminDebug'],
+    queryKey: ["adminDebug"],
     queryFn: async () => {
       if (!actor || !identity) {
-        throw new Error('Actor or identity not available');
+        throw new Error("Actor or identity not available");
       }
 
       const currentPrincipal = identity.getPrincipal().toString();
-      
+
       try {
-        console.log('[useAdminDebug] Fetching debug info...');
-        
+        console.log("[useAdminDebug] Fetching debug info...");
+
         // Check if current user is admin
         const isAdmin = await actor.isCallerAdmin();
-        
-        console.log('[useAdminDebug] Basic debug info:', {
+
+        console.log("[useAdminDebug] Basic debug info:", {
           currentPrincipal,
           isAdmin,
           timestamp: new Date().toISOString(),
@@ -42,10 +42,10 @@ export function useAdminDebug() {
           isAdmin,
           adminPrincipals: [], // Will be populated when backend method is available
           hashMapSize: 0, // Will be populated when backend method is available
-          initializationStatus: 'Backend method not yet implemented', // Will be populated when backend method is available
+          initializationStatus: "Backend method not yet implemented", // Will be populated when backend method is available
         };
       } catch (error) {
-        console.error('[useAdminDebug] Error fetching debug info:', error);
+        console.error("[useAdminDebug] Error fetching debug info:", error);
         throw error;
       }
     },

@@ -2,7 +2,7 @@
  * Debugging utility for YouTube OAuth flow tracking
  */
 
-export type LogLevel = 'info' | 'warn' | 'error';
+export type LogLevel = "info" | "warn" | "error";
 
 interface LogEntry {
   timestamp: string;
@@ -19,19 +19,19 @@ class YouTubeOAuthDebugger {
       timestamp: new Date().toISOString(),
       level,
       message,
-      data
+      data,
     };
-    
+
     this.logs.push(entry);
-    
+
     const prefix = `[YouTubeOAuth:${level.toUpperCase()}]`;
-    
-    if (level === 'error') {
-      console.error(prefix, message, data || '');
-    } else if (level === 'warn') {
-      console.warn(prefix, message, data || '');
+
+    if (level === "error") {
+      console.error(prefix, message, data || "");
+    } else if (level === "warn") {
+      console.warn(prefix, message, data || "");
     } else {
-      console.log(prefix, message, data || '');
+      console.log(prefix, message, data || "");
     }
   }
 
@@ -40,7 +40,7 @@ class YouTubeOAuthDebugger {
     redirectUri?: string;
     scope?: string;
   }) {
-    this.log('info', 'OAuth flow initiated', params);
+    this.log("info", "OAuth flow initiated", params);
   }
 
   logOAuthCallback(params: {
@@ -52,23 +52,23 @@ class YouTubeOAuthDebugger {
     error?: string;
   }) {
     if (params.error) {
-      this.log('error', 'OAuth callback received with error', params);
+      this.log("error", "OAuth callback received with error", params);
     } else {
-      this.log('info', 'OAuth callback received successfully', {
+      this.log("info", "OAuth callback received successfully", {
         hasAccessToken: !!params.accessToken,
         hasRefreshToken: !!params.refreshToken,
         channelId: params.channelId,
         channelName: params.channelName,
-        expiresAt: params.expiresAt
+        expiresAt: params.expiresAt,
       });
     }
   }
 
   logTokenValidation(isValid: boolean, reason?: string) {
     if (isValid) {
-      this.log('info', 'OAuth token validation passed');
+      this.log("info", "OAuth token validation passed");
     } else {
-      this.log('error', 'OAuth token validation failed', { reason });
+      this.log("error", "OAuth token validation failed", { reason });
     }
   }
 
@@ -77,18 +77,18 @@ class YouTubeOAuthDebugger {
     channelName?: string;
     channelId?: string;
   }) {
-    this.log('info', 'Connection status changed', status);
+    this.log("info", "Connection status changed", status);
   }
 
   logBackendCall(method: string, params?: any) {
-    this.log('info', `Backend call: ${method}`, params);
+    this.log("info", `Backend call: ${method}`, params);
   }
 
   logBackendResponse(method: string, success: boolean, data?: any) {
     if (success) {
-      this.log('info', `Backend response: ${method} - SUCCESS`, data);
+      this.log("info", `Backend response: ${method} - SUCCESS`, data);
     } else {
-      this.log('error', `Backend response: ${method} - FAILED`, data);
+      this.log("error", `Backend response: ${method} - FAILED`, data);
     }
   }
 
@@ -100,28 +100,28 @@ class YouTubeOAuthDebugger {
   }): { isValid: boolean; errors: string[] } {
     const errors: string[] = [];
 
-    if (!response.accessToken || response.accessToken.trim() === '') {
-      errors.push('Missing or empty access token');
+    if (!response.accessToken || response.accessToken.trim() === "") {
+      errors.push("Missing or empty access token");
     }
 
-    if (!response.refreshToken || response.refreshToken.trim() === '') {
-      errors.push('Missing or empty refresh token');
+    if (!response.refreshToken || response.refreshToken.trim() === "") {
+      errors.push("Missing or empty refresh token");
     }
 
-    if (!response.channelId || response.channelId.trim() === '') {
-      errors.push('Missing or empty channel ID');
+    if (!response.channelId || response.channelId.trim() === "") {
+      errors.push("Missing or empty channel ID");
     }
 
-    if (!response.channelName || response.channelName.trim() === '') {
-      errors.push('Missing or empty channel name');
+    if (!response.channelName || response.channelName.trim() === "") {
+      errors.push("Missing or empty channel name");
     }
 
     const isValid = errors.length === 0;
-    
+
     if (!isValid) {
-      this.log('error', 'OAuth response validation failed', { errors });
+      this.log("error", "OAuth response validation failed", { errors });
     } else {
-      this.log('info', 'OAuth response validation passed');
+      this.log("info", "OAuth response validation passed");
     }
 
     return { isValid, errors };
@@ -129,38 +129,39 @@ class YouTubeOAuthDebugger {
 
   checkCommonErrors(error: any): string {
     const errorMessage = error instanceof Error ? error.message : String(error);
-    
+
     const commonErrors = [
       {
         pattern: /unauthorized/i,
-        suggestion: 'User is not authenticated. Please log in first.'
+        suggestion: "User is not authenticated. Please log in first.",
       },
       {
         pattern: /actor not available/i,
-        suggestion: 'Backend actor not initialized. Wait for authentication to complete.'
+        suggestion:
+          "Backend actor not initialized. Wait for authentication to complete.",
       },
       {
         pattern: /expired/i,
-        suggestion: 'OAuth token has expired. Please reconnect your channel.'
+        suggestion: "OAuth token has expired. Please reconnect your channel.",
       },
       {
         pattern: /invalid.*token/i,
-        suggestion: 'Invalid OAuth token. Please try connecting again.'
+        suggestion: "Invalid OAuth token. Please try connecting again.",
       },
       {
         pattern: /network/i,
-        suggestion: 'Network error. Check your internet connection.'
-      }
+        suggestion: "Network error. Check your internet connection.",
+      },
     ];
 
     for (const { pattern, suggestion } of commonErrors) {
       if (pattern.test(errorMessage)) {
-        this.log('warn', 'Common error detected', { errorMessage, suggestion });
+        this.log("warn", "Common error detected", { errorMessage, suggestion });
         return suggestion;
       }
     }
 
-    return 'An unexpected error occurred. Check console logs for details.';
+    return "An unexpected error occurred. Check console logs for details.";
   }
 
   getLogs(): LogEntry[] {
@@ -169,7 +170,7 @@ class YouTubeOAuthDebugger {
 
   clearLogs() {
     this.logs = [];
-    this.log('info', 'Debug logs cleared');
+    this.log("info", "Debug logs cleared");
   }
 
   exportLogs(): string {

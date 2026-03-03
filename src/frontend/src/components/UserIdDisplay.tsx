@@ -1,8 +1,8 @@
-import { useState } from 'react';
-import { Copy, Check } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useInternetIdentity } from '../hooks/useInternetIdentity';
-import { generateShortUserId } from '../utils/userIdGenerator';
+import { Button } from "@/components/ui/button";
+import { Check, Copy } from "lucide-react";
+import { useState } from "react";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import { generateShortUserId } from "../utils/userIdGenerator";
 
 export default function UserIdDisplay() {
   const { identity } = useInternetIdentity();
@@ -20,7 +20,7 @@ export default function UserIdDisplay() {
       setCopiedUserId(true);
       setTimeout(() => setCopiedUserId(false), 2000);
     } catch (error) {
-      console.error('Failed to copy user ID:', error);
+      console.error("Failed to copy user ID:", error);
     }
   };
 
@@ -30,7 +30,7 @@ export default function UserIdDisplay() {
       setCopiedPrincipal(true);
       setTimeout(() => setCopiedPrincipal(false), 2000);
     } catch (error) {
-      console.error('Failed to copy principal ID:', error);
+      console.error("Failed to copy principal ID:", error);
     }
   };
 
@@ -60,8 +60,13 @@ export default function UserIdDisplay() {
       {/* Principal ID Display */}
       <div className="flex items-center gap-2 px-2.5 py-1.5 bg-muted/30 rounded-md border border-border/50">
         <div className="flex flex-col">
-          <span className="text-[10px] text-muted-foreground/80">Principal</span>
-          <span className="text-xs font-mono text-muted-foreground max-w-[200px] truncate" title={principalText}>
+          <span className="text-[10px] text-muted-foreground/80">
+            Principal
+          </span>
+          <span
+            className="text-xs font-mono text-muted-foreground max-w-[200px] truncate"
+            title={principalText}
+          >
             {principalText}
           </span>
         </div>

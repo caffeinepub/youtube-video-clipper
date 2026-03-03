@@ -1,42 +1,68 @@
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useActor } from './useActor';
-import type { ClipMetadata, YouTubePostResult } from '../backend';
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
+import type { ClipMetadata } from "../backend";
+import { useActor } from "./useActor";
+
+const YOUTUBE_POST_TIMEOUT_MS = 30_000;
 
 export function usePostToYouTube() {
   const { actor } = useActor();
   const queryClient = useQueryClient();
 
-  return useMutation<YouTubePostResult, Error, ClipMetadata>({
+  return useMutation({
     mutationFn: async (clipMetadata: ClipMetadata) => {
-      if (!actor) throw new Error('Actor not available');
-      
-      // Check if Google account is connected
-      const hasOAuth = await actor.hasGoogleOAuthCredentials();
-      if (!hasOAuth) {
-        throw new Error('Please connect your Google account first to post to YouTube');
+      if (!actor) throw new Error("Not connected to backend");
+
+      // Check YouTube channel connection first
+      let isConnected = false;
+      try {
+        isConnected = await actor.isYouTubeChannelConnected();
+      } catch {
+        throw new Error("Failed to check YouTube connection status");
       }
-      
-      // Validate clip duration for YouTube Shorts (max 60 seconds)
-      const startSec = Number(clipMetadata.startTimestamp);
-      const endSec = Number(clipMetadata.endTimestamp);
-      const durationSeconds = endSec - startSec;
-      
-      if (durationSeconds > 60) {
+
+      if (!isConnected) {
         throw new Error(
-          `YouTube Shorts must be 60 seconds or less. Your clip is ${durationSeconds} seconds. Please adjust the timestamps.`
+          "YouTube channel not connected. Please connect your channel first.",
         );
       }
-      
-      const result = await actor.postClipToYouTube(clipMetadata);
-      
+
+      // Race the actual post against a timeout
+      const postPromise = actor.postClipToYouTube(clipMetadata);
+      const timeoutPromise = new Promise<never>((_, reject) =>
+        setTimeout(
+          () =>
+            reject(
+              new Error(
+                "YouTube post timed out after 30 seconds. Please try again.",
+              ),
+            ),
+          YOUTUBE_POST_TIMEOUT_MS,
+        ),
+      );
+
+      const result = await Promise.race([postPromise, timeoutPromise]);
+
       if (!result.success) {
-        throw new Error(result.errorMessage || 'Failed to post clip to YouTube');
+        throw new Error(
+          result.errorMessage || "Failed to post clip to YouTube",
+        );
       }
-      
+
       return result;
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['clips'] });
+    onSuccess: (result) => {
+      toast.success("Clip posted to YouTube!", {
+        description: result.videoUrl
+          ? `View at: ${result.videoUrl}`
+          : undefined,
+      });
+      queryClient.invalidateQueries({ queryKey: ["clips"] });
+    },
+    onError: (error: Error) => {
+      toast.error("YouTube post failed", {
+        description: error.message || "An unexpected error occurred",
+      });
     },
   });
 }
