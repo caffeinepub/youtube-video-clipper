@@ -2,59 +2,127 @@
 
 ## Current State
 
-The app is a full-stack YouTube video clipping dashboard (Beast Clipping) with:
-- **Backend**: Motoko with VideoClip, UserProfile, AdminMessage, FeedbackSubmission, ScheduledUpload, ContentEntry, ActivityLog types. Methods for saving/deleting clips, user roles (owner/admin/user/friend), user status (active/inactive/banned/suspended), YouTube channel connection, Google OAuth, messaging, feedback, scheduler, content manager, admin panel.
-- **Frontend**: React + Tailwind dark-mode dashboard. Pages: Home (clip creation), MyClips, Trending, Scheduler, ContentManager, Admin, Messages, OAuthCallback. Components: AdminPanel, ClipList, ClipTimestampControls, YouTubePlayer, TrendingSidebar, UserMessages, ChannelConnection, FeedbackModal, VerticalClipPreview, CaptionEditor, AppShell, BottomNavigation, SideNavigation, etc.
-- VideoClip shape: `{ id, title, videoUrl, thumbnailUrl, startTime, endTime, createdAt, score }`
+Full-stack YouTube video clipping app with:
+- Dashboard with video URL input, YouTube player, AI clip suggestions, clip timestamp controls, caption editor, clip list, vertical 9:16 preview, clip queue, trending sidebar, user messages
+- Side navigation + bottom nav (mobile), AppShell with profile section
+- Clip library (searchable, filterable grid), tagging, favorites, reactions, comments, social sharing, download options, clip expiry
+- User profiles (name, role, status, profile picture, YouTube auth)
+- Roles: owner, admin, user, friend; Statuses: active, inactive, banned, suspended
+- Admin panel: user/clip management, messaging, server controls, activity logs, analytics, feedback submissions, content manager, admin list management
+- YouTube channel connection (OAuth flow), scheduling, post clips to YouTube Shorts
+- Report a Bug / Request a Feature modal (FeedbackModal)
+- In-app notifications via toast (sonner)
+- Google OAuth credentials storage
+- Banned/suspended users shown error screen (AccountStatusGuard)
+- All styles: dark mode (#0B0E14), glassmorphism, indigo-500 accents
 
 ## Requested Changes (Diff)
 
 ### Add
-- **Clip trimming & preview**: Scrub through video and set precise in/out points before saving (enhance ClipTimestampControls with visual scrubber)
-- **One-click clip presets**: "Last 30s / Last 60s / Custom" quick-capture buttons in ClipTimestampControls
-- **Clip queue**: Show pending/processing clips with progress indicators (new ClipQueue component + queue state)
-- **Clip library**: Searchable, filterable grid of saved clips with thumbnails (enhance MyClipsPage/ClipList)
-- **Tagging & categories**: Tag clips by game, streamer, moment type (funny, hype, fail) — backend needs tags field on VideoClip, new tag methods
-- **Favorites / bookmarks**: Star clips to surface them later — backend needs favorites map per user
-- **Direct share links**: One-click copy of a public clip URL per clip card
-- **Download options**: Export in different resolutions (720p, 1080p) or formats (MP4, GIF) — UI dropdown on clip card calling existing generateDownloadVideoUrl
-- **Share to Twitter/X, Discord, Reddit**: Social share buttons on each clip card
-- **Reactions / upvotes**: Let viewers react to clips — backend needs reactions map per clip
-- **Comments**: Simple threaded comments on clips — backend needs comments type and methods
-- **Trending / Top Clips leaderboard**: Feed of most-viewed/liked clips (enhance TrendingPage with leaderboard view)
-- **Notifications**: In-app toast alerts when clip finishes processing
-- **Dark/light mode toggle**: Theme toggle in header/sidebar
-- **Mobile-friendly clipping interface**: Ensure touch-optimized controls, already partially done via BottomNavigation
-- **Clip expiry settings**: Let users choose if clips auto-delete after 7/30/90 days — backend clip needs optional expiresAt field
-- **View counts per clip**: Backend needs viewCount field on VideoClip, increment on getClipById
-- **Clip performance dashboard**: Views over time, top clips summary — new AnalyticsPage or section in existing admin analytics
+
+**User Profiles & Social Feed**
+- Profile page showing user activity history (clips created, clips viewed, reactions given)
+- Social feed on dashboard showing recent clip activity from all users (new clips saved, trending clips)
+
+**In-App Notification System**
+- Notification bell icon in header with unread count badge
+- Notification panel/dropdown with list of alerts (clip processed, someone reacted to your clip, new message received, system announcements)
+- Backend: store notifications per user, mark as read
+
+**Smart Transcription (UI only - simulated)**
+- When a video is loaded, show a "Generate Transcript" button
+- Display simulated timestamped transcript below the player
+- Allow users to click a transcript line to set clip start/end points (Text-to-Clip)
+
+**Auto-Reframe / Vertical Mode Toggle**
+- Toggle button on ClipTimestampControls labeled "Vertical Mode (9:16)"
+- When enabled, the VerticalClipPreview shows a cropped centered view indicator
+
+**One-Touch Presets (already partially exists)**
+- Ensure "Last 30s", "Last 60s", and "Auto-Highlight" preset buttons are visible and working in ClipTimestampControls
+
+**Timeline Scrubbing**
+- Visual waveform-style seek bar in the ClipTimestampControls (CSS bars representing intensity)
+
+**Cyberpunk/Neon theme update**
+- Accent color shift from indigo to neon cyan (#00f2ff) with deep purples (#240046) dark backgrounds
+- Update index.css CSS variables and tailwind config
+
+**Caption Overlays (Burn-in Captions)**
+- Button "Burn-in Captions" in CaptionEditor that animates the caption text in the VerticalClipPreview
+
+**Multi-Format Export dropdown**
+- Replace/augment the download button with a dropdown: MP4 (High Res), GIF (Meme), MP3 (Audio)
+
+**Direct Share**
+- "Share to X" and "Share to Discord" buttons on each ClipCard that generate a share URL
+
+**Hype-Detection**
+- "Detect Hype" button in ClipSuggestions that simulates finding audio peaks and shows markers
+
+**TikTokify / Dual-View Layout preset**
+- Button "TikTokify" in ClipTimestampControls that sets the vertical mode and applies neon caption style
+
+**Gamer / Neon Caption style**
+- Toggle "Neon Captions" in CaptionEditor (yellow/green bold text with black stroke)
+
+**Speed Ramping (Slow-Mo)**
+- Toggle "Slow-Mo last 2s" in ClipTimestampControls (UI label only - indicates the effect will be applied)
+
+**Discord Webhook Integration**
+- "Send to Discord" button on clips - opens a small modal to enter a webhook URL and send
+
+**Asset / Meme Overlay Library**
+- New sidebar section or modal with sound effect overlays: Airhorn, Bruh, Mission Failed
+- Click to "apply" overlay to current clip (UI state)
+
+**Mint to Gallery (Web3)**
+- "Mint to Gallery" button on each ClipCard
+- Backend: store minted clips list per user with ICP timestamp
+- Show minted badge on clips that have been minted
+
+**Admin Panel: Links Manager**
+- New tab in admin panel "Links" where admins/owner can add, edit, delete public links
+- Links shown in a "Pinned Links" section visible to all users (sidebar or dashboard banner)
+- Backend: store links array with title + url fields
+
+**Fix YouTube connection**
+- YouTube connection flow: when OAuth returns, store tokens and show connected state
+- Fix the "connecting then disconnected" loop by persisting auth state properly in frontend
 
 ### Modify
-- **VideoClip type**: Add `tags: [Text]`, `favorites: Bool` (per-user via separate map), `viewCount: Nat`, `expiresAt: ?Time.Time`, `reactions: Nat`
-- **ClipList / ClipCard**: Add tag badges, favorite star, share buttons, social share, reaction count, comment count, download dropdown
-- **TrendingPage**: Add reaction-based leaderboard view alongside existing trending clips
-- **AdminPanel**: Add view count stats section and clip performance analytics
+
+- AppShell/SideNavigation: add Notifications bell with badge
+- AppShell/SideNavigation: add Profile link
+- HomePage: add social activity feed section
+- ClipTimestampControls: add preset buttons, waveform scrubber, vertical mode toggle, slow-mo toggle, TikTokify button
+- CaptionEditor: add neon caption style toggle, burn-in captions button
+- ClipCard: add Share to X/Discord, Mint to Gallery button, minted badge
+- AdminPanel: add Links tab
 
 ### Remove
-- Nothing removed, all existing functionality preserved
+
+- Nothing removed
 
 ## Implementation Plan
 
-1. **Backend** — Add to `main.mo`:
-   - Extend `VideoClip` type with `tags`, `viewCount`, `expiresAt`, `reactions`
-   - Add `ClipComment` type with `id, clipId, authorPrincipal, body, createdAt`
-   - Add `userFavorites` map: `Map<Principal, Map<Text, ()>>`
-   - Add methods: `addTagsToClip`, `getClipsByTag`, `toggleFavoriteClip`, `getUserFavorites`, `reactToClip`, `addComment`, `getComments`, `deleteComment`, `incrementViewCount`, `getClipViewStats`
-   - Add `clipQueue` simulation via `ClipQueueItem` type with `id, clipId, status(#pending|#processing|#done), progress`
+**Backend additions:**
+1. `Notification` type + per-user notification store
+2. `addNotification`, `getMyNotifications`, `markNotificationsRead` functions
+3. `MintedClip` type + `mintClip`, `getMintedClips` per user
+4. `AdminLink` type + `addAdminLink`, `getAdminLinks`, `deleteAdminLink`, `updateAdminLink` for admin link manager
 
-2. **Frontend** — Update/add:
-   - Enhance `ClipTimestampControls` with last-30s / last-60s preset buttons and visual range scrubber
-   - New `ClipQueue` component showing pending/processing clips with progress bars
-   - New `TagEditor` component for adding/viewing tags on clips
-   - Update `ClipCard` with: favorite star toggle, share-link copy, social share buttons (X, Discord, Reddit), download dropdown (720p/1080p, MP4/GIF), reaction button with count, comment count link
-   - New `CommentsPanel` component (slide-in or modal) with threaded comments per clip
-   - Enhance `ClipList` / `MyClipsPage` with search bar, filter by tag/category, favorites filter
-   - New `ClipPerformanceDashboard` component (analytics page or tab) showing view counts over time
-   - Add dark/light mode toggle to AppShell header and sidebar
-   - Add in-app notification toasts when clip save completes
-   - Ensure all clip controls are touch-friendly (larger tap targets, swipe-friendly on mobile)
+**Frontend additions:**
+1. Update theme: neon cyan accents, cyberpunk deep purples
+2. NotificationBell component + notification panel
+3. ProfilePage component (activity history)
+4. SocialFeed component on homepage
+5. TranscriptPanel component (simulated transcript with click-to-clip)
+6. Update ClipTimestampControls: waveform scrubber CSS, presets, vertical mode, slow-mo, TikTokify
+7. Update CaptionEditor: neon caption toggle, burn-in captions
+8. Update ClipCard: share to X/Discord, mint button + badge
+9. DiscordShareModal component
+10. MemeOverlayLibrary component/sidebar section
+11. AdminPanel: add Links tab with CRUD UI
+12. PinnedLinks component for sidebar/dashboard
+13. Fix YouTube connection persistence logic in ChannelConnection

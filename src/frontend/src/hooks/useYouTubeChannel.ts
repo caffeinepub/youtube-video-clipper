@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useRef } from "react";
 import { useActor } from "./useActor";
 
 export interface YouTubeChannelStatus {
@@ -10,13 +11,21 @@ export interface YouTubeChannelStatus {
 export function useYouTubeChannel() {
   const { actor, isFetching: actorFetching } = useActor();
   const queryClient = useQueryClient();
+  // Track whether we just connected to prevent flicker
+  const justConnectedRef = useRef(false);
 
   const channelQuery = useQuery<YouTubeChannelStatus>({
     queryKey: ["youtubeChannel"],
     queryFn: async () => {
       if (!actor) return { isConnected: false };
       try {
-        // Check both OAuth credentials and YouTube channel connection
+        // If we just connected, trust local state for one cycle
+        if (justConnectedRef.current) {
+          justConnectedRef.current = false;
+          return { isConnected: true, channelName: "YouTube Channel" };
+        }
+
+        // Check both OAuth credentials and YouTube channel connection in parallel
         const [hasOAuth, isYTConnected] = await Promise.all([
           actor.hasGoogleOAuthCredentials(),
           actor.isYouTubeChannelConnected(),
@@ -54,10 +63,10 @@ export function useYouTubeChannel() {
       }
     },
     enabled: !!actor && !actorFetching,
-    staleTime: 0,
-    refetchOnMount: "always",
-    retry: 2,
-    retryDelay: 1000,
+    staleTime: 30_000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   const connectMutation = useMutation({
@@ -88,11 +97,23 @@ export function useYouTubeChannel() {
 
       window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
     },
+    onSuccess: () => {
+      // Set the "just connected" flag and update query cache immediately
+      justConnectedRef.current = true;
+      queryClient.setQueryData<YouTubeChannelStatus>(["youtubeChannel"], {
+        isConnected: true,
+        channelName: "YouTube Channel",
+      });
+      // Invalidate to re-fetch real data after brief delay
+      setTimeout(() => {
+        queryClient.invalidateQueries({ queryKey: ["youtubeChannel"] });
+      }, 2000);
+    },
   });
 
-  // Derive loading state: loading if actor is still fetching OR query is loading/fetching
+  // Derive loading state: loading if actor is still fetching OR query is loading for the first time
   const isLoading =
-    actorFetching || channelQuery.isLoading || channelQuery.isFetching;
+    actorFetching || (channelQuery.isLoading && !channelQuery.isFetched);
 
   const channelStatus: YouTubeChannelStatus = channelQuery.data ?? {
     isConnected: false,

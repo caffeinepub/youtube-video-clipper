@@ -8,6 +8,7 @@ import {
   Scissors,
   Shield,
   TrendingUp,
+  User,
 } from "lucide-react";
 import React, { useState } from "react";
 import { useGetOwnRole } from "../hooks/useGetOwnRole";
@@ -31,6 +32,12 @@ const navItems = [
     path: "/trending",
     label: "Trending",
     icon: TrendingUp,
+    roles: ["owner", "admin", "user", "friend"],
+  },
+  {
+    path: "/profile",
+    label: "Profile",
+    icon: User,
     roles: ["owner", "admin", "user", "friend"],
   },
   {
@@ -84,7 +91,7 @@ export default function BottomNavigation() {
 
   return (
     <>
-      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-t border-white/10 px-2 py-2">
+      <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/90 backdrop-blur-xl border-t border-primary/10 px-2 py-2">
         <div className="flex items-center justify-around max-w-lg mx-auto">
           {displayItems.map((item) => {
             const Icon = item.icon;
@@ -96,22 +103,20 @@ export default function BottomNavigation() {
                 onClick={() => navigate({ to: item.path })}
                 className={`flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[48px] ${
                   active
-                    ? "text-indigo-400"
+                    ? "text-primary"
                     : "text-muted-foreground hover:text-foreground"
                 }`}
                 data-ocid="nav.link"
               >
                 <div
-                  className={`p-1.5 rounded-lg transition-all duration-200 ${active ? "bg-indigo-500/20" : ""}`}
+                  className={`p-1.5 rounded-lg transition-all duration-200 ${active ? "bg-primary/20 neon-glow-sm" : ""}`}
                 >
                   <Icon className="w-5 h-5" />
                 </div>
                 <span className="text-[10px] font-medium leading-none">
                   {item.label}
                 </span>
-                {active && (
-                  <div className="w-1 h-1 rounded-full bg-indigo-400" />
-                )}
+                {active && <div className="w-1 h-1 rounded-full bg-primary" />}
               </button>
             );
           })}
@@ -121,7 +126,7 @@ export default function BottomNavigation() {
             <button
               type="button"
               onClick={() => setFeedbackOpen(true)}
-              className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[48px] text-muted-foreground hover:text-indigo-300"
+              className="flex flex-col items-center gap-1 px-3 py-1.5 rounded-xl transition-all duration-200 min-w-[48px] text-muted-foreground hover:text-primary"
               data-ocid="nav.button"
             >
               <div className="p-1.5 rounded-lg">

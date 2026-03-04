@@ -19,6 +19,12 @@ export const _CaffeineStorageRefillResult = IDL.Record({
   'success' : IDL.Opt(IDL.Bool),
   'topped_up_amount' : IDL.Opt(IDL.Nat),
 });
+export const NotificationType = IDL.Variant({
+  'system_announcement' : IDL.Null,
+  'new_message' : IDL.Null,
+  'clip_processed' : IDL.Null,
+  'reaction' : IDL.Null,
+});
 export const Time = IDL.Int;
 export const UserRole__1 = IDL.Variant({
   'admin' : IDL.Null,
@@ -36,6 +42,13 @@ export const ActivityLog = IDL.Record({
   'action' : IDL.Text,
   'userPrincipal' : IDL.Text,
   'timestamp' : Time,
+});
+export const AdminLink = IDL.Record({
+  'id' : IDL.Nat,
+  'url' : IDL.Text,
+  'title' : IDL.Text,
+  'createdAt' : Time,
+  'createdBy' : IDL.Principal,
 });
 export const VideoClip = IDL.Record({
   'id' : IDL.Text,
@@ -103,6 +116,12 @@ export const FeedbackSubmission = IDL.Record({
   'submissionType' : SubmissionType,
   'submitterUserId' : IDL.Text,
 });
+export const MintedClip = IDL.Record({
+  'clipId' : IDL.Text,
+  'title' : IDL.Text,
+  'mintedAt' : Time,
+  'videoUrl' : IDL.Text,
+});
 export const AdminMessage = IDL.Record({
   'id' : IDL.Text,
   'body' : IDL.Text,
@@ -111,6 +130,14 @@ export const AdminMessage = IDL.Record({
   'toPrincipal' : IDL.Text,
   'fromUserId' : IDL.Text,
   'fromPrincipal' : IDL.Text,
+});
+export const Notification = IDL.Record({
+  'id' : IDL.Nat,
+  'notificationType' : NotificationType,
+  'read' : IDL.Bool,
+  'sender' : IDL.Opt(IDL.Principal),
+  'message' : IDL.Text,
+  'timestamp' : Time,
 });
 export const ScheduledUpload = IDL.Record({
   'id' : IDL.Text,
@@ -197,6 +224,12 @@ export const idlService = IDL.Service({
   '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
   '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
   'addAdminByUserId' : IDL.Func([IDL.Text], [], []),
+  'addAdminLink' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'addNotification' : IDL.Func(
+      [IDL.Principal, IDL.Text, NotificationType, IDL.Opt(IDL.Principal)],
+      [],
+      [],
+    ),
   'addScheduledUpload' : IDL.Func([IDL.Text, Time], [IDL.Text], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
   'connectYouTubeChannel' : IDL.Func(
@@ -205,6 +238,7 @@ export const idlService = IDL.Service({
       [],
     ),
   'createContentEntry' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
+  'deleteAdminLink' : IDL.Func([IDL.Nat], [], []),
   'deleteClip' : IDL.Func([IDL.Text], [], []),
   'deleteClipsByUser' : IDL.Func([IDL.Text], [], []),
   'deleteContentEntry' : IDL.Func([IDL.Text], [], []),
@@ -222,6 +256,7 @@ export const idlService = IDL.Service({
       ['query'],
     ),
   'getActivityLogs' : IDL.Func([], [IDL.Vec(ActivityLog)], ['query']),
+  'getAdminLinks' : IDL.Func([], [IDL.Vec(AdminLink)], ['query']),
   'getAdminsAsAdmin' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
   'getAllClips' : IDL.Func([IDL.Text], [IDL.Vec(VideoClip)], ['query']),
   'getAllUserRoles' : IDL.Func(
@@ -239,7 +274,9 @@ export const idlService = IDL.Service({
       [IDL.Vec(FeedbackSubmission)],
       ['query'],
     ),
+  'getMintedClips' : IDL.Func([], [IDL.Vec(MintedClip)], ['query']),
   'getMyMessages' : IDL.Func([IDL.Text], [IDL.Vec(AdminMessage)], ['query']),
+  'getMyNotifications' : IDL.Func([], [IDL.Vec(Notification)], ['query']),
   'getMyScheduledUploads' : IDL.Func([], [IDL.Vec(ScheduledUpload)], ['query']),
   'getOwnRole' : IDL.Func([], [IDL.Opt(UserRole)], ['query']),
   'getSystemStatus' : IDL.Func([], [SystemStatus], ['query']),
@@ -261,6 +298,8 @@ export const idlService = IDL.Service({
   'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
   'isYouTubeChannelConnected' : IDL.Func([], [IDL.Bool], ['query']),
   'logUserActivity' : IDL.Func([IDL.Text], [], []),
+  'markNotificationsRead' : IDL.Func([], [], []),
+  'mintClip' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
   'postClipToYouTube' : IDL.Func([ClipMetadata], [YouTubePostResult], []),
   'replyToMessage' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Text], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
@@ -289,6 +328,7 @@ export const idlService = IDL.Service({
       [TransformationOutput],
       ['query'],
     ),
+  'updateAdminLink' : IDL.Func([IDL.Nat, IDL.Text], [], []),
   'updateContentEntry' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
   'updateUserStatus' : IDL.Func([IDL.Principal, UserStatus], [], []),
   'uploadProfilePicture' : IDL.Func([ExternalBlob], [], []),
@@ -308,6 +348,12 @@ export const idlFactory = ({ IDL }) => {
     'success' : IDL.Opt(IDL.Bool),
     'topped_up_amount' : IDL.Opt(IDL.Nat),
   });
+  const NotificationType = IDL.Variant({
+    'system_announcement' : IDL.Null,
+    'new_message' : IDL.Null,
+    'clip_processed' : IDL.Null,
+    'reaction' : IDL.Null,
+  });
   const Time = IDL.Int;
   const UserRole__1 = IDL.Variant({
     'admin' : IDL.Null,
@@ -325,6 +371,13 @@ export const idlFactory = ({ IDL }) => {
     'action' : IDL.Text,
     'userPrincipal' : IDL.Text,
     'timestamp' : Time,
+  });
+  const AdminLink = IDL.Record({
+    'id' : IDL.Nat,
+    'url' : IDL.Text,
+    'title' : IDL.Text,
+    'createdAt' : Time,
+    'createdBy' : IDL.Principal,
   });
   const VideoClip = IDL.Record({
     'id' : IDL.Text,
@@ -392,6 +445,12 @@ export const idlFactory = ({ IDL }) => {
     'submissionType' : SubmissionType,
     'submitterUserId' : IDL.Text,
   });
+  const MintedClip = IDL.Record({
+    'clipId' : IDL.Text,
+    'title' : IDL.Text,
+    'mintedAt' : Time,
+    'videoUrl' : IDL.Text,
+  });
   const AdminMessage = IDL.Record({
     'id' : IDL.Text,
     'body' : IDL.Text,
@@ -400,6 +459,14 @@ export const idlFactory = ({ IDL }) => {
     'toPrincipal' : IDL.Text,
     'fromUserId' : IDL.Text,
     'fromPrincipal' : IDL.Text,
+  });
+  const Notification = IDL.Record({
+    'id' : IDL.Nat,
+    'notificationType' : NotificationType,
+    'read' : IDL.Bool,
+    'sender' : IDL.Opt(IDL.Principal),
+    'message' : IDL.Text,
+    'timestamp' : Time,
   });
   const ScheduledUpload = IDL.Record({
     'id' : IDL.Text,
@@ -480,6 +547,12 @@ export const idlFactory = ({ IDL }) => {
     '_caffeineStorageUpdateGatewayPrincipals' : IDL.Func([], [], []),
     '_initializeAccessControlWithSecret' : IDL.Func([IDL.Text], [], []),
     'addAdminByUserId' : IDL.Func([IDL.Text], [], []),
+    'addAdminLink' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'addNotification' : IDL.Func(
+        [IDL.Principal, IDL.Text, NotificationType, IDL.Opt(IDL.Principal)],
+        [],
+        [],
+      ),
     'addScheduledUpload' : IDL.Func([IDL.Text, Time], [IDL.Text], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
     'connectYouTubeChannel' : IDL.Func(
@@ -488,6 +561,7 @@ export const idlFactory = ({ IDL }) => {
         [],
       ),
     'createContentEntry' : IDL.Func([IDL.Text, IDL.Text], [IDL.Text], []),
+    'deleteAdminLink' : IDL.Func([IDL.Nat], [], []),
     'deleteClip' : IDL.Func([IDL.Text], [], []),
     'deleteClipsByUser' : IDL.Func([IDL.Text], [], []),
     'deleteContentEntry' : IDL.Func([IDL.Text], [], []),
@@ -505,6 +579,7 @@ export const idlFactory = ({ IDL }) => {
         ['query'],
       ),
     'getActivityLogs' : IDL.Func([], [IDL.Vec(ActivityLog)], ['query']),
+    'getAdminLinks' : IDL.Func([], [IDL.Vec(AdminLink)], ['query']),
     'getAdminsAsAdmin' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
     'getAllClips' : IDL.Func([IDL.Text], [IDL.Vec(VideoClip)], ['query']),
     'getAllUserRoles' : IDL.Func(
@@ -522,7 +597,9 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Vec(FeedbackSubmission)],
         ['query'],
       ),
+    'getMintedClips' : IDL.Func([], [IDL.Vec(MintedClip)], ['query']),
     'getMyMessages' : IDL.Func([IDL.Text], [IDL.Vec(AdminMessage)], ['query']),
+    'getMyNotifications' : IDL.Func([], [IDL.Vec(Notification)], ['query']),
     'getMyScheduledUploads' : IDL.Func(
         [],
         [IDL.Vec(ScheduledUpload)],
@@ -552,6 +629,8 @@ export const idlFactory = ({ IDL }) => {
     'isCallerAdmin' : IDL.Func([], [IDL.Bool], ['query']),
     'isYouTubeChannelConnected' : IDL.Func([], [IDL.Bool], ['query']),
     'logUserActivity' : IDL.Func([IDL.Text], [], []),
+    'markNotificationsRead' : IDL.Func([], [], []),
+    'mintClip' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
     'postClipToYouTube' : IDL.Func([ClipMetadata], [YouTubePostResult], []),
     'replyToMessage' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Text], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
@@ -580,6 +659,7 @@ export const idlFactory = ({ IDL }) => {
         [TransformationOutput],
         ['query'],
       ),
+    'updateAdminLink' : IDL.Func([IDL.Nat, IDL.Text], [], []),
     'updateContentEntry' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
     'updateUserStatus' : IDL.Func([IDL.Principal, UserStatus], [], []),
     'uploadProfilePicture' : IDL.Func([ExternalBlob], [], []),

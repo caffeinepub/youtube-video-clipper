@@ -14,10 +14,10 @@ import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
-
+import Migration "migration";
 
 // Apply migration on upgrade
-
+(with migration = Migration.run)
 actor {
   // Authorization state and mixin
   let accessControlState = AccessControl.initState();
@@ -25,6 +25,25 @@ actor {
 
   // Storage Mixin for external blobs (profile pictures, other media)
   include MixinStorage();
+
+  public type Notification = {
+    id : Nat;
+    message : Text;
+    timestamp : Time.Time;
+    notificationType : NotificationType;
+    read : Bool;
+    sender : ?Principal;
+  };
+
+  public type NotificationType = {
+    #clip_processed;
+    #reaction;
+    #new_message;
+    #system_announcement;
+  };
+
+  let notificationState = Map.empty<Principal, List.List<Notification>>();
+  var notificationCounter = 0;
 
   public type UserRole = {
     #owner;
@@ -210,6 +229,99 @@ actor {
   let userMessages = Map.empty<Principal, List.List<AdminMessage>>();
   var messageCounter : Nat = 0;
 
+  // Admin Links Manager
+  public type AdminLink = {
+    id : Nat;
+    title : Text;
+    url : Text;
+    createdBy : Principal;
+    createdAt : Time.Time;
+  };
+
+  let adminLinks = Map.empty<Nat, AdminLink>();
+  var adminLinkCounter = 0;
+
+  public shared ({ caller }) func addAdminLink(title : Text, url : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can add links");
+    };
+    let link : AdminLink = {
+      id = adminLinkCounter;
+      title;
+      url;
+      createdBy = caller;
+      createdAt = Time.now();
+    };
+    adminLinks.add(adminLinkCounter, link);
+    adminLinkCounter += 1;
+  };
+
+  public query ({ caller }) func getAdminLinks() : async [AdminLink] {
+    adminLinks.values().toArray();
+  };
+
+  public shared ({ caller }) func updateAdminLink(linkId : Nat, url : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can update links");
+    };
+    let existingLink = switch (adminLinks.get(linkId)) {
+      case (?link) { link };
+      case (null) { Runtime.trap("Link not found") };
+    };
+    let updatedLink = { existingLink with url };
+    adminLinks.add(linkId, updatedLink);
+  };
+
+  public shared ({ caller }) func deleteAdminLink(linkId : Nat) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can delete links");
+    };
+    switch (adminLinks.get(linkId)) {
+      case (null) { Runtime.trap("Link not found") };
+      case (_) { adminLinks.remove(linkId) };
+    };
+  };
+
+  // ----- Minted Clips -----
+  public type MintedClip = {
+    clipId : Text;
+    title : Text;
+    videoUrl : Text;
+    mintedAt : Time.Time;
+  };
+
+  let mintedClips = Map.empty<Principal, List.List<MintedClip>>();
+  var mintedClipCounter = 0;
+
+  public shared ({ caller }) func mintClip(clipId : Text, title : Text, videoUrl : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can mint clips");
+    };
+    let mintedClip : MintedClip = {
+      clipId;
+      title;
+      videoUrl;
+      mintedAt = Time.now();
+    };
+    let existing = switch (mintedClips.get(caller)) {
+      case (?list) { list };
+      case (null) { List.empty<MintedClip>() };
+    };
+    existing.add(mintedClip);
+    mintedClips.add(caller, existing);
+    mintedClipCounter += 1;
+  };
+
+  public query ({ caller }) func getMintedClips() : async [MintedClip] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view their minted clips");
+    };
+    switch (mintedClips.get(caller)) {
+      case (?list) { list.toArray() };
+      case (null) { [] };
+    };
+  };
+
   // Internal helper to record an activity log entry
   func recordActivity(userPrincipal : Principal, action : Text) {
     let id = activityLogCounter.toText() # "_" # Time.now().toText();
@@ -269,6 +381,57 @@ actor {
     } else { 0.0 };
     let lengthPenalty : Float = if (length > 0) { 1000.0 / length } else { 0.0 };
     baseScore + lengthPenalty;
+  };
+
+  // --- Notifications ---
+
+  public shared ({ caller }) func addNotification(recipient : Principal, message : Text, notificationType : NotificationType, sender : ?Principal) : async () {
+    if (not (AccessControl.isAdmin(accessControlState, caller))) {
+      Runtime.trap("Unauthorized: Only admins can add notifications");
+    };
+
+    let notification : Notification = {
+      id = notificationCounter + 1;
+      message;
+      timestamp = Time.now();
+      read = false;
+      notificationType;
+      sender;
+    };
+
+    let existingNotifications = switch (notificationState.get(recipient)) {
+      case (?list) { list };
+      case (null) { List.empty<Notification>() };
+    };
+    existingNotifications.add(notification);
+
+    notificationState.add(recipient, existingNotifications);
+    notificationCounter += 1;
+  };
+
+  // Get all notifications for the calling user
+  public query ({ caller }) func getMyNotifications() : async [Notification] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can view their notifications");
+    };
+    switch (notificationState.get(caller)) {
+      case (?list) { list.toArray() };
+      case (null) { [] };
+    };
+  };
+
+  // Mark all notifications as read for the calling user
+  public shared ({ caller }) func markNotificationsRead() : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can mark notifications as read");
+    };
+    switch (notificationState.get(caller)) {
+      case (?list) {
+        let updatedNotifications = list.map<Notification, Notification>(func(notification) { { notification with read = true } });
+        notificationState.add(caller, updatedNotifications);
+      };
+      case (null) {};
+    };
   };
 
   // --- System Status ---
@@ -1273,4 +1436,3 @@ actor {
     userProfiles.add(caller, updatedProfile);
   };
 };
-

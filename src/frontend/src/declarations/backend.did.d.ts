@@ -16,6 +16,13 @@ export interface ActivityLog {
   'userPrincipal' : string,
   'timestamp' : Time,
 }
+export interface AdminLink {
+  'id' : bigint,
+  'url' : string,
+  'title' : string,
+  'createdAt' : Time,
+  'createdBy' : Principal,
+}
 export interface AdminMessage {
   'id' : string,
   'body' : string,
@@ -62,6 +69,24 @@ export interface GoogleOAuthCredentials {
   'idToken' : string,
   'tokenType' : string,
 }
+export interface MintedClip {
+  'clipId' : string,
+  'title' : string,
+  'mintedAt' : Time,
+  'videoUrl' : string,
+}
+export interface Notification {
+  'id' : bigint,
+  'notificationType' : NotificationType,
+  'read' : boolean,
+  'sender' : [] | [Principal],
+  'message' : string,
+  'timestamp' : Time,
+}
+export type NotificationType = { 'system_announcement' : null } |
+  { 'new_message' : null } |
+  { 'clip_processed' : null } |
+  { 'reaction' : null };
 export interface ScheduledUpload {
   'id' : string,
   'clipId' : string,
@@ -168,6 +193,11 @@ export interface _SERVICE {
   '_caffeineStorageUpdateGatewayPrincipals' : ActorMethod<[], undefined>,
   '_initializeAccessControlWithSecret' : ActorMethod<[string], undefined>,
   'addAdminByUserId' : ActorMethod<[string], undefined>,
+  'addAdminLink' : ActorMethod<[string, string], undefined>,
+  'addNotification' : ActorMethod<
+    [Principal, string, NotificationType, [] | [Principal]],
+    undefined
+  >,
   'addScheduledUpload' : ActorMethod<[string, Time], string>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
   'connectYouTubeChannel' : ActorMethod<
@@ -175,6 +205,7 @@ export interface _SERVICE {
     undefined
   >,
   'createContentEntry' : ActorMethod<[string, string], string>,
+  'deleteAdminLink' : ActorMethod<[bigint], undefined>,
   'deleteClip' : ActorMethod<[string], undefined>,
   'deleteClipsByUser' : ActorMethod<[string], undefined>,
   'deleteContentEntry' : ActorMethod<[string], undefined>,
@@ -187,6 +218,7 @@ export interface _SERVICE {
   >,
   'generateDownloadVideoUrl' : ActorMethod<[string, bigint, bigint], string>,
   'getActivityLogs' : ActorMethod<[], Array<ActivityLog>>,
+  'getAdminLinks' : ActorMethod<[], Array<AdminLink>>,
   'getAdminsAsAdmin' : ActorMethod<[], Array<string>>,
   'getAllClips' : ActorMethod<[string], Array<VideoClip>>,
   'getAllUserRoles' : ActorMethod<[], Array<[Principal, UserRole]>>,
@@ -196,7 +228,9 @@ export interface _SERVICE {
   'getClipById' : ActorMethod<[string], VideoClip>,
   'getContentEntries' : ActorMethod<[], Array<ContentEntry>>,
   'getFeedbackSubmissions' : ActorMethod<[], Array<FeedbackSubmission>>,
+  'getMintedClips' : ActorMethod<[], Array<MintedClip>>,
   'getMyMessages' : ActorMethod<[string], Array<AdminMessage>>,
+  'getMyNotifications' : ActorMethod<[], Array<Notification>>,
   'getMyScheduledUploads' : ActorMethod<[], Array<ScheduledUpload>>,
   'getOwnRole' : ActorMethod<[], [] | [UserRole]>,
   'getSystemStatus' : ActorMethod<[], SystemStatus>,
@@ -210,6 +244,8 @@ export interface _SERVICE {
   'isCallerAdmin' : ActorMethod<[], boolean>,
   'isYouTubeChannelConnected' : ActorMethod<[], boolean>,
   'logUserActivity' : ActorMethod<[string], undefined>,
+  'markNotificationsRead' : ActorMethod<[], undefined>,
+  'mintClip' : ActorMethod<[string, string, string], undefined>,
   'postClipToYouTube' : ActorMethod<[ClipMetadata], YouTubePostResult>,
   'replyToMessage' : ActorMethod<[string, string, string], string>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
@@ -225,6 +261,7 @@ export interface _SERVICE {
   'submitFeedback' : ActorMethod<[SubmissionType, string, string], bigint>,
   'togglePauseSystem' : ActorMethod<[], SystemControlResult>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
+  'updateAdminLink' : ActorMethod<[bigint, string], undefined>,
   'updateContentEntry' : ActorMethod<[string, string, string], undefined>,
   'updateUserStatus' : ActorMethod<[Principal, UserStatus], undefined>,
   'uploadProfilePicture' : ActorMethod<[ExternalBlob], undefined>,

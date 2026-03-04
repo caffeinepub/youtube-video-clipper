@@ -7,14 +7,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Check,
   Clock,
+  Coins,
   Copy,
   Download,
   Eye,
@@ -30,7 +27,8 @@ import {
 import React, { useState, useCallback } from "react";
 import { SiReddit, SiX } from "react-icons/si";
 import { toast } from "sonner";
-import type { VideoClip } from "../backend";
+import type { MintedClip, VideoClip } from "../backend";
+import { useActor } from "../hooks/useActor";
 import {
   type ClipCategory,
   type ExpiryOption,
@@ -122,6 +120,8 @@ export default function ClipCard({
 }: ClipCardProps) {
   const downloadMutation = useDownloadClip();
   const postToYouTubeMutation = usePostToYouTube();
+  const { actor, isFetching: actorFetching } = useActor();
+  const queryClient = useQueryClient();
 
   // ── Local reactive state ──────────────────────────────────────────────────
   const [fav, setFav] = useState(() => isFavorite(clip.id));
@@ -140,6 +140,37 @@ export default function ClipCard({
   const startSec = Number(clip.startTime);
   const endSec = Number(clip.endTime);
   const duration = endSec - startSec;
+
+  // Minted clips query
+  const { data: mintedClips = [] } = useQuery<MintedClip[]>({
+    queryKey: ["mintedClips"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getMintedClips();
+    },
+    enabled: !!actor && !actorFetching,
+    staleTime: 60_000,
+  });
+
+  const isMinted = mintedClips.some((m) => m.clipId === clip.id);
+
+  const mintMutation = useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Actor not available");
+      await actor.mintClip(clip.id, clip.title, clip.videoUrl);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["mintedClips"] });
+      toast.success("✨ Minted to ICP Gallery!", {
+        description: `"${clip.title}" is now a digital collectible`,
+      });
+    },
+    onError: (err) => {
+      toast.error("Failed to mint clip", {
+        description: err instanceof Error ? err.message : "Unknown error",
+      });
+    },
+  });
 
   const formatTime = (seconds: number) => {
     const m = Math.floor(seconds / 60);
@@ -275,6 +306,14 @@ export default function ClipCard({
           </div>
         )}
 
+        {/* Minted badge */}
+        {isMinted && (
+          <div className="absolute top-0 right-0 z-10 bg-yellow-500/90 text-black text-[10px] px-1.5 py-0.5 font-bold flex items-center gap-0.5 rounded-bl">
+            <Coins className="w-2.5 h-2.5" />
+            Minted
+          </div>
+        )}
+
         {/* Thumbnail */}
         <button
           type="button"
@@ -391,7 +430,7 @@ export default function ClipCard({
             <button
               type="button"
               onClick={handleOpenComments}
-              className="flex items-center gap-1 transition-colors hover:text-indigo-400"
+              className="flex items-center gap-1 transition-colors hover:text-primary"
               data-ocid="clip.open_modal_button"
               title="Comments"
             >
@@ -446,6 +485,27 @@ export default function ClipCard({
               Post
             </Button>
 
+            {/* Mint button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => mintMutation.mutate()}
+              disabled={mintMutation.isPending || isMinted}
+              className={`text-xs h-8 w-8 p-0 ${
+                isMinted
+                  ? "border-yellow-500/40 text-yellow-400 bg-yellow-500/10"
+                  : "border-primary/30 text-primary hover:bg-primary/10"
+              }`}
+              title={isMinted ? "Already minted" : "Mint to ICP Gallery"}
+              data-ocid="clip.button"
+            >
+              {mintMutation.isPending ? (
+                <Loader2 className="w-3 h-3 animate-spin" />
+              ) : (
+                <Coins className="w-3 h-3" />
+              )}
+            </Button>
+
             {/* More options dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -460,7 +520,7 @@ export default function ClipCard({
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="bg-[#0B0E14] border border-white/10 text-white min-w-[160px]"
+                className="bg-[#0d1020] border border-primary/20 text-white min-w-[160px]"
               >
                 {/* Share */}
                 <DropdownMenuItem
@@ -468,7 +528,7 @@ export default function ClipCard({
                   className="gap-2 cursor-pointer hover:bg-white/5 text-xs"
                   data-ocid="clip.button"
                 >
-                  <Copy className="w-3.5 h-3.5 text-indigo-400" />
+                  <Copy className="w-3.5 h-3.5 text-primary" />
                   Copy Share Link
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -500,9 +560,21 @@ export default function ClipCard({
                   onClick={() => setTagPopoverOpen(true)}
                   className="gap-2 cursor-pointer hover:bg-white/5 text-xs"
                 >
-                  <Tag className="w-3.5 h-3.5 text-indigo-400" />
+                  <Tag className="w-3.5 h-3.5 text-primary" />
                   Edit Tags
                 </DropdownMenuItem>
+
+                {/* Mint */}
+                {!isMinted && (
+                  <DropdownMenuItem
+                    onClick={() => mintMutation.mutate()}
+                    disabled={mintMutation.isPending}
+                    className="gap-2 cursor-pointer hover:bg-yellow-500/10 text-yellow-300 text-xs"
+                  >
+                    <Coins className="w-3.5 h-3.5" />
+                    Mint to ICP Gallery
+                  </DropdownMenuItem>
+                )}
 
                 {/* Expiry */}
                 {EXPIRY_OPTIONS.map((opt) => (
@@ -510,7 +582,7 @@ export default function ClipCard({
                     key={opt.value}
                     onClick={() => handleSetExpiry(opt.value)}
                     className={`gap-2 cursor-pointer hover:bg-white/5 text-xs ${
-                      expiry.option === opt.value ? "text-indigo-400" : ""
+                      expiry.option === opt.value ? "text-primary" : ""
                     }`}
                   >
                     <Clock className="w-3.5 h-3.5" />
@@ -565,7 +637,7 @@ export default function ClipCard({
             <button
               type="button"
               onClick={handleShareToDiscord}
-              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-indigo-400 bg-white/5 hover:bg-white/10 border border-white/8 rounded-lg px-2 py-1 transition-all"
+              className="flex items-center gap-1 text-xs text-muted-foreground hover:text-primary bg-white/5 hover:bg-white/10 border border-white/8 rounded-lg px-2 py-1 transition-all"
               title="Copy for Discord"
             >
               <Share2 className="w-3 h-3" />
@@ -590,13 +662,13 @@ export default function ClipCard({
           onKeyDown={(e) => e.key === "Escape" && setTagPopoverOpen(false)}
         >
           <div
-            className="bg-[#0B0E14] border border-white/10 rounded-xl p-4 w-56 space-y-3"
+            className="bg-[#0d1020] border border-primary/20 rounded-xl p-4 w-56 space-y-3"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
             data-ocid="clip.popover"
           >
             <div className="flex items-center gap-2">
-              <Tag className="w-4 h-4 text-indigo-400" />
+              <Tag className="w-4 h-4 text-primary" />
               <h4 className="text-white font-semibold text-sm">Edit Tags</h4>
             </div>
             <div className="space-y-1.5">
