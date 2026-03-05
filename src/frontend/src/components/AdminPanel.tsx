@@ -1,12 +1,15 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
+  AlertTriangle,
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  Heart,
   Link2,
   Loader2,
   Lock,
@@ -29,9 +32,11 @@ import AdminErrorBoundary from "./AdminErrorBoundary";
 import AdminManagement from "./AdminManagement";
 import { AdminMessaging } from "./AdminMessaging";
 import AppAnalytics from "./AppAnalytics";
+import { getPayPalUrl, setPayPalUrl } from "./DonateButton";
 import FeedbackSubmissions from "./FeedbackSubmissions";
 import { SystemControls } from "./SystemControls";
 import UserStatusManagement from "./UserStatusManagement";
+import WarningsManager from "./WarningsManager";
 
 interface SectionProps {
   title: string;
@@ -74,6 +79,132 @@ function CollapsibleSection({
         )}
       </button>
       {open && <div className="border-t border-white/8 p-4">{children}</div>}
+    </div>
+  );
+}
+
+function DonateSettings() {
+  const [paypalUrl, setPaypalUrl] = useState(() => getPayPalUrl());
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    setPayPalUrl(paypalUrl.trim());
+    setSaved(true);
+    toast.success("PayPal donation link saved!");
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleClear = () => {
+    setPaypalUrl("");
+    setPayPalUrl("");
+    toast.success("Donation link removed");
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-muted-foreground text-xs leading-relaxed">
+        Set your PayPal donation link. Leave empty to hide the Donate button
+        from all users. Only the owner can change this setting.
+      </p>
+      <div className="space-y-2">
+        <Label className="text-xs text-muted-foreground">PayPal URL</Label>
+        <Input
+          placeholder="https://paypal.me/yourusername"
+          value={paypalUrl}
+          onChange={(e) => setPaypalUrl(e.target.value)}
+          className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground/50 focus:border-pink-500/50 h-8 text-sm mt-1"
+          data-ocid="admin.donate.input"
+        />
+      </div>
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          onClick={handleSave}
+          className="flex-1 bg-pink-500/20 hover:bg-pink-500/30 text-pink-400 border border-pink-500/30 h-8 text-xs"
+          data-ocid="admin.donate.save_button"
+        >
+          <Heart className="w-3 h-3 mr-1.5" />
+          {saved ? "Saved!" : "Save Donation Link"}
+        </Button>
+        {paypalUrl && (
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleClear}
+            className="text-red-400 hover:text-red-300 hover:bg-red-500/10 h-8 text-xs px-2"
+          >
+            <Trash2 className="w-3 h-3" />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function ShutdownMessageEditor() {
+  const [message, setMessage] = useState(
+    () =>
+      localStorage.getItem("beast_shutdown_message") ||
+      "Beast Clipping is currently down. Please wait for it to come back online.",
+  );
+  const [saved, setSaved] = useState(false);
+
+  const handleSave = () => {
+    const trimmed = message.trim();
+    if (!trimmed) {
+      toast.error("Message cannot be empty");
+      return;
+    }
+    localStorage.setItem("beast_shutdown_message", trimmed);
+    setSaved(true);
+    toast.success("Shutdown message updated!");
+    setTimeout(() => setSaved(false), 2000);
+  };
+
+  const handleReset = () => {
+    const defaultMsg =
+      "Beast Clipping is currently down. Please wait for it to come back online.";
+    setMessage(defaultMsg);
+    localStorage.setItem("beast_shutdown_message", defaultMsg);
+    toast.success("Reset to default message");
+  };
+
+  return (
+    <div className="space-y-3">
+      <p className="text-muted-foreground text-xs leading-relaxed">
+        Customize the message shown to non-admin users when the app is paused.
+        Admins and owners can always access the app.
+      </p>
+      <div className="space-y-2">
+        <Label className="text-xs text-muted-foreground">
+          Shutdown Message
+        </Label>
+        <Textarea
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground/50 focus:border-orange-500/50 text-sm resize-none min-h-[80px] mt-1"
+          data-ocid="admin.shutdown.textarea"
+        />
+      </div>
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          onClick={handleSave}
+          className="flex-1 bg-orange-500/20 hover:bg-orange-500/30 text-orange-400 border border-orange-500/30 h-8 text-xs"
+          data-ocid="admin.shutdown.save_button"
+        >
+          <MessageSquare className="w-3 h-3 mr-1.5" />
+          {saved ? "Saved!" : "Save Message"}
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          onClick={handleReset}
+          className="text-muted-foreground hover:text-white hover:bg-white/5 h-8 text-xs px-2"
+        >
+          Reset
+        </Button>
+      </div>
     </div>
   );
 }
@@ -346,6 +477,32 @@ export default function AdminPanel() {
         >
           <AdminLinksManager />
         </CollapsibleSection>
+
+        {/* User Warnings */}
+        <CollapsibleSection
+          title="User Warnings"
+          icon={<AlertTriangle className="w-4 h-4 text-yellow-400" />}
+        >
+          <WarningsManager />
+        </CollapsibleSection>
+
+        {/* Shutdown Screen Message — admin + owner */}
+        <CollapsibleSection
+          title="Shutdown Screen Message"
+          icon={<MessageSquare className="w-4 h-4 text-orange-400" />}
+        >
+          <ShutdownMessageEditor />
+        </CollapsibleSection>
+
+        {/* Donate Settings — owner only */}
+        {(roleStr === "owner" || isOwner) && (
+          <CollapsibleSection
+            title="Donate Settings"
+            icon={<Heart className="w-4 h-4 text-pink-400" />}
+          >
+            <DonateSettings />
+          </CollapsibleSection>
+        )}
 
         {/* Feedback */}
         <CollapsibleSection

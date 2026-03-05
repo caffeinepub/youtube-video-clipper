@@ -14,10 +14,10 @@ import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
-import Migration "migration";
+
 
 // Apply migration on upgrade
-(with migration = Migration.run)
+
 actor {
   // Authorization state and mixin
   let accessControlState = AccessControl.initState();

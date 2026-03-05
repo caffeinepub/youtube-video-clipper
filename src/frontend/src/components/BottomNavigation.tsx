@@ -13,44 +13,55 @@ import {
 import React, { useState } from "react";
 import { useGetOwnRole } from "../hooks/useGetOwnRole";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
+import { getCustomRole } from "../utils/customRoles";
 import FeedbackModal from "./FeedbackModal";
+
+const USER_ROLES = [
+  "owner",
+  "admin",
+  "user",
+  "friend",
+  "tester",
+  "mod",
+  "helper",
+];
 
 const navItems = [
   {
     path: "/",
     label: "Home",
     icon: Home,
-    roles: ["owner", "admin", "user", "friend"],
+    roles: USER_ROLES,
   },
   {
     path: "/clips",
     label: "Clips",
     icon: Scissors,
-    roles: ["owner", "admin", "user", "friend"],
+    roles: USER_ROLES,
   },
   {
     path: "/trending",
     label: "Trending",
     icon: TrendingUp,
-    roles: ["owner", "admin", "user", "friend"],
+    roles: USER_ROLES,
   },
   {
     path: "/profile",
     label: "Profile",
     icon: User,
-    roles: ["owner", "admin", "user", "friend"],
+    roles: USER_ROLES,
   },
   {
     path: "/messages",
     label: "Messages",
     icon: MessageSquare,
-    roles: ["owner", "admin", "user", "friend"],
+    roles: USER_ROLES,
   },
   {
     path: "/scheduler",
     label: "Schedule",
     icon: Calendar,
-    roles: ["owner", "admin", "user", "friend"],
+    roles: USER_ROLES,
   },
   {
     path: "/content-manager",
@@ -76,9 +87,13 @@ export default function BottomNavigation() {
       : String(ownRole)
     : null;
 
+  const principalStr = identity?.getPrincipal().toString() ?? "";
+  const customRole = principalStr ? getCustomRole(principalStr) : null;
+  const effectiveRole = customRole ?? roleStr;
+
   const filteredItems = navItems.filter((item) => {
-    if (!roleStr) return item.roles.includes("user");
-    return item.roles.includes(roleStr);
+    if (!effectiveRole) return item.roles.includes("user");
+    return item.roles.includes(effectiveRole);
   });
 
   // Show max 4 nav items + feedback button on mobile

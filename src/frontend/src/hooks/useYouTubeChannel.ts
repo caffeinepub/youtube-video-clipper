@@ -95,7 +95,30 @@ export function useYouTubeChannel() {
         prompt: "consent",
       });
 
-      window.location.href = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+      const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
+
+      // Open OAuth in a popup instead of navigating away
+      const popup = window.open(
+        oauthUrl,
+        "youtube-oauth",
+        "width=600,height=700,scrollbars=yes,resizable=yes",
+      );
+
+      if (!popup) {
+        // Fallback: if popup was blocked, navigate in same tab
+        window.location.href = oauthUrl;
+        return;
+      }
+
+      // Poll until the popup closes, then refresh connection status
+      await new Promise<void>((resolve) => {
+        const checkClosed = setInterval(() => {
+          if (popup.closed) {
+            clearInterval(checkClosed);
+            resolve();
+          }
+        }, 500);
+      });
     },
     onSuccess: () => {
       // Set the "just connected" flag and update query cache immediately

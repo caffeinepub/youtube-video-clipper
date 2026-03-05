@@ -17,7 +17,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { Check, Copy, Search, Trash2 } from "lucide-react";
+import { AlertTriangle, Check, Copy, Search, Trash2 } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
 import { UserRole, UserStatus } from "../backend";
@@ -25,7 +25,14 @@ import { useActor } from "../hooks/useActor";
 import { useSetUserRole } from "../hooks/useSetUserRole";
 import { useSetUserStatus } from "../hooks/useSetUserStatus";
 import { useUserRoles } from "../hooks/useUserRoles";
+import {
+  type CustomRole,
+  getCustomRole,
+  setCustomRole,
+} from "../utils/customRoles";
 import { generateShortUserId } from "../utils/userIdGenerator";
+import { getWarnings } from "../utils/warnings";
+import UserRoleBadge from "./UserRoleBadge";
 
 function CopyButton({ text }: { text: string }) {
   const [copied, setCopied] = useState(false);
@@ -57,6 +64,9 @@ function CopyButton({ text }: { text: string }) {
   );
 }
 
+// Combined role value: either a UserRole or a custom display role
+type CombinedRole = UserRole | CustomRole;
+
 export default function UserStatusManagement() {
   const { data: users, isLoading } = useUserRoles();
   const { mutate: setStatus, isPending: isSettingStatus } = useSetUserStatus();
@@ -65,8 +75,13 @@ export default function UserStatusManagement() {
   const [search, setSearch] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [isDeletingBatch, setIsDeletingBatch] = useState(false);
+  // Track custom roles in component state so UI refreshes
+  const [customRoleVersion, setCustomRoleVersion] = useState(0);
 
+  // customRoleVersion is used as a dependency to force re-render when custom roles change
   const filteredUsers = users?.filter((user) => {
+    // Reference customRoleVersion to ensure re-render on custom role change
+    void customRoleVersion;
     const principalStr = user.principal.toString();
     const shortId = generateShortUserId(principalStr);
     const name = user.profile?.name ?? "";
@@ -103,19 +118,6 @@ export default function UserStatusManagement() {
       toast.error(`Failed to delete clips: ${msg}`);
     } finally {
       setIsDeletingBatch(false);
-    }
-  };
-
-  const getRoleBadgeVariant = (role: UserRole) => {
-    switch (role) {
-      case UserRole.owner:
-        return "default";
-      case UserRole.admin:
-        return "secondary";
-      case UserRole.friend:
-        return "outline";
-      default:
-        return "outline";
     }
   };
 
@@ -217,6 +219,9 @@ export default function UserStatusManagement() {
               const shortId = generateShortUserId(principalStr);
               const isSelected = selectedUsers.has(principalStr);
 
+              const customRole = getCustomRole(principalStr);
+              const warningCount = getWarnings(principalStr).length;
+
               return (
                 <TableRow
                   key={principalStr}
@@ -230,8 +235,14 @@ export default function UserStatusManagement() {
                   </TableCell>
                   <TableCell>
                     <div className="space-y-0.5">
-                      <div className="font-medium text-sm">
+                      <div className="flex items-center gap-1.5 font-medium text-sm">
                         {user.profile?.name ?? "Unknown"}
+                        {warningCount > 0 && (
+                          <span className="inline-flex items-center gap-0.5 text-yellow-400 text-xs font-semibold">
+                            <AlertTriangle className="w-3 h-3" />
+                            {warningCount}
+                          </span>
+                        )}
                       </div>
                       <div className="text-xs text-muted-foreground font-mono">
                         #{shortId}
@@ -251,21 +262,38 @@ export default function UserStatusManagement() {
                   </TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
-                      <Badge variant={getRoleBadgeVariant(user.role)}>
-                        {user.role}
-                      </Badge>
+                      <UserRoleBadge
+                        role={user.role}
+                        customRole={customRole}
+                        size="sm"
+                      />
                       {user.role !== UserRole.owner && (
                         <Select
-                          value={user.role}
-                          onValueChange={(value) =>
-                            setRole({
-                              target: user.principal,
-                              role: value as UserRole,
-                            })
-                          }
+                          value={customRole ?? user.role}
+                          onValueChange={(value: CombinedRole) => {
+                            const customRoles: CustomRole[] = [
+                              "tester",
+                              "mod",
+                              "helper",
+                            ];
+                            if (customRoles.includes(value as CustomRole)) {
+                              // Set display-only custom role
+                              setCustomRole(principalStr, value as CustomRole);
+                              setCustomRoleVersion((v) => v + 1);
+                              toast.success(`Role set to ${value}`);
+                            } else {
+                              // Clear any custom role and set real backend role
+                              setCustomRole(principalStr, null);
+                              setCustomRoleVersion((v) => v + 1);
+                              setRole({
+                                target: user.principal,
+                                role: value as UserRole,
+                              });
+                            }
+                          }}
                           disabled={isSettingRole}
                         >
-                          <SelectTrigger className="h-7 w-24 text-xs">
+                          <SelectTrigger className="h-7 w-28 text-xs">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
@@ -276,6 +304,9 @@ export default function UserStatusManagement() {
                             <SelectItem value={UserRole.friend}>
                               Friend
                             </SelectItem>
+                            <SelectItem value="tester">Tester</SelectItem>
+                            <SelectItem value="mod">Mod</SelectItem>
+                            <SelectItem value="helper">Helper</SelectItem>
                           </SelectContent>
                         </Select>
                       )}

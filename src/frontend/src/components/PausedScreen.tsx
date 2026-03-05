@@ -3,8 +3,22 @@ import { useQueryClient } from "@tanstack/react-query";
 import { PauseCircle, RefreshCw } from "lucide-react";
 import React from "react";
 
+const DEFAULT_SHUTDOWN_MESSAGE =
+  "Beast Clipping is currently down. Please wait for it to come back online.";
+
+function getShutdownMessage(): string {
+  try {
+    return (
+      localStorage.getItem("beast_shutdown_message") || DEFAULT_SHUTDOWN_MESSAGE
+    );
+  } catch {
+    return DEFAULT_SHUTDOWN_MESSAGE;
+  }
+}
+
 export default function PausedScreen() {
   const queryClient = useQueryClient();
+  const shutdownMessage = getShutdownMessage();
 
   const handleCheckAgain = () => {
     queryClient.invalidateQueries({ queryKey: ["systemStatus"] });
@@ -24,11 +38,10 @@ export default function PausedScreen() {
         {/* Heading */}
         <div className="flex flex-col gap-2">
           <h1 className="text-2xl font-bold text-white font-display">
-            App Paused
+            Beast Clipping
           </h1>
           <p className="text-muted-foreground text-sm leading-relaxed">
-            Beast Clipping is currently paused for maintenance. Please check
-            back soon.
+            {shutdownMessage}
           </p>
         </div>
 

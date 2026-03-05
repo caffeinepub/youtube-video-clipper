@@ -21,6 +21,8 @@ import type { UserRole } from "../backend";
 import { useGetOwnRole } from "../hooks/useGetOwnRole";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useGetCallerUserProfile } from "../hooks/useQueries";
+import { getCustomRole } from "../utils/customRoles";
+import DonateButton from "./DonateButton";
 import FeedbackModal from "./FeedbackModal";
 import NotificationBell from "./NotificationBell";
 import UserRoleBadge from "./UserRoleBadge";
@@ -58,42 +60,52 @@ function useDarkMode() {
   return [isDark, setIsDark] as const;
 }
 
+const USER_ROLES = [
+  "owner",
+  "admin",
+  "user",
+  "friend",
+  "tester",
+  "mod",
+  "helper",
+];
+
 const navItems = [
   {
     path: "/",
     label: "Dashboard",
     icon: Home,
-    roles: ["owner", "admin", "user", "friend"],
+    roles: USER_ROLES,
   },
   {
     path: "/clips",
     label: "My Clips",
     icon: Scissors,
-    roles: ["owner", "admin", "user", "friend"],
+    roles: USER_ROLES,
   },
   {
     path: "/trending",
     label: "Trending",
     icon: TrendingUp,
-    roles: ["owner", "admin", "user", "friend"],
+    roles: USER_ROLES,
   },
   {
     path: "/scheduler",
     label: "Scheduler",
     icon: Calendar,
-    roles: ["owner", "admin", "user", "friend"],
+    roles: USER_ROLES,
   },
   {
     path: "/messages",
     label: "Messages",
     icon: MessageSquare,
-    roles: ["owner", "admin", "user", "friend"],
+    roles: USER_ROLES,
   },
   {
     path: "/profile",
     label: "Profile",
     icon: User,
-    roles: ["owner", "admin", "user", "friend"],
+    roles: USER_ROLES,
   },
   {
     path: "/content-manager",
@@ -131,10 +143,18 @@ export default function SideNavigation() {
       : String(ownRole)
     : null;
 
+  // Check for display-only custom role
+  const principalStr = identity?.getPrincipal().toString() ?? "";
+  const customRole = principalStr ? getCustomRole(principalStr) : null;
+  const effectiveRole = customRole ?? roleStr;
+
   const filteredNavItems = navItems.filter((item) => {
-    if (!roleStr) return item.roles.includes("user");
-    return item.roles.includes(roleStr);
+    if (!effectiveRole) return item.roles.includes("user");
+    return item.roles.includes(effectiveRole);
   });
+
+  const isOwner = roleStr === "owner";
+  const isAdmin = roleStr === "admin" || isOwner;
 
   const handleLogout = async () => {
     await clear();
@@ -152,6 +172,8 @@ export default function SideNavigation() {
   }
 
   const userRoleEnum: UserRole | null = roleStr ? (roleStr as UserRole) : null;
+  // suppress unused isAdmin lint for now (used in future)
+  void isAdmin;
 
   return (
     <>
@@ -209,7 +231,11 @@ export default function SideNavigation() {
                     {userName}
                   </p>
                   {userRoleEnum && (
-                    <UserRoleBadge role={userRoleEnum} size="sm" />
+                    <UserRoleBadge
+                      role={userRoleEnum}
+                      customRole={customRole}
+                      size="sm"
+                    />
                   )}
                 </div>
               </div>
@@ -255,6 +281,9 @@ export default function SideNavigation() {
 
         {/* Footer */}
         <div className="p-4 border-t border-primary/10 space-y-2">
+          {/* Donate Button */}
+          {isAuthenticated && <DonateButton isOwner={isOwner} />}
+
           {/* Report a Bug / Request a Feature */}
           {isAuthenticated && (
             <button
