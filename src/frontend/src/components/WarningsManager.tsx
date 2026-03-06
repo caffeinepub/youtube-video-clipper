@@ -3,9 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Principal } from "@icp-sdk/core/principal";
 import { AlertTriangle, Search, Trash2, UserX } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
+import { NotificationType } from "../backend";
+import { useActor } from "../hooks/useActor";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import {
   type Warning,
@@ -20,6 +23,7 @@ function formatTimestamp(ts: number): string {
 
 export default function WarningsManager() {
   const { identity } = useInternetIdentity();
+  const { actor } = useActor();
   const myPrincipal = identity?.getPrincipal().toString() ?? "";
 
   // Issue warning state
@@ -31,7 +35,7 @@ export default function WarningsManager() {
   const [viewedWarnings, setViewedWarnings] = useState<Warning[] | null>(null);
   const [viewedPrincipal, setViewedPrincipal] = useState("");
 
-  const handleIssueWarning = () => {
+  const handleIssueWarning = async () => {
     if (!targetPrincipal.trim()) {
       toast.error("Please enter a target principal ID");
       return;
@@ -40,13 +44,34 @@ export default function WarningsManager() {
       toast.error("Please enter a warning message");
       return;
     }
-    issueWarning(targetPrincipal.trim(), warningMessage.trim(), myPrincipal);
-    toast.success(`Warning issued to ${targetPrincipal.slice(0, 16)}...`);
+    const tp = targetPrincipal.trim();
+    // Store locally
+    issueWarning(tp, warningMessage.trim(), myPrincipal);
+    // Also send a backend notification so the user sees it on-screen
+    if (actor) {
+      try {
+        const recipientPrincipal = Principal.fromText(tp);
+        const senderPrincipal =
+          identity?.getPrincipal() ?? Principal.anonymous();
+        await actor.addNotification(
+          recipientPrincipal,
+          `⚠️ Warning: ${warningMessage.trim()}`,
+          NotificationType.system_announcement,
+          senderPrincipal,
+        );
+      } catch (err) {
+        console.warn(
+          "[WarningsManager] Failed to send backend notification:",
+          err,
+        );
+      }
+    }
+    toast.success(`Warning issued to ${tp.slice(0, 16)}...`);
     setTargetPrincipal("");
     setWarningMessage("");
     // Refresh the viewed warnings if looking at the same principal
-    if (viewedPrincipal === targetPrincipal.trim()) {
-      setViewedWarnings(getWarnings(targetPrincipal.trim()));
+    if (viewedPrincipal === tp) {
+      setViewedWarnings(getWarnings(tp));
     }
   };
 
@@ -102,7 +127,9 @@ export default function WarningsManager() {
           </div>
           <Button
             size="sm"
-            onClick={handleIssueWarning}
+            onClick={() => {
+              handleIssueWarning();
+            }}
             disabled={!targetPrincipal.trim() || !warningMessage.trim()}
             className="w-full bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-400 border border-yellow-500/30 h-8 text-xs"
             data-ocid="warnings.submit_button"

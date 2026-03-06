@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useRef } from "react";
+import { useEffect } from "react";
 import { useActor } from "./useActor";
 
 export interface YouTubeChannelStatus {
@@ -11,20 +11,31 @@ export interface YouTubeChannelStatus {
 export function useYouTubeChannel() {
   const { actor, isFetching: actorFetching } = useActor();
   const queryClient = useQueryClient();
-  // Track whether we just connected to prevent flicker
-  const justConnectedRef = useRef(false);
+
+  // Listen for postMessage from the OAuth popup when it completes
+  useEffect(() => {
+    const handleMessage = (event: MessageEvent) => {
+      if (event.origin !== window.location.origin) return;
+      if (event.data?.type === "YOUTUBE_OAUTH_SUCCESS") {
+        // Immediately mark as connected and schedule a real refetch
+        queryClient.setQueryData<YouTubeChannelStatus>(["youtubeChannel"], {
+          isConnected: true,
+          channelName: "YouTube Connected",
+        });
+        setTimeout(() => {
+          queryClient.invalidateQueries({ queryKey: ["youtubeChannel"] });
+        }, 1500);
+      }
+    };
+    window.addEventListener("message", handleMessage);
+    return () => window.removeEventListener("message", handleMessage);
+  }, [queryClient]);
 
   const channelQuery = useQuery<YouTubeChannelStatus>({
     queryKey: ["youtubeChannel"],
     queryFn: async () => {
       if (!actor) return { isConnected: false };
       try {
-        // If we just connected, trust local state for one cycle
-        if (justConnectedRef.current) {
-          justConnectedRef.current = false;
-          return { isConnected: true, channelName: "YouTube Channel" };
-        }
-
         // Check both OAuth credentials and YouTube channel connection in parallel
         const [hasOAuth, isYTConnected] = await Promise.all([
           actor.hasGoogleOAuthCredentials(),
@@ -47,7 +58,7 @@ export function useYouTubeChannel() {
             if (profile?.googleOAuthCredentials) {
               return {
                 isConnected: true,
-                channelName: "YouTube Channel",
+                channelName: "YouTube Connected",
               };
             }
           } catch {
@@ -74,7 +85,7 @@ export function useYouTubeChannel() {
       const clientId = import.meta.env.VITE_GOOGLE_CLIENT_ID;
       if (!clientId) {
         throw new Error(
-          "Google Client ID not configured. Please set VITE_GOOGLE_CLIENT_ID in your .env file.",
+          "Google Client ID not configured. Please set VITE_GOOGLE_CLIENT_ID.",
         );
       }
       const redirectUri = `${window.location.origin}/oauth/callback`;
@@ -110,7 +121,7 @@ export function useYouTubeChannel() {
         return;
       }
 
-      // Poll until the popup closes, then refresh connection status
+      // Wait for popup to close (fallback polling in case postMessage doesn't fire)
       await new Promise<void>((resolve) => {
         const checkClosed = setInterval(() => {
           if (popup.closed) {
@@ -121,16 +132,10 @@ export function useYouTubeChannel() {
       });
     },
     onSuccess: () => {
-      // Set the "just connected" flag and update query cache immediately
-      justConnectedRef.current = true;
-      queryClient.setQueryData<YouTubeChannelStatus>(["youtubeChannel"], {
-        isConnected: true,
-        channelName: "YouTube Channel",
-      });
-      // Invalidate to re-fetch real data after brief delay
+      // Invalidate to re-fetch real data after the popup closed
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["youtubeChannel"] });
-      }, 2000);
+      }, 1000);
     },
   });
 

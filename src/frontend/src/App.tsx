@@ -31,6 +31,7 @@ import TrendingSidebar from "./components/TrendingSidebar";
 import UserMessages from "./components/UserMessages";
 import VerticalClipPreview from "./components/VerticalClipPreview";
 import VideoUrlForm from "./components/VideoUrlForm";
+import WarningBanner from "./components/WarningBanner";
 import YouTubePlayer from "./components/YouTubePlayer";
 import { useActor } from "./hooks/useActor";
 import { useClips } from "./hooks/useClips";
@@ -298,6 +299,9 @@ function HomePage() {
         open={feedbackOpen}
         onClose={() => setFeedbackOpen(false)}
       />
+
+      {/* Warning banner — shows when admin has issued a warning to this user */}
+      <WarningBanner />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left / Main column */}

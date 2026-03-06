@@ -22,14 +22,11 @@ import React, { useState } from "react";
 import { toast } from "sonner";
 import { UserRole, UserStatus } from "../backend";
 import { useActor } from "../hooks/useActor";
+import { useCustomRolesMap, useSetCustomRole } from "../hooks/useCustomRoles";
 import { useSetUserRole } from "../hooks/useSetUserRole";
 import { useSetUserStatus } from "../hooks/useSetUserStatus";
 import { useUserRoles } from "../hooks/useUserRoles";
-import {
-  type CustomRole,
-  getCustomRole,
-  setCustomRole,
-} from "../utils/customRoles";
+import type { CustomRole } from "../utils/customRoles";
 import { generateShortUserId } from "../utils/userIdGenerator";
 import { getWarnings } from "../utils/warnings";
 import UserRoleBadge from "./UserRoleBadge";
@@ -72,16 +69,13 @@ export default function UserStatusManagement() {
   const { mutate: setStatus, isPending: isSettingStatus } = useSetUserStatus();
   const { mutate: setRole, isPending: isSettingRole } = useSetUserRole();
   const { actor } = useActor();
+  const customRolesMap = useCustomRolesMap();
+  const { mutate: setCustomRoleMutation } = useSetCustomRole();
   const [search, setSearch] = useState("");
   const [selectedUsers, setSelectedUsers] = useState<Set<string>>(new Set());
   const [isDeletingBatch, setIsDeletingBatch] = useState(false);
-  // Track custom roles in component state so UI refreshes
-  const [customRoleVersion, setCustomRoleVersion] = useState(0);
 
-  // customRoleVersion is used as a dependency to force re-render when custom roles change
   const filteredUsers = users?.filter((user) => {
-    // Reference customRoleVersion to ensure re-render on custom role change
-    void customRoleVersion;
     const principalStr = user.principal.toString();
     const shortId = generateShortUserId(principalStr);
     const name = user.profile?.name ?? "";
@@ -219,7 +213,7 @@ export default function UserStatusManagement() {
               const shortId = generateShortUserId(principalStr);
               const isSelected = selectedUsers.has(principalStr);
 
-              const customRole = getCustomRole(principalStr);
+              const customRole = customRolesMap[principalStr] ?? null;
               const warningCount = getWarnings(principalStr).length;
 
               return (
@@ -277,14 +271,18 @@ export default function UserStatusManagement() {
                               "helper",
                             ];
                             if (customRoles.includes(value as CustomRole)) {
-                              // Set display-only custom role
-                              setCustomRole(principalStr, value as CustomRole);
-                              setCustomRoleVersion((v) => v + 1);
+                              // Store custom role in backend so it persists across devices
+                              setCustomRoleMutation({
+                                principalStr,
+                                role: value as CustomRole,
+                              });
                               toast.success(`Role set to ${value}`);
                             } else {
-                              // Clear any custom role and set real backend role
-                              setCustomRole(principalStr, null);
-                              setCustomRoleVersion((v) => v + 1);
+                              // Clear any custom role in backend and set real backend role
+                              setCustomRoleMutation({
+                                principalStr,
+                                role: null,
+                              });
                               setRole({
                                 target: user.principal,
                                 role: value as UserRole,

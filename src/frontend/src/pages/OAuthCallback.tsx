@@ -14,7 +14,13 @@ export default function OAuthCallback() {
   const [errorMessage, setErrorMessage] = useState("");
   const processedRef = useRef(false);
 
+  // Detect if we're inside a popup window
+  const isPopup = window.opener && window.opener !== window;
+
   useEffect(() => {
+    // If this is a popup, we can parse the URL immediately and send a message
+    // to the parent to handle token exchange there — but we still do the exchange
+    // here so the backend stores credentials in the correct principal session.
     if (actorFetching || !actor) return;
     if (processedRef.current) return;
     processedRef.current = true;
@@ -43,27 +49,32 @@ export default function OAuthCallback() {
         // Store the OAuth credentials via backend
         await actor.storeGoogleOAuthCredentials(code, redirectUri);
 
-        // Invalidate all connection-related queries to force a fresh fetch
-        await queryClient.invalidateQueries({ queryKey: ["youtubeChannel"] });
-        await queryClient.invalidateQueries({
-          queryKey: ["googleOAuthCredentials"],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["youtubeChannelConnection"],
-        });
-        await queryClient.invalidateQueries({
-          queryKey: ["currentUserProfile"],
-        });
-
-        // Refetch to ensure updated state is loaded before navigating
-        await queryClient.refetchQueries({ queryKey: ["youtubeChannel"] });
-
         setStatus("success");
 
-        // Navigate home after a short delay so user sees success state
-        setTimeout(() => {
-          navigate({ to: "/" });
-        }, 1500);
+        if (isPopup) {
+          // Notify the parent window that OAuth succeeded
+          try {
+            window.opener.postMessage(
+              { type: "YOUTUBE_OAUTH_SUCCESS" },
+              window.location.origin,
+            );
+          } catch {
+            // ignore cross-origin errors
+          }
+          // Close the popup after a brief delay so the user sees success
+          setTimeout(() => {
+            window.close();
+          }, 1200);
+        } else {
+          // Invalidate queries and navigate home when not in popup
+          await queryClient.invalidateQueries({ queryKey: ["youtubeChannel"] });
+          await queryClient.invalidateQueries({
+            queryKey: ["currentUserProfile"],
+          });
+          setTimeout(() => {
+            navigate({ to: "/" });
+          }, 1500);
+        }
       } catch (err: unknown) {
         const message =
           err instanceof Error ? err.message : "Unknown error occurred";
@@ -71,22 +82,36 @@ export default function OAuthCallback() {
         setErrorMessage(message);
         setStatus("error");
 
-        setTimeout(() => {
-          navigate({ to: "/" });
-        }, 3000);
+        if (isPopup) {
+          try {
+            window.opener.postMessage(
+              { type: "YOUTUBE_OAUTH_ERROR", message },
+              window.location.origin,
+            );
+          } catch {
+            // ignore
+          }
+          setTimeout(() => {
+            window.close();
+          }, 3000);
+        } else {
+          setTimeout(() => {
+            navigate({ to: "/" });
+          }, 3000);
+        }
       }
     };
 
     handleCallback();
-  }, [actor, actorFetching, navigate, queryClient]);
+  }, [actor, actorFetching, navigate, queryClient, isPopup]);
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background">
-      <div className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-card border border-border shadow-lg max-w-sm w-full mx-4">
+    <div className="min-h-screen flex items-center justify-center bg-[#0B0E14]">
+      <div className="flex flex-col items-center gap-4 p-8 rounded-2xl bg-white/5 border border-white/10 shadow-lg max-w-sm w-full mx-4 backdrop-blur-sm">
         {status === "loading" && (
           <>
             <Loader2 className="w-12 h-12 animate-spin text-primary" />
-            <h2 className="text-lg font-semibold text-foreground">
+            <h2 className="text-lg font-semibold text-white">
               Connecting YouTube…
             </h2>
             <p className="text-sm text-muted-foreground text-center">
@@ -96,25 +121,29 @@ export default function OAuthCallback() {
         )}
         {status === "success" && (
           <>
-            <CheckCircle className="w-12 h-12 text-success" />
-            <h2 className="text-lg font-semibold text-foreground">
+            <CheckCircle className="w-12 h-12 text-green-400" />
+            <h2 className="text-lg font-semibold text-white">
               YouTube Connected!
             </h2>
             <p className="text-sm text-muted-foreground text-center">
-              Your YouTube channel has been connected successfully. Redirecting…
+              {isPopup
+                ? "Connection successful. This window will close automatically."
+                : "Your YouTube channel has been connected successfully. Redirecting…"}
             </p>
           </>
         )}
         {status === "error" && (
           <>
             <AlertCircle className="w-12 h-12 text-destructive" />
-            <h2 className="text-lg font-semibold text-foreground">
+            <h2 className="text-lg font-semibold text-white">
               Connection Failed
             </h2>
             <p className="text-sm text-muted-foreground text-center">
               {errorMessage}
             </p>
-            <p className="text-xs text-muted-foreground">Redirecting back…</p>
+            <p className="text-xs text-muted-foreground">
+              {isPopup ? "This window will close…" : "Redirecting back…"}
+            </p>
           </>
         )}
       </div>

@@ -18,10 +18,10 @@ import {
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
 import type { UserRole } from "../backend";
+import { useCustomRolesMap } from "../hooks/useCustomRoles";
 import { useGetOwnRole } from "../hooks/useGetOwnRole";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useGetCallerUserProfile } from "../hooks/useQueries";
-import { getCustomRole } from "../utils/customRoles";
 import DonateButton from "./DonateButton";
 import FeedbackModal from "./FeedbackModal";
 import NotificationBell from "./NotificationBell";
@@ -128,6 +128,7 @@ export default function SideNavigation() {
   const queryClient = useQueryClient();
   const { data: userProfile } = useGetCallerUserProfile();
   const { data: ownRole } = useGetOwnRole();
+  const customRolesMap = useCustomRolesMap();
   const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [isDark, setIsDark] = useDarkMode();
 
@@ -143,9 +144,11 @@ export default function SideNavigation() {
       : String(ownRole)
     : null;
 
-  // Check for display-only custom role
+  // Check for custom role from backend
   const principalStr = identity?.getPrincipal().toString() ?? "";
-  const customRole = principalStr ? getCustomRole(principalStr) : null;
+  const customRole = principalStr
+    ? (customRolesMap[principalStr] ?? null)
+    : null;
   const effectiveRole = customRole ?? roleStr;
 
   const filteredNavItems = navItems.filter((item) => {
