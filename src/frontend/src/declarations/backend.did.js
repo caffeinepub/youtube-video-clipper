@@ -96,12 +96,32 @@ export const UserProfile = IDL.Record({
   'profilePicture' : IDL.Opt(ExternalBlob),
   'googleOAuthCredentials' : IDL.Opt(GoogleOAuthCredentials),
 });
+export const CollabListing = IDL.Record({
+  'id' : IDL.Text,
+  'active' : IDL.Bool,
+  'contactInfo' : IDL.Text,
+  'ownerPrincipal' : IDL.Principal,
+  'createdAt' : Time,
+  'description' : IDL.Text,
+  'niche' : IDL.Text,
+  'archived' : IDL.Bool,
+});
 export const ContentEntry = IDL.Record({
   'id' : IDL.Text,
   'title' : IDL.Text,
   'body' : IDL.Text,
   'createdAt' : Time,
   'updatedAt' : Time,
+});
+export const CreatorReport = IDL.Record({
+  'id' : IDL.Text,
+  'reportedPrincipal' : IDL.Principal,
+  'resolved' : IDL.Bool,
+  'description' : IDL.Text,
+  'reporterPrincipal' : IDL.Principal,
+  'timestamp' : Time,
+  'archived' : IDL.Bool,
+  'reason' : IDL.Text,
 });
 export const SubmissionType = IDL.Variant({
   'BugReport' : IDL.Null,
@@ -241,6 +261,7 @@ export const idlService = IDL.Service({
   'deleteAdminLink' : IDL.Func([IDL.Nat], [], []),
   'deleteClip' : IDL.Func([IDL.Text], [], []),
   'deleteClipsByUser' : IDL.Func([IDL.Text], [], []),
+  'deleteCollabListing' : IDL.Func([IDL.Text], [], []),
   'deleteContentEntry' : IDL.Func([IDL.Text], [], []),
   'deleteFeedbackSubmission' : IDL.Func([IDL.Nat], [], []),
   'deleteScheduledUpload' : IDL.Func([IDL.Text], [], []),
@@ -268,7 +289,9 @@ export const idlService = IDL.Service({
   'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
   'getClickStats' : IDL.Func([], [IDL.Nat], []),
   'getClipById' : IDL.Func([IDL.Text], [VideoClip], ['query']),
+  'getCollabListings' : IDL.Func([], [IDL.Vec(CollabListing)], ['query']),
   'getContentEntries' : IDL.Func([], [IDL.Vec(ContentEntry)], ['query']),
+  'getCreatorReports' : IDL.Func([], [IDL.Vec(CreatorReport)], ['query']),
   'getFeedbackSubmissions' : IDL.Func(
       [],
       [IDL.Vec(FeedbackSubmission)],
@@ -301,7 +324,18 @@ export const idlService = IDL.Service({
   'markNotificationsRead' : IDL.Func([], [], []),
   'mintClip' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
   'postClipToYouTube' : IDL.Func([ClipMetadata], [YouTubePostResult], []),
+  'postCollabListing' : IDL.Func(
+      [IDL.Text, IDL.Text, IDL.Text],
+      [IDL.Text],
+      [],
+    ),
   'replyToMessage' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Text], []),
+  'reportCreator' : IDL.Func(
+      [IDL.Principal, IDL.Text, IDL.Text],
+      [IDL.Text],
+      [],
+    ),
+  'resolveCreatorReport' : IDL.Func([IDL.Text], [], []),
   'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
   'saveClip' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Float64],
@@ -425,12 +459,32 @@ export const idlFactory = ({ IDL }) => {
     'profilePicture' : IDL.Opt(ExternalBlob),
     'googleOAuthCredentials' : IDL.Opt(GoogleOAuthCredentials),
   });
+  const CollabListing = IDL.Record({
+    'id' : IDL.Text,
+    'active' : IDL.Bool,
+    'contactInfo' : IDL.Text,
+    'ownerPrincipal' : IDL.Principal,
+    'createdAt' : Time,
+    'description' : IDL.Text,
+    'niche' : IDL.Text,
+    'archived' : IDL.Bool,
+  });
   const ContentEntry = IDL.Record({
     'id' : IDL.Text,
     'title' : IDL.Text,
     'body' : IDL.Text,
     'createdAt' : Time,
     'updatedAt' : Time,
+  });
+  const CreatorReport = IDL.Record({
+    'id' : IDL.Text,
+    'reportedPrincipal' : IDL.Principal,
+    'resolved' : IDL.Bool,
+    'description' : IDL.Text,
+    'reporterPrincipal' : IDL.Principal,
+    'timestamp' : Time,
+    'archived' : IDL.Bool,
+    'reason' : IDL.Text,
   });
   const SubmissionType = IDL.Variant({
     'BugReport' : IDL.Null,
@@ -564,6 +618,7 @@ export const idlFactory = ({ IDL }) => {
     'deleteAdminLink' : IDL.Func([IDL.Nat], [], []),
     'deleteClip' : IDL.Func([IDL.Text], [], []),
     'deleteClipsByUser' : IDL.Func([IDL.Text], [], []),
+    'deleteCollabListing' : IDL.Func([IDL.Text], [], []),
     'deleteContentEntry' : IDL.Func([IDL.Text], [], []),
     'deleteFeedbackSubmission' : IDL.Func([IDL.Nat], [], []),
     'deleteScheduledUpload' : IDL.Func([IDL.Text], [], []),
@@ -591,7 +646,9 @@ export const idlFactory = ({ IDL }) => {
     'getCallerUserRole' : IDL.Func([], [UserRole__1], ['query']),
     'getClickStats' : IDL.Func([], [IDL.Nat], []),
     'getClipById' : IDL.Func([IDL.Text], [VideoClip], ['query']),
+    'getCollabListings' : IDL.Func([], [IDL.Vec(CollabListing)], ['query']),
     'getContentEntries' : IDL.Func([], [IDL.Vec(ContentEntry)], ['query']),
+    'getCreatorReports' : IDL.Func([], [IDL.Vec(CreatorReport)], ['query']),
     'getFeedbackSubmissions' : IDL.Func(
         [],
         [IDL.Vec(FeedbackSubmission)],
@@ -632,7 +689,18 @@ export const idlFactory = ({ IDL }) => {
     'markNotificationsRead' : IDL.Func([], [], []),
     'mintClip' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
     'postClipToYouTube' : IDL.Func([ClipMetadata], [YouTubePostResult], []),
+    'postCollabListing' : IDL.Func(
+        [IDL.Text, IDL.Text, IDL.Text],
+        [IDL.Text],
+        [],
+      ),
     'replyToMessage' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [IDL.Text], []),
+    'reportCreator' : IDL.Func(
+        [IDL.Principal, IDL.Text, IDL.Text],
+        [IDL.Text],
+        [],
+      ),
+    'resolveCreatorReport' : IDL.Func([IDL.Text], [], []),
     'saveCallerUserProfile' : IDL.Func([UserProfile], [], []),
     'saveClip' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Nat, IDL.Nat, IDL.Float64],

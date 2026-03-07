@@ -44,12 +44,32 @@ export interface ClipMetadata {
   'startTimestamp' : bigint,
   'videoId' : string,
 }
+export interface CollabListing {
+  'id' : string,
+  'active' : boolean,
+  'contactInfo' : string,
+  'ownerPrincipal' : Principal,
+  'createdAt' : Time,
+  'description' : string,
+  'niche' : string,
+  'archived' : boolean,
+}
 export interface ContentEntry {
   'id' : string,
   'title' : string,
   'body' : string,
   'createdAt' : Time,
   'updatedAt' : Time,
+}
+export interface CreatorReport {
+  'id' : string,
+  'reportedPrincipal' : Principal,
+  'resolved' : boolean,
+  'description' : string,
+  'reporterPrincipal' : Principal,
+  'timestamp' : Time,
+  'archived' : boolean,
+  'reason' : string,
 }
 export type ExternalBlob = Uint8Array;
 export interface FeedbackSubmission {
@@ -208,6 +228,7 @@ export interface _SERVICE {
   'deleteAdminLink' : ActorMethod<[bigint], undefined>,
   'deleteClip' : ActorMethod<[string], undefined>,
   'deleteClipsByUser' : ActorMethod<[string], undefined>,
+  'deleteCollabListing' : ActorMethod<[string], undefined>,
   'deleteContentEntry' : ActorMethod<[string], undefined>,
   'deleteFeedbackSubmission' : ActorMethod<[bigint], undefined>,
   'deleteScheduledUpload' : ActorMethod<[string], undefined>,
@@ -226,7 +247,9 @@ export interface _SERVICE {
   'getCallerUserRole' : ActorMethod<[], UserRole__1>,
   'getClickStats' : ActorMethod<[], bigint>,
   'getClipById' : ActorMethod<[string], VideoClip>,
+  'getCollabListings' : ActorMethod<[], Array<CollabListing>>,
   'getContentEntries' : ActorMethod<[], Array<ContentEntry>>,
+  'getCreatorReports' : ActorMethod<[], Array<CreatorReport>>,
   'getFeedbackSubmissions' : ActorMethod<[], Array<FeedbackSubmission>>,
   'getMintedClips' : ActorMethod<[], Array<MintedClip>>,
   'getMyMessages' : ActorMethod<[string], Array<AdminMessage>>,
@@ -247,7 +270,10 @@ export interface _SERVICE {
   'markNotificationsRead' : ActorMethod<[], undefined>,
   'mintClip' : ActorMethod<[string, string, string], undefined>,
   'postClipToYouTube' : ActorMethod<[ClipMetadata], YouTubePostResult>,
+  'postCollabListing' : ActorMethod<[string, string, string], string>,
   'replyToMessage' : ActorMethod<[string, string, string], string>,
+  'reportCreator' : ActorMethod<[Principal, string, string], string>,
+  'resolveCreatorReport' : ActorMethod<[string], undefined>,
   'saveCallerUserProfile' : ActorMethod<[UserProfile], undefined>,
   'saveClip' : ActorMethod<
     [string, string, string, bigint, bigint, number],

@@ -48,6 +48,7 @@ import {
 import { useDownloadClip } from "../hooks/useDownloadClip";
 import { usePostToYouTube } from "../hooks/usePostToYouTube";
 import CommentsModal from "./CommentsModal";
+import DownloadClipModal from "./DownloadClipModal";
 import ViralScoreBadge from "./ViralScoreBadge";
 
 const CATEGORY_COLORS: Record<ClipCategory, string> = {
@@ -277,6 +278,8 @@ export default function ClipCard({
       title: clip.title,
     });
   };
+
+  const { modalState, closeModal } = downloadMutation;
 
   const handlePostToYouTube = () => {
     postToYouTubeMutation.mutate({
@@ -707,6 +710,16 @@ export default function ClipCard({
         open={commentsOpen}
         onClose={() => setCommentsOpen(false)}
         onCommentAdded={() => setCommentCount((c) => c + 1)}
+      />
+
+      {/* In-app Download Modal */}
+      <DownloadClipModal
+        open={modalState.open}
+        onClose={closeModal}
+        videoId={modalState.videoId}
+        startTime={modalState.startTime}
+        endTime={modalState.endTime}
+        title={modalState.title}
       />
     </>
   );

@@ -13,17 +13,21 @@ export function usePostToYouTube() {
     mutationFn: async (clipMetadata: ClipMetadata) => {
       if (!actor) throw new Error("Not connected to backend");
 
-      // Check YouTube channel connection first
+      // Check YouTube connection — accept either youtubeAuth or Google OAuth credentials
       let isConnected = false;
       try {
-        isConnected = await actor.isYouTubeChannelConnected();
+        const [hasOAuth, isYTConnected] = await Promise.all([
+          actor.hasGoogleOAuthCredentials(),
+          actor.isYouTubeChannelConnected(),
+        ]);
+        isConnected = hasOAuth || isYTConnected;
       } catch {
         throw new Error("Failed to check YouTube connection status");
       }
 
       if (!isConnected) {
         throw new Error(
-          "YouTube channel not connected. Please connect your channel first.",
+          "YouTube channel not connected. Please click 'Connect YouTube' and sign in first.",
         );
       }
 

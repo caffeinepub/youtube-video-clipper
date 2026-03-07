@@ -108,7 +108,18 @@ export function useYouTubeChannel() {
 
       const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 
-      // Open OAuth in a popup instead of navigating away
+      // On mobile, popups are often blocked — detect and fall back to same-tab navigation
+      const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(
+        navigator.userAgent,
+      );
+      if (isMobile) {
+        // Store current path so we can redirect back after OAuth
+        sessionStorage.setItem("oauthReturnPath", window.location.pathname);
+        window.location.href = oauthUrl;
+        return;
+      }
+
+      // Desktop: open OAuth in a popup
       const popup = window.open(
         oauthUrl,
         "youtube-oauth",
@@ -116,7 +127,8 @@ export function useYouTubeChannel() {
       );
 
       if (!popup) {
-        // Fallback: if popup was blocked, navigate in same tab
+        // Popup was blocked despite desktop — fall back to same-tab navigation
+        sessionStorage.setItem("oauthReturnPath", window.location.pathname);
         window.location.href = oauthUrl;
         return;
       }

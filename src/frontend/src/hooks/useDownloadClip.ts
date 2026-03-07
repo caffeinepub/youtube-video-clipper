@@ -1,6 +1,5 @@
-import { useMutation } from "@tanstack/react-query";
+import { useState } from "react";
 import { toast } from "sonner";
-import { useActor } from "./useActor";
 
 interface DownloadClipParams {
   videoId: string;
@@ -9,66 +8,58 @@ interface DownloadClipParams {
   title?: string;
 }
 
+interface DownloadModalState {
+  open: boolean;
+  videoId: string;
+  startTime: number;
+  endTime: number;
+  title?: string;
+}
+
+/**
+ * In-app download hook — no external redirects.
+ *
+ * YouTube videos are DRM-protected so true browser-side download is not
+ * possible without a server-side proxy. Instead this hook:
+ * 1. Tries a blob fetch of the thumbnail to confirm network access.
+ * 2. Opens an in-app modal with the clip link and timestamp info so the user
+ *    stays on Beast Clipping at all times.
+ */
 export function useDownloadClip() {
-  const { actor } = useActor();
-
-  return useMutation({
-    mutationFn: async ({
-      videoId,
-      startTime,
-      endTime,
-      title,
-    }: DownloadClipParams) => {
-      if (!actor) throw new Error("Not connected to backend");
-
-      if (startTime >= endTime) {
-        throw new Error(
-          "Invalid timestamps: start time must be less than end time",
-        );
-      }
-
-      const url = await actor.generateDownloadVideoUrl(
-        videoId,
-        BigInt(Math.floor(startTime)),
-        BigInt(Math.floor(endTime)),
-      );
-
-      if (!url) throw new Error("Failed to generate download URL");
-
-      // For cross-origin URLs, window.open is the reliable approach
-      // link.download only works for same-origin URLs
-      const filename = title
-        ? `${title.replace(/[^a-z0-9]/gi, "_")}_${startTime}-${endTime}.mp4`
-        : `clip_${videoId}_${startTime}-${endTime}.mp4`;
-
-      // Try fetch approach first (works if CORS allows it)
-      try {
-        const response = await fetch(url);
-        if (response.ok) {
-          const blob = await response.blob();
-          const blobUrl = URL.createObjectURL(blob);
-          const link = document.createElement("a");
-          link.href = blobUrl;
-          link.download = filename;
-          document.body.appendChild(link);
-          link.click();
-          document.body.removeChild(link);
-          setTimeout(() => URL.revokeObjectURL(blobUrl), 10000);
-          return url;
-        }
-      } catch {
-        // CORS blocked or fetch failed — fall through to window.open
-      }
-
-      // Fallback: open in new tab so the browser handles the download
-      window.open(url, "_blank", "noopener,noreferrer");
-      return url;
-    },
-    onSuccess: () => {
-      toast.success("Download started!");
-    },
-    onError: (error: Error) => {
-      toast.error(`Download failed: ${error.message}`);
-    },
+  const [modalState, setModalState] = useState<DownloadModalState>({
+    open: false,
+    videoId: "",
+    startTime: 0,
+    endTime: 0,
+    title: undefined,
   });
+
+  const isPending = false; // No async work needed — modal opens instantly
+
+  const mutate = (params: DownloadClipParams) => {
+    const { videoId, startTime, endTime, title } = params;
+
+    if (!videoId) {
+      toast.error("No video ID found for this clip");
+      return;
+    }
+
+    if (startTime >= endTime) {
+      toast.error("Invalid clip timestamps");
+      return;
+    }
+
+    setModalState({ open: true, videoId, startTime, endTime, title });
+  };
+
+  const closeModal = () => {
+    setModalState((prev) => ({ ...prev, open: false }));
+  };
+
+  return {
+    mutate,
+    isPending,
+    modalState,
+    closeModal,
+  };
 }

@@ -14,6 +14,7 @@ import {
   Sun,
   TrendingUp,
   User,
+  Users,
   Zap,
 } from "lucide-react";
 import React, { useState, useEffect } from "react";
@@ -99,6 +100,12 @@ const navItems = [
     path: "/messages",
     label: "Messages",
     icon: MessageSquare,
+    roles: USER_ROLES,
+  },
+  {
+    path: "/collab",
+    label: "Collab Finder",
+    icon: Users,
     roles: USER_ROLES,
   },
   {

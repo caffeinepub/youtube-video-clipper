@@ -39,6 +39,7 @@ import { useGetOwnRole } from "./hooks/useGetOwnRole";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import { useGetCallerUserProfile } from "./hooks/useQueries";
 import { useSystemStatus } from "./hooks/useSystemStatus";
+import CollabFinderPage from "./pages/CollabFinderPage";
 import ContentManager from "./pages/ContentManager";
 import MessagesPage from "./pages/MessagesPage";
 import OAuthCallback from "./pages/OAuthCallback";
@@ -540,6 +541,11 @@ const profileRoute = createRoute({
   path: "/profile",
   component: ProfilePage,
 });
+const collabRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/collab",
+  component: CollabFinderPage,
+});
 
 const routeTree = rootRoute.addChildren([
   homeRoute,
@@ -551,6 +557,7 @@ const routeTree = rootRoute.addChildren([
   oauthCallbackRoute,
   messagesRoute,
   profileRoute,
+  collabRoute,
 ]);
 
 const router = createRouter({ routeTree });

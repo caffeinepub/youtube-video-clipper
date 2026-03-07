@@ -31,6 +31,26 @@ export interface TransformationOutput {
     headers: Array<http_header>;
 }
 export type Time = bigint;
+export interface CollabListing {
+    id: string;
+    active: boolean;
+    contactInfo: string;
+    ownerPrincipal: Principal;
+    createdAt: Time;
+    description: string;
+    niche: string;
+    archived: boolean;
+}
+export interface CreatorReport {
+    id: string;
+    reportedPrincipal: Principal;
+    resolved: boolean;
+    description: string;
+    reporterPrincipal: Principal;
+    timestamp: Time;
+    archived: boolean;
+    reason: string;
+}
 export interface MintedClip {
     clipId: string;
     title: string;
@@ -199,6 +219,7 @@ export interface backendInterface {
     deleteAdminLink(linkId: bigint): Promise<void>;
     deleteClip(clipId: string): Promise<void>;
     deleteClipsByUser(userId: string): Promise<void>;
+    deleteCollabListing(listingId: string): Promise<void>;
     deleteContentEntry(id: string): Promise<void>;
     deleteFeedbackSubmission(id: bigint): Promise<void>;
     deleteScheduledUpload(entryId: string): Promise<void>;
@@ -214,7 +235,9 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole__1>;
     getClickStats(): Promise<bigint>;
     getClipById(clipId: string): Promise<VideoClip>;
+    getCollabListings(): Promise<Array<CollabListing>>;
     getContentEntries(): Promise<Array<ContentEntry>>;
+    getCreatorReports(): Promise<Array<CreatorReport>>;
     getFeedbackSubmissions(): Promise<Array<FeedbackSubmission>>;
     getMintedClips(): Promise<Array<MintedClip>>;
     getMyMessages(fromUserId: string): Promise<Array<AdminMessage>>;
@@ -235,7 +258,10 @@ export interface backendInterface {
     markNotificationsRead(): Promise<void>;
     mintClip(clipId: string, title: string, videoUrl: string): Promise<void>;
     postClipToYouTube(clipMetadata: ClipMetadata): Promise<YouTubePostResult>;
+    postCollabListing(niche: string, description: string, contactInfo: string): Promise<string>;
     replyToMessage(originalMessageId: string, replyBody: string, fromUserId: string): Promise<string>;
+    reportCreator(reportedPrincipal: Principal, reason: string, description: string): Promise<string>;
+    resolveCreatorReport(reportId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveClip(title: string, videoUrl: string, thumbnailUrl: string, startTime: bigint, endTime: bigint, score: number): Promise<string>;
     sendMessage(toPrincipal: string, toUserId: string, body: string, fromUserId: string): Promise<string>;

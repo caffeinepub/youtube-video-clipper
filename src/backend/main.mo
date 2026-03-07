@@ -14,10 +14,9 @@ import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+import Migration "migration";
 
-
-// Apply migration on upgrade
-
+(with migration = Migration.run)
 actor {
   // Authorization state and mixin
   let accessControlState = AccessControl.initState();
@@ -26,6 +25,145 @@ actor {
   // Storage Mixin for external blobs (profile pictures, other media)
   include MixinStorage();
 
+  // ================== Creator Collab Finder Types ======================
+
+  public type CollabListing = {
+    id : Text;
+    ownerPrincipal : Principal;
+    niche : Text;
+    description : Text;
+    contactInfo : Text;
+    createdAt : Time.Time;
+    active : Bool;
+    archived : Bool;
+  };
+
+  let collabListings = Map.empty<Text, CollabListing>();
+
+  // ================== Creator Report System Types ======================
+
+  public type CreatorReport = {
+    id : Text;
+    reporterPrincipal : Principal;
+    reportedPrincipal : Principal;
+    reason : Text;
+    description : Text;
+    timestamp : Time.Time;
+    resolved : Bool;
+    archived : Bool;
+  };
+
+  let creatorReports = Map.empty<Text, CreatorReport>();
+
+  // ================== Creator Collab Finder Methods ====================
+
+  // Post a new collab listing. Authenticated users only.
+  public shared ({ caller }) func postCollabListing(niche : Text, description : Text, contactInfo : Text) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can post collab listings");
+    };
+
+    let id = "collab_" # Time.now().toText() # "_" # caller.toText();
+    let listing : CollabListing = {
+      id;
+      ownerPrincipal = caller;
+      niche;
+      description;
+      contactInfo;
+      createdAt = Time.now();
+      active = true;
+      archived = false;
+    };
+
+    collabListings.add(id, listing);
+    id;
+  };
+
+  // Get all active collab listings. Any authenticated user.
+  public query ({ caller }) func getCollabListings() : async [CollabListing] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can view collab listings");
+    };
+
+    let activeListings = List.empty<CollabListing>();
+    for ((_, listing) in collabListings.entries()) {
+      if (listing.active and not listing.archived) {
+        activeListings.add(listing);
+      };
+    };
+    activeListings.toArray();
+  };
+
+  // Delete a collab listing. Only owner or admin can delete. Marks as archived.
+  public shared ({ caller }) func deleteCollabListing(listingId : Text) : async () {
+    let listing = switch (collabListings.get(listingId)) {
+      case (?l) { l };
+      case (null) { Runtime.trap("Listing not found: " # listingId) };
+    };
+
+    if (caller != listing.ownerPrincipal and not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only the listing owner or admins can delete listings");
+    };
+
+    let updatedListing = { listing with active = false; archived = true };
+    collabListings.add(listingId, updatedListing);
+  };
+
+  // ================== Creator Report System Methods ====================
+
+  // Submit a creator report. Authenticated users only.
+  public shared ({ caller }) func reportCreator(reportedPrincipal : Principal, reason : Text, description : Text) : async Text {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only authenticated users can report creators");
+    };
+
+    let id = "report_" # Time.now().toText() # "_" # caller.toText();
+    let report : CreatorReport = {
+      id;
+      reporterPrincipal = caller;
+      reportedPrincipal;
+      reason;
+      description;
+      timestamp = Time.now();
+      resolved = false;
+      archived = false;
+    };
+
+    creatorReports.add(id, report);
+    id;
+  };
+
+  // Get all reports (admin only).
+  public query ({ caller }) func getCreatorReports() : async [CreatorReport] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can fetch reports");
+    };
+
+    let activeReports = List.empty<CreatorReport>();
+    for ((_, report) in creatorReports.entries()) {
+      if (not report.archived) {
+        activeReports.add(report);
+      };
+    };
+    activeReports.toArray();
+  };
+
+  // Mark a report as resolved (admin only).
+  public shared ({ caller }) func resolveCreatorReport(reportId : Text) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admins can resolve reports");
+    };
+
+    let report = switch (creatorReports.get(reportId)) {
+      case (?r) { r };
+      case (null) { Runtime.trap("Report not found: " # reportId) };
+    };
+
+    let updatedReport = { report with resolved = true };
+    creatorReports.add(reportId, updatedReport);
+  };
+
+  // Additional types and methods
   public type Notification = {
     id : Nat;
     message : Text;
@@ -44,7 +182,6 @@ actor {
 
   let notificationState = Map.empty<Principal, List.List<Notification>>();
   var notificationCounter = 0;
-
   public type UserRole = {
     #owner;
     #admin;
@@ -215,21 +352,15 @@ actor {
   var feedbackSubmissions : [FeedbackSubmission] = [];
   var systemActionLogs : [SystemActionLog] = [];
 
-  // Scheduler storage: per-user list of scheduled uploads
   let scheduledUploads = Map.empty<Principal, List.List<ScheduledUpload>>();
-
-  // Content entries storage
   let contentEntries = Map.empty<Text, ContentEntry>();
-
-  // Activity logs storage
   var activityLogs : [ActivityLog] = [];
   var activityLogCounter : Nat = 0;
-
-  // --- User Messaging ---
   let userMessages = Map.empty<Principal, List.List<AdminMessage>>();
   var messageCounter : Nat = 0;
+  let adminLinks = Map.empty<Nat, AdminLink>();
+  var adminLinkCounter = 0;
 
-  // Admin Links Manager
   public type AdminLink = {
     id : Nat;
     title : Text;
@@ -237,9 +368,6 @@ actor {
     createdBy : Principal;
     createdAt : Time.Time;
   };
-
-  let adminLinks = Map.empty<Nat, AdminLink>();
-  var adminLinkCounter = 0;
 
   public shared ({ caller }) func addAdminLink(title : Text, url : Text) : async () {
     if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
@@ -383,7 +511,7 @@ actor {
     baseScore + lengthPenalty;
   };
 
-  // --- Notifications ---
+  // ---Notifications---
 
   public shared ({ caller }) func addNotification(recipient : Principal, message : Text, notificationType : NotificationType, sender : ?Principal) : async () {
     if (not (AccessControl.isAdmin(accessControlState, caller))) {

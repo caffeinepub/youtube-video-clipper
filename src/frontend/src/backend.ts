@@ -93,16 +93,16 @@ export interface SystemControlResult {
     message: string;
     success: boolean;
 }
+export interface _CaffeineStorageRefillResult {
+    success?: boolean;
+    topped_up_amount?: bigint;
+}
 export interface ContentEntry {
     id: string;
     title: string;
     body: string;
     createdAt: Time;
     updatedAt: Time;
-}
-export interface _CaffeineStorageRefillResult {
-    success?: boolean;
-    topped_up_amount?: bigint;
 }
 export interface TransformationOutput {
     status: bigint;
@@ -113,9 +113,29 @@ export type Time = bigint;
 export interface _CaffeineStorageRefillInformation {
     proposed_top_up_amount?: bigint;
 }
+export interface CollabListing {
+    id: string;
+    active: boolean;
+    contactInfo: string;
+    ownerPrincipal: Principal;
+    createdAt: Time;
+    description: string;
+    niche: string;
+    archived: boolean;
+}
 export interface _CaffeineStorageCreateCertificateResult {
     method: string;
     blob_hash: string;
+}
+export interface CreatorReport {
+    id: string;
+    reportedPrincipal: Principal;
+    resolved: boolean;
+    description: string;
+    reporterPrincipal: Principal;
+    timestamp: Time;
+    archived: boolean;
+    reason: string;
 }
 export interface MintedClip {
     clipId: string;
@@ -292,6 +312,7 @@ export interface backendInterface {
     deleteAdminLink(linkId: bigint): Promise<void>;
     deleteClip(clipId: string): Promise<void>;
     deleteClipsByUser(userId: string): Promise<void>;
+    deleteCollabListing(listingId: string): Promise<void>;
     deleteContentEntry(id: string): Promise<void>;
     deleteFeedbackSubmission(id: bigint): Promise<void>;
     deleteScheduledUpload(entryId: string): Promise<void>;
@@ -307,7 +328,9 @@ export interface backendInterface {
     getCallerUserRole(): Promise<UserRole__1>;
     getClickStats(): Promise<bigint>;
     getClipById(clipId: string): Promise<VideoClip>;
+    getCollabListings(): Promise<Array<CollabListing>>;
     getContentEntries(): Promise<Array<ContentEntry>>;
+    getCreatorReports(): Promise<Array<CreatorReport>>;
     getFeedbackSubmissions(): Promise<Array<FeedbackSubmission>>;
     getMintedClips(): Promise<Array<MintedClip>>;
     getMyMessages(fromUserId: string): Promise<Array<AdminMessage>>;
@@ -328,7 +351,10 @@ export interface backendInterface {
     markNotificationsRead(): Promise<void>;
     mintClip(clipId: string, title: string, videoUrl: string): Promise<void>;
     postClipToYouTube(clipMetadata: ClipMetadata): Promise<YouTubePostResult>;
+    postCollabListing(niche: string, description: string, contactInfo: string): Promise<string>;
     replyToMessage(originalMessageId: string, replyBody: string, fromUserId: string): Promise<string>;
+    reportCreator(reportedPrincipal: Principal, reason: string, description: string): Promise<string>;
+    resolveCreatorReport(reportId: string): Promise<void>;
     saveCallerUserProfile(profile: UserProfile): Promise<void>;
     saveClip(title: string, videoUrl: string, thumbnailUrl: string, startTime: bigint, endTime: bigint, score: number): Promise<string>;
     sendMessage(toPrincipal: string, toUserId: string, body: string, fromUserId: string): Promise<string>;
@@ -585,6 +611,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async deleteCollabListing(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.deleteCollabListing(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.deleteCollabListing(arg0);
+            return result;
+        }
+    }
     async deleteContentEntry(arg0: string): Promise<void> {
         if (this.processError) {
             try {
@@ -795,6 +835,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async getCollabListings(): Promise<Array<CollabListing>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCollabListings();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCollabListings();
+            return result;
+        }
+    }
     async getContentEntries(): Promise<Array<ContentEntry>> {
         if (this.processError) {
             try {
@@ -806,6 +860,20 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.getContentEntries();
+            return result;
+        }
+    }
+    async getCreatorReports(): Promise<Array<CreatorReport>> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.getCreatorReports();
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.getCreatorReports();
             return result;
         }
     }
@@ -1089,6 +1157,20 @@ export class Backend implements backendInterface {
             return result;
         }
     }
+    async postCollabListing(arg0: string, arg1: string, arg2: string): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.postCollabListing(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.postCollabListing(arg0, arg1, arg2);
+            return result;
+        }
+    }
     async replyToMessage(arg0: string, arg1: string, arg2: string): Promise<string> {
         if (this.processError) {
             try {
@@ -1100,6 +1182,34 @@ export class Backend implements backendInterface {
             }
         } else {
             const result = await this.actor.replyToMessage(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async reportCreator(arg0: Principal, arg1: string, arg2: string): Promise<string> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.reportCreator(arg0, arg1, arg2);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.reportCreator(arg0, arg1, arg2);
+            return result;
+        }
+    }
+    async resolveCreatorReport(arg0: string): Promise<void> {
+        if (this.processError) {
+            try {
+                const result = await this.actor.resolveCreatorReport(arg0);
+                return result;
+            } catch (e) {
+                this.processError(e);
+                throw new Error("unreachable");
+            }
+        } else {
+            const result = await this.actor.resolveCreatorReport(arg0);
             return result;
         }
     }

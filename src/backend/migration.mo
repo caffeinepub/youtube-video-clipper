@@ -1,8 +1,11 @@
 module {
-  type OldActor = {};
-  type NewActor = { notificationCounter : Nat };
-
-  public func run(old : OldActor) : NewActor {
-    { notificationCounter = 0 };
+  type OldActor = {
+    systemStatus : { #running; #restarting; #shutting_down; #paused };
   };
+
+  type NewActor = {
+    systemStatus : { #running; #restarting; #shutting_down; #paused };
+  };
+
+  public func run(old : OldActor) : NewActor { old };
 };

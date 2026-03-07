@@ -1,14 +1,24 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { Textarea } from "@/components/ui/textarea";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
   AlertTriangle,
+  CheckCircle2,
   ChevronDown,
   ChevronUp,
   ExternalLink,
+  Flag,
   Heart,
   Link2,
   Loader2,
@@ -23,7 +33,7 @@ import {
 import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
-import type { AdminLink } from "../backend";
+import type { AdminLink, CreatorReport } from "../backend";
 import { useActor } from "../hooks/useActor";
 import { useGetOwnRole } from "../hooks/useGetOwnRole";
 import { useIsOwner } from "../hooks/useIsOwner";
@@ -364,6 +374,175 @@ function AdminLinksManager() {
   );
 }
 
+// ─── Creator Reports ──────────────────────────────────────────────────────────
+
+function shortPrincipal(p: string): string {
+  if (p.length <= 12) return p;
+  return `${p.slice(0, 8)}...${p.slice(-4)}`;
+}
+
+function timeAgoMs(ts: bigint): string {
+  const ms = Number(ts) / 1_000_000;
+  const diff = Date.now() - ms;
+  if (diff < 60_000) return "just now";
+  if (diff < 3_600_000) return `${Math.floor(diff / 60_000)}m ago`;
+  if (diff < 86_400_000) return `${Math.floor(diff / 3_600_000)}h ago`;
+  return `${Math.floor(diff / 86_400_000)}d ago`;
+}
+
+function CreatorReports() {
+  const { actor, isFetching: actorFetching } = useActor();
+  const queryClient = useQueryClient();
+
+  const { data: reports = [], isLoading } = useQuery<CreatorReport[]>({
+    queryKey: ["creatorReports"],
+    queryFn: async () => {
+      if (!actor) return [];
+      return actor.getCreatorReports();
+    },
+    enabled: !!actor && !actorFetching,
+    refetchInterval: 30_000,
+  });
+
+  const resolveMutation = useMutation({
+    mutationFn: async (reportId: string) => {
+      if (!actor) throw new Error("Actor not available");
+      await actor.resolveCreatorReport(reportId);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["creatorReports"] });
+      toast.success("Report marked as resolved.");
+    },
+    onError: () => toast.error("Failed to resolve report."),
+  });
+
+  if (isLoading) {
+    return (
+      <div
+        className="flex justify-center py-8"
+        data-ocid="admin.reports.loading_state"
+      >
+        <Loader2 className="w-5 h-5 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (reports.length === 0) {
+    return (
+      <div
+        className="text-center py-10 text-muted-foreground text-sm"
+        data-ocid="admin.reports.empty_state"
+      >
+        <Flag className="w-8 h-8 mx-auto mb-2 text-muted-foreground/30" />
+        No creator reports yet.
+      </div>
+    );
+  }
+
+  const pending = reports.filter((r) => !r.resolved);
+  const resolved = reports.filter((r) => r.resolved);
+  const sorted = [...pending, ...resolved];
+
+  return (
+    <div className="overflow-x-auto" data-ocid="admin.reports.table">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-white/8 hover:bg-transparent">
+            <TableHead className="text-muted-foreground text-xs font-medium">
+              Reporter
+            </TableHead>
+            <TableHead className="text-muted-foreground text-xs font-medium">
+              Reported
+            </TableHead>
+            <TableHead className="text-muted-foreground text-xs font-medium">
+              Reason
+            </TableHead>
+            <TableHead className="text-muted-foreground text-xs font-medium hidden md:table-cell">
+              Details
+            </TableHead>
+            <TableHead className="text-muted-foreground text-xs font-medium hidden sm:table-cell">
+              Time
+            </TableHead>
+            <TableHead className="text-muted-foreground text-xs font-medium">
+              Status
+            </TableHead>
+            <TableHead className="text-muted-foreground text-xs font-medium">
+              Action
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {sorted.map((report, idx) => (
+            <TableRow
+              key={report.id}
+              className="border-white/5 hover:bg-white/3"
+              data-ocid={`admin.reports.row.${idx + 1}`}
+            >
+              <TableCell className="py-3">
+                <code className="text-[10px] font-mono text-muted-foreground/70 bg-white/5 px-1.5 py-0.5 rounded">
+                  {shortPrincipal(report.reporterPrincipal.toString())}
+                </code>
+              </TableCell>
+              <TableCell className="py-3">
+                <code className="text-[10px] font-mono text-red-400/80 bg-red-500/5 px-1.5 py-0.5 rounded">
+                  {shortPrincipal(report.reportedPrincipal.toString())}
+                </code>
+              </TableCell>
+              <TableCell className="py-3">
+                <span className="text-xs text-white bg-white/5 border border-white/8 px-2 py-0.5 rounded-full whitespace-nowrap">
+                  {report.reason}
+                </span>
+              </TableCell>
+              <TableCell className="py-3 hidden md:table-cell max-w-[160px]">
+                <p
+                  className="text-xs text-muted-foreground truncate"
+                  title={report.description}
+                >
+                  {report.description || "—"}
+                </p>
+              </TableCell>
+              <TableCell className="py-3 hidden sm:table-cell">
+                <span className="text-xs text-muted-foreground whitespace-nowrap">
+                  {timeAgoMs(report.timestamp)}
+                </span>
+              </TableCell>
+              <TableCell className="py-3">
+                {report.resolved ? (
+                  <span className="flex items-center gap-1 text-emerald-400 text-xs whitespace-nowrap">
+                    <CheckCircle2 className="w-3 h-3" />
+                    Resolved
+                  </span>
+                ) : (
+                  <span className="flex items-center gap-1 text-yellow-400 text-xs whitespace-nowrap">
+                    <AlertTriangle className="w-3 h-3" />
+                    Pending
+                  </span>
+                )}
+              </TableCell>
+              <TableCell className="py-3">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={report.resolved || resolveMutation.isPending}
+                  onClick={() => resolveMutation.mutate(report.id)}
+                  className="h-7 text-xs px-2 text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-30"
+                  data-ocid={`admin.reports.confirm_button.${idx + 1}`}
+                >
+                  {resolveMutation.isPending ? (
+                    <Loader2 className="w-3 h-3 animate-spin" />
+                  ) : (
+                    "Resolve"
+                  )}
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
 export default function AdminPanel() {
   const { isOwner } = useIsOwner();
   const { data: ownRole, isLoading: roleLoading } = useGetOwnRole();
@@ -503,6 +682,14 @@ export default function AdminPanel() {
             <DonateSettings />
           </CollapsibleSection>
         )}
+
+        {/* Creator Reports */}
+        <CollapsibleSection
+          title="Creator Reports"
+          icon={<Flag className="w-4 h-4 text-red-400" />}
+        >
+          <CreatorReports />
+        </CollapsibleSection>
 
         {/* Feedback */}
         <CollapsibleSection

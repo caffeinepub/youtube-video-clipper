@@ -66,13 +66,15 @@ export default function OAuthCallback() {
             window.close();
           }, 1200);
         } else {
-          // Invalidate queries and navigate home when not in popup
+          // Invalidate queries and navigate back (mobile same-tab flow)
           await queryClient.invalidateQueries({ queryKey: ["youtubeChannel"] });
           await queryClient.invalidateQueries({
             queryKey: ["currentUserProfile"],
           });
+          const returnPath = sessionStorage.getItem("oauthReturnPath") || "/";
+          sessionStorage.removeItem("oauthReturnPath");
           setTimeout(() => {
-            navigate({ to: "/" });
+            navigate({ to: returnPath as "/" });
           }, 1500);
         }
       } catch (err: unknown) {
