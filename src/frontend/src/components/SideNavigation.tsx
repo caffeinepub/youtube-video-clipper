@@ -299,10 +299,10 @@ export default function SideNavigation() {
             <button
               type="button"
               onClick={() => setFeedbackOpen(true)}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
               data-ocid="nav.button"
             >
-              <Bug className="w-4 h-4" />
+              <Bug className="w-3.5 h-3.5" />
               Report a Bug / Feature
             </button>
           )}
@@ -311,10 +311,10 @@ export default function SideNavigation() {
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
               data-ocid="nav.button"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-3.5 h-3.5" />
               Sign Out
             </button>
           )}

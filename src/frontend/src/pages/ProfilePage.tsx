@@ -1,17 +1,21 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useQuery } from "@tanstack/react-query";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
   Check,
   Coins,
   Copy,
+  Loader2,
+  Pencil,
   Scissors,
   User,
   Youtube,
 } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { MintedClip } from "../backend";
 import UserRoleBadge from "../components/UserRoleBadge";
@@ -45,9 +49,19 @@ export default function ProfilePage() {
   const { data: ownRole } = useGetOwnRole();
   const { data: clips = [] } = useClips();
   const { actor, isFetching: actorFetching } = useActor();
+  const queryClient = useQueryClient();
   const [copiedPrincipal, setPrincipalCopied] = useState(false);
+  const [nicknameInput, setNicknameInput] = useState("");
+  const [nicknameSaved, setNicknameSaved] = useState(false);
 
   const principal = identity?.getPrincipal().toString() ?? "";
+
+  // Sync input with loaded profile — only set on first load when input is empty
+  useEffect(() => {
+    if (userProfile?.name && !nicknameInput) {
+      setNicknameInput(userProfile.name);
+    }
+  }, [userProfile?.name, nicknameInput]);
 
   const { data: mintedClips = [] } = useQuery<MintedClip[]>({
     queryKey: ["mintedClips"],
@@ -56,6 +70,23 @@ export default function ProfilePage() {
       return actor.getMintedClips();
     },
     enabled: !!actor && !actorFetching,
+  });
+
+  const saveNicknameMutation = useMutation({
+    mutationFn: async (name: string) => {
+      if (!actor) throw new Error("Not connected");
+      if (!userProfile) throw new Error("Profile not loaded");
+      await actor.saveCallerUserProfile({ ...userProfile, name });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["callerUserProfile"] });
+      toast.success("Nickname saved!");
+      setNicknameSaved(true);
+      setTimeout(() => setNicknameSaved(false), 2000);
+    },
+    onError: (err: Error) => {
+      toast.error("Failed to save nickname", { description: err.message });
+    },
   });
 
   const roleStr = ownRole
@@ -190,6 +221,53 @@ export default function ProfilePage() {
               {recentClips.length > 0 ? "Active" : "New"}
             </p>
             <p className="text-muted-foreground text-xs">Status</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Nickname Editor */}
+      <div className="glass-card p-5 space-y-3" data-ocid="profile.section">
+        <div className="flex items-center gap-2 mb-1">
+          <Pencil className="w-4 h-4 text-primary" />
+          <h3 className="text-white font-semibold text-sm">Display Nickname</h3>
+        </div>
+        <p className="text-muted-foreground text-xs">
+          Set how your name appears across Beast Clipping. This updates the
+          greeting in the sidebar instantly.
+        </p>
+        <div className="space-y-1.5">
+          <Label className="text-xs text-muted-foreground">Nickname</Label>
+          <div className="flex items-center gap-2">
+            <Input
+              value={nicknameInput}
+              onChange={(e) => setNicknameInput(e.target.value)}
+              placeholder="Enter your display name…"
+              maxLength={32}
+              className="bg-white/5 border-white/10 text-white placeholder:text-muted-foreground focus:border-primary/50 text-sm"
+              data-ocid="profile.input"
+            />
+            <Button
+              size="sm"
+              onClick={() => saveNicknameMutation.mutate(nicknameInput.trim())}
+              disabled={
+                saveNicknameMutation.isPending ||
+                !nicknameInput.trim() ||
+                nicknameInput.trim() === userProfile?.name
+              }
+              className="bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 h-9 px-3 flex-shrink-0"
+              data-ocid="profile.save_button"
+            >
+              {saveNicknameMutation.isPending ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : nicknameSaved ? (
+                <>
+                  <Check className="w-3.5 h-3.5 mr-1" />
+                  Saved!
+                </>
+              ) : (
+                "Save"
+              )}
+            </Button>
           </div>
         </div>
       </div>

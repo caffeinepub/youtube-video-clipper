@@ -34,8 +34,10 @@ import type React from "react";
 import { useState } from "react";
 import { toast } from "sonner";
 import type { AdminLink, CreatorReport } from "../backend";
+import { NotificationType, UserStatus } from "../backend";
 import { useActor } from "../hooks/useActor";
 import { useGetOwnRole } from "../hooks/useGetOwnRole";
+import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useIsOwner } from "../hooks/useIsOwner";
 import ActivityLogTable from "./ActivityLogTable";
 import AdminErrorBoundary from "./AdminErrorBoundary";
@@ -392,7 +394,10 @@ function timeAgoMs(ts: bigint): string {
 
 function CreatorReports() {
   const { actor, isFetching: actorFetching } = useActor();
+  const { identity } = useInternetIdentity();
   const queryClient = useQueryClient();
+
+  const senderPrincipal = identity?.getPrincipal() ?? null;
 
   const { data: reports = [], isLoading } = useQuery<CreatorReport[]>({
     queryKey: ["creatorReports"],
@@ -414,6 +419,41 @@ function CreatorReports() {
       toast.success("Report marked as resolved.");
     },
     onError: () => toast.error("Failed to resolve report."),
+  });
+
+  const warnMutation = useMutation({
+    mutationFn: async ({ report }: { report: CreatorReport }) => {
+      if (!actor) throw new Error("Actor not available");
+      await actor.addNotification(
+        report.reportedPrincipal,
+        `⚠️ Warning: Reported for ${report.reason}`,
+        NotificationType.system_announcement,
+        senderPrincipal,
+      );
+    },
+    onSuccess: () => toast.success("Warning sent to user."),
+    onError: () => toast.error("Failed to send warning."),
+  });
+
+  const banMutation = useMutation({
+    mutationFn: async (report: CreatorReport) => {
+      if (!actor) throw new Error("Actor not available");
+      await actor.updateUserStatus(report.reportedPrincipal, UserStatus.banned);
+    },
+    onSuccess: () => toast.success("User banned."),
+    onError: () => toast.error("Failed to ban user."),
+  });
+
+  const suspendMutation = useMutation({
+    mutationFn: async (report: CreatorReport) => {
+      if (!actor) throw new Error("Actor not available");
+      await actor.updateUserStatus(
+        report.reportedPrincipal,
+        UserStatus.suspended,
+      );
+    },
+    onSuccess: () => toast.success("User suspended for 1 day."),
+    onError: () => toast.error("Failed to suspend user."),
   });
 
   if (isLoading) {
@@ -467,7 +507,7 @@ function CreatorReports() {
               Status
             </TableHead>
             <TableHead className="text-muted-foreground text-xs font-medium">
-              Action
+              Actions
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -520,20 +560,71 @@ function CreatorReports() {
                 )}
               </TableCell>
               <TableCell className="py-3">
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  disabled={report.resolved || resolveMutation.isPending}
-                  onClick={() => resolveMutation.mutate(report.id)}
-                  className="h-7 text-xs px-2 text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-30"
-                  data-ocid={`admin.reports.confirm_button.${idx + 1}`}
-                >
-                  {resolveMutation.isPending ? (
-                    <Loader2 className="w-3 h-3 animate-spin" />
-                  ) : (
-                    "Resolve"
-                  )}
-                </Button>
+                <div className="flex items-center gap-1 flex-wrap">
+                  {/* Warn */}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={report.resolved || warnMutation.isPending}
+                    onClick={() => warnMutation.mutate({ report })}
+                    className="h-6 text-[10px] px-1.5 text-yellow-400/70 hover:text-yellow-400 hover:bg-yellow-500/10 disabled:opacity-30"
+                    data-ocid={`admin.reports.secondary_button.${idx + 1}`}
+                    title="Send warning to user"
+                  >
+                    {warnMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      "Warn"
+                    )}
+                  </Button>
+                  {/* Ban */}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={report.resolved || banMutation.isPending}
+                    onClick={() => banMutation.mutate(report)}
+                    className="h-6 text-[10px] px-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10 disabled:opacity-30"
+                    data-ocid={`admin.reports.delete_button.${idx + 1}`}
+                    title="Ban this user"
+                  >
+                    {banMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      "Ban"
+                    )}
+                  </Button>
+                  {/* 1-day Suspend */}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={report.resolved || suspendMutation.isPending}
+                    onClick={() => suspendMutation.mutate(report)}
+                    className="h-6 text-[10px] px-1.5 text-orange-400/70 hover:text-orange-400 hover:bg-orange-500/10 disabled:opacity-30"
+                    data-ocid={`admin.reports.secondary_button.${idx + 1}`}
+                    title="Suspend user for 1 day"
+                  >
+                    {suspendMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      "Suspend"
+                    )}
+                  </Button>
+                  {/* Resolve */}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={report.resolved || resolveMutation.isPending}
+                    onClick={() => resolveMutation.mutate(report.id)}
+                    className="h-6 text-[10px] px-1.5 text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-500/10 disabled:opacity-30"
+                    data-ocid={`admin.reports.confirm_button.${idx + 1}`}
+                  >
+                    {resolveMutation.isPending ? (
+                      <Loader2 className="w-3 h-3 animate-spin" />
+                    ) : (
+                      "Resolve"
+                    )}
+                  </Button>
+                </div>
               </TableCell>
             </TableRow>
           ))}

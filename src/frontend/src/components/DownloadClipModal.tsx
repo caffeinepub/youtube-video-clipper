@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
-import { Check, Copy, Download, ExternalLink, X } from "lucide-react";
+import { Download, ExternalLink, Loader2, X } from "lucide-react";
 import React, { useState } from "react";
 import { toast } from "sonner";
+import { useActor } from "../hooks/useActor";
 
 interface DownloadClipModalProps {
   open: boolean;
@@ -26,21 +27,49 @@ export default function DownloadClipModal({
   endTime,
   title,
 }: DownloadClipModalProps) {
-  const [copied, setCopied] = useState(false);
+  const { actor } = useActor();
+  const [isDownloading, setIsDownloading] = useState(false);
 
   if (!open) return null;
 
   const youtubeWatchUrl = `https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(startTime)}`;
   const duration = endTime - startTime;
 
-  const handleCopyLink = async () => {
+  const handleDownload = async () => {
+    if (!actor) {
+      toast.error("Not connected to backend. Please refresh and try again.");
+      return;
+    }
+    setIsDownloading(true);
     try {
-      await navigator.clipboard.writeText(youtubeWatchUrl);
-      setCopied(true);
-      toast.success("Link copied!");
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      toast.error("Failed to copy link");
+      const url = await actor.generateDownloadVideoUrl(
+        videoId,
+        BigInt(Math.floor(startTime)),
+        BigInt(Math.floor(endTime)),
+      );
+
+      if (!url || url.trim() === "") {
+        throw new Error("empty_url");
+      }
+
+      // Trigger download via a temporary anchor element
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `${title || "clip"}-${videoId}-${Math.floor(startTime)}s.mp4`;
+      a.rel = "noopener noreferrer";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      toast.success("Download started!");
+      onClose();
+    } catch (err) {
+      const msg =
+        err instanceof Error && err.message === "empty_url"
+          ? "Download not available for this clip. Try watching on YouTube."
+          : "Download not available for this clip. Try watching on YouTube.";
+      toast.error(msg);
+    } finally {
+      setIsDownloading(false);
     }
   };
 
@@ -104,20 +133,21 @@ export default function DownloadClipModal({
         {/* Actions */}
         <div className="space-y-2">
           <Button
-            onClick={handleCopyLink}
+            onClick={handleDownload}
+            disabled={isDownloading}
             className="w-full h-9 text-xs bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40"
             variant="outline"
             data-ocid="download.button"
           >
-            {copied ? (
+            {isDownloading ? (
               <>
-                <Check className="w-3.5 h-3.5 mr-2" />
-                Link Copied!
+                <Loader2 className="w-3.5 h-3.5 mr-2 animate-spin" />
+                Preparing Download…
               </>
             ) : (
               <>
-                <Copy className="w-3.5 h-3.5 mr-2" />
-                Copy Clip Link
+                <Download className="w-3.5 h-3.5 mr-2" />
+                Download Clip to Device
               </>
             )}
           </Button>
@@ -134,8 +164,8 @@ export default function DownloadClipModal({
         </div>
 
         <p className="text-muted-foreground text-[10px] text-center leading-relaxed">
-          YouTube clips can be saved from the YouTube app by tapping "Save" or
-          using YouTube's built-in download feature (YouTube Premium).
+          Downloads are generated from the clip's source video. If download
+          fails, use "Watch on YouTube" to access the clip.
         </p>
       </div>
     </div>

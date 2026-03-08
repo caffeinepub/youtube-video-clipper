@@ -1,7 +1,8 @@
 import { Button } from "@/components/ui/button";
 import { useQueryClient } from "@tanstack/react-query";
-import { PauseCircle, RefreshCw } from "lucide-react";
+import { MessageSquare, PauseCircle, RefreshCw } from "lucide-react";
 import React from "react";
+import { toast } from "sonner";
 
 const DEFAULT_SHUTDOWN_MESSAGE =
   "Beast Clipping is currently down. Please wait for it to come back online.";
@@ -22,6 +23,15 @@ export default function PausedScreen() {
 
   const handleCheckAgain = () => {
     queryClient.invalidateQueries({ queryKey: ["systemStatus"] });
+  };
+
+  const handleContactAdmin = () => {
+    toast.info(
+      "Please log in with your account to send a message to an admin.",
+      {
+        duration: 5000,
+      },
+    );
   };
 
   return (
@@ -45,19 +55,35 @@ export default function PausedScreen() {
           </p>
         </div>
 
-        {/* Check again */}
-        <Button
-          variant="outline"
-          onClick={handleCheckAgain}
-          className="gap-2 border-white/10 text-white hover:bg-white/5"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Check Again
-        </Button>
+        {/* Buttons */}
+        <div className="flex flex-col items-center gap-3 w-full max-w-xs">
+          <Button
+            variant="outline"
+            onClick={handleCheckAgain}
+            className="gap-2 border-white/10 text-white hover:bg-white/5 w-full"
+            data-ocid="paused.secondary_button"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Check Again
+          </Button>
+          <Button
+            variant="ghost"
+            onClick={handleContactAdmin}
+            className="gap-2 border border-indigo-500/20 text-indigo-300 hover:bg-indigo-500/10 hover:text-indigo-200 w-full"
+            data-ocid="paused.primary_button"
+          >
+            <MessageSquare className="w-4 h-4" />
+            Message an Admin
+          </Button>
+        </div>
 
         {/* Admin hint */}
-        <p className="text-xs text-muted-foreground/60">
+        <p className="text-xs text-muted-foreground/60 text-center max-w-xs">
           If you are an admin, please log in to resume the application.
+          <br />
+          <span className="text-indigo-400/70">
+            Regular users: log in and use the Messages tab to reach an admin.
+          </span>
         </p>
 
         {/* Footer */}

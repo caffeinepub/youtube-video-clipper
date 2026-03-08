@@ -9,7 +9,13 @@ import {
   createRoute,
   createRouter,
 } from "@tanstack/react-router";
-import { Clock, Heart, MessageSquare, Youtube } from "lucide-react";
+import {
+  Clock,
+  ExternalLink,
+  Heart,
+  MessageSquare,
+  Youtube,
+} from "lucide-react";
 import React, { useState } from "react";
 import { SystemStatus, type VideoClip } from "./backend";
 import AccountStatusGuard from "./components/AccountStatusGuard";
@@ -367,6 +373,44 @@ function HomePage() {
 
           {/* Social Feed */}
           <SocialFeed />
+
+          {/* Featured: b3as1 Channel */}
+          <div className="glass-card p-4 space-y-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Youtube className="w-4 h-4 text-red-400" />
+                <h3 className="text-white font-semibold text-sm">
+                  Featured Channel
+                </h3>
+                <span className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full">
+                  b3as1
+                </span>
+              </div>
+              <a
+                href="https://www.youtube.com/@b3as1"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
+                data-ocid="dashboard.channel.link"
+              >
+                <ExternalLink className="w-3 h-3" />
+                Open Channel
+              </a>
+            </div>
+            <div className="aspect-video w-full rounded-xl overflow-hidden border border-white/8 bg-black">
+              <iframe
+                src="https://www.youtube.com/embed?listType=user_uploads&list=b3as1&rel=0&modestbranding=1"
+                title="b3as1 YouTube Channel"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                allowFullScreen
+                className="w-full h-full"
+                loading="lazy"
+              />
+            </div>
+            <p className="text-muted-foreground text-xs text-center">
+              Latest clips and highlights from the b3as1 channel
+            </p>
+          </div>
         </div>
 
         {/* Right column */}

@@ -32,10 +32,10 @@ export default function DonateButton({
     if (!isOwner) return null;
     return (
       <div
-        className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-muted-foreground/50 border border-dashed border-white/10 ${className}`}
+        className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-muted-foreground/50 border border-dashed border-white/10 ${className}`}
       >
-        <Heart className="w-4 h-4 text-pink-400/50 flex-shrink-0" />
-        <span className="text-xs">Set up Donate button in Admin Panel</span>
+        <Heart className="w-3.5 h-3.5 text-pink-400/50 flex-shrink-0" />
+        <span className="text-xs">Set up Donate in Admin Panel</span>
       </div>
     );
   }
@@ -45,10 +45,10 @@ export default function DonateButton({
       href={paypalUrl}
       target="_blank"
       rel="noopener noreferrer"
-      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-pink-400 hover:text-pink-300 hover:bg-pink-500/10 border border-pink-500/20 hover:border-pink-400/30 transition-all duration-200 ${className}`}
+      className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-pink-400 hover:text-pink-300 hover:bg-pink-500/10 border border-pink-500/20 hover:border-pink-400/30 transition-all duration-200 ${className}`}
       data-ocid="donate.button"
     >
-      <Heart className="w-4 h-4 flex-shrink-0 fill-current" />
+      <Heart className="w-3.5 h-3.5 flex-shrink-0 fill-current" />
       Donate
     </a>
   );

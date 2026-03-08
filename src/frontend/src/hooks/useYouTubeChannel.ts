@@ -1,5 +1,4 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
 import { useActor } from "./useActor";
 
 export interface YouTubeChannelStatus {
@@ -11,25 +10,6 @@ export interface YouTubeChannelStatus {
 export function useYouTubeChannel() {
   const { actor, isFetching: actorFetching } = useActor();
   const queryClient = useQueryClient();
-
-  // Listen for postMessage from the OAuth popup when it completes
-  useEffect(() => {
-    const handleMessage = (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) return;
-      if (event.data?.type === "YOUTUBE_OAUTH_SUCCESS") {
-        // Immediately mark as connected and schedule a real refetch
-        queryClient.setQueryData<YouTubeChannelStatus>(["youtubeChannel"], {
-          isConnected: true,
-          channelName: "YouTube Connected",
-        });
-        setTimeout(() => {
-          queryClient.invalidateQueries({ queryKey: ["youtubeChannel"] });
-        }, 1500);
-      }
-    };
-    window.addEventListener("message", handleMessage);
-    return () => window.removeEventListener("message", handleMessage);
-  }, [queryClient]);
 
   const channelQuery = useQuery<YouTubeChannelStatus>({
     queryKey: ["youtubeChannel"],
@@ -108,46 +88,32 @@ export function useYouTubeChannel() {
 
       const oauthUrl = `https://accounts.google.com/o/oauth2/v2/auth?${params.toString()}`;
 
-      // On mobile, popups are often blocked — detect and fall back to same-tab navigation
-      const isMobile = /Mobi|Android|iPhone|iPad|iPod/i.test(
-        navigator.userAgent,
-      );
-      if (isMobile) {
-        // Store current path so we can redirect back after OAuth
-        sessionStorage.setItem("oauthReturnPath", window.location.pathname);
-        window.location.href = oauthUrl;
-        return;
-      }
-
-      // Desktop: open OAuth in a popup
-      const popup = window.open(
-        oauthUrl,
-        "youtube-oauth",
-        "width=600,height=700,scrollbars=yes,resizable=yes",
-      );
-
-      if (!popup) {
-        // Popup was blocked despite desktop — fall back to same-tab navigation
-        sessionStorage.setItem("oauthReturnPath", window.location.pathname);
-        window.location.href = oauthUrl;
-        return;
-      }
-
-      // Wait for popup to close (fallback polling in case postMessage doesn't fire)
-      await new Promise<void>((resolve) => {
-        const checkClosed = setInterval(() => {
-          if (popup.closed) {
-            clearInterval(checkClosed);
-            resolve();
-          }
-        }, 500);
-      });
+      // Always navigate in the same tab — popups are blocked on most browsers/devices
+      sessionStorage.setItem("oauthReturnPath", window.location.pathname);
+      window.location.href = oauthUrl;
     },
     onSuccess: () => {
-      // Invalidate to re-fetch real data after the popup closed
       setTimeout(() => {
         queryClient.invalidateQueries({ queryKey: ["youtubeChannel"] });
       }, 1000);
+    },
+  });
+
+  const disconnectMutation = useMutation({
+    mutationFn: async () => {
+      if (!actor) throw new Error("Not connected to backend");
+      // Fetch current profile then save it without youtubeAuth
+      const profile = await actor.getCallerUserProfile();
+      if (!profile) throw new Error("No profile found");
+      const updated = { ...profile } as import("../backend").UserProfile;
+      // Clear both auth fields
+      updated.youtubeAuth = undefined;
+      updated.googleOAuthCredentials = undefined;
+      await actor.saveCallerUserProfile(updated);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["youtubeChannel"] });
+      queryClient.invalidateQueries({ queryKey: ["callerUserProfile"] });
     },
   });
 
@@ -164,6 +130,8 @@ export function useYouTubeChannel() {
     isLoading,
     connectChannel: connectMutation.mutate,
     isConnecting: connectMutation.isPending,
+    disconnectChannel: disconnectMutation.mutate,
+    isDisconnecting: disconnectMutation.isPending,
     error: connectMutation.error,
     refetch: () =>
       queryClient.invalidateQueries({ queryKey: ["youtubeChannel"] }),
