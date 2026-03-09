@@ -15,6 +15,7 @@ import {
   Heart,
   MessageSquare,
   Youtube,
+  Zap,
 } from "lucide-react";
 import React, { useState } from "react";
 import { SystemStatus, type VideoClip } from "./backend";
@@ -92,11 +93,13 @@ function SocialFeed() {
   if (recentClips.length === 0) return null;
 
   return (
-    <div className="glass-card p-4 space-y-3">
-      <div className="flex items-center gap-2">
+    <div className="glass-card p-5 space-y-4">
+      <div className="flex items-center gap-2.5">
         <Clock className="w-4 h-4 text-primary" />
-        <h3 className="text-white font-semibold text-sm">Recent Activity</h3>
-        <span className="text-xs text-primary bg-primary/10 border border-primary/20 px-2 py-0.5 rounded-full">
+        <h3 className="font-display font-bold text-sm section-heading">
+          Recent Activity
+        </h3>
+        <span className="live-badge text-xs text-primary bg-primary/10 border border-primary/25 px-2 py-0.5 rounded-full font-semibold">
           Live
         </span>
       </div>
@@ -155,39 +158,91 @@ function LoginPage() {
   const isLoggingIn = loginStatus === "logging-in";
 
   return (
-    <div className="min-h-screen bg-[#0B0E14] flex flex-col items-center justify-center p-6 relative overflow-hidden">
-      {/* Cyberpunk background */}
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(36,0,70,0.8)_0%,transparent_60%)]" />
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-primary/5 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-purple-900/10 rounded-full blur-3xl pointer-events-none" />
+    <div className="min-h-screen hero-glow flex flex-col items-center justify-center p-6 relative overflow-hidden">
+      {/* Atmospheric grid overlay */}
+      <div
+        className="absolute inset-0 opacity-[0.025] pointer-events-none"
+        style={{
+          backgroundImage:
+            "linear-gradient(oklch(0.88 0.17 200) 1px, transparent 1px), linear-gradient(90deg, oklch(0.88 0.17 200) 1px, transparent 1px)",
+          backgroundSize: "64px 64px",
+        }}
+      />
+      {/* Floating orbs */}
+      <div
+        className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] rounded-full opacity-10 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle, oklch(0.88 0.17 200) 0%, transparent 70%)",
+        }}
+      />
+      <div
+        className="absolute bottom-0 left-1/4 w-80 h-80 rounded-full opacity-8 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle, oklch(0.3 0.15 290) 0%, transparent 70%)",
+        }}
+      />
+      <div
+        className="absolute top-1/3 right-1/4 w-40 h-40 rounded-full opacity-6 pointer-events-none"
+        style={{
+          background:
+            "radial-gradient(circle, oklch(0.88 0.17 200) 0%, transparent 70%)",
+        }}
+      />
 
-      <div className="relative z-10 w-full max-w-sm space-y-8 text-center">
-        <div className="flex flex-col items-center gap-4">
-          <div className="w-16 h-16 rounded-2xl bg-primary/20 border border-primary/30 flex items-center justify-center neon-glow">
-            <img
-              src="/assets/generated/beast-clipping-logo.dim_320x80.png"
-              alt="Beast Clipping"
-              className="w-10 h-10 object-contain"
-              onError={(e) => {
-                (e.target as HTMLImageElement).style.display = "none";
-              }}
-            />
+      <div className="relative z-10 w-full max-w-sm space-y-10 text-center">
+        {/* Logo area */}
+        <div className="flex flex-col items-center gap-5">
+          <div className="relative">
+            {/* Outer ring */}
+            <div className="absolute inset-0 rounded-2xl border border-primary/20 animate-pulse-glow" />
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-primary/25 to-primary/5 border border-primary/40 flex items-center justify-center neon-glow">
+              <Zap
+                className="w-9 h-9 text-primary"
+                style={{
+                  filter: "drop-shadow(0 0 8px oklch(0.88 0.17 200 / 0.7))",
+                }}
+              />
+            </div>
           </div>
-          <div>
-            <h1 className="text-white font-bold text-3xl font-display tracking-tight">
-              Beast Clipping
+          <div className="space-y-2">
+            <h1
+              className="font-display font-black tracking-tight leading-none"
+              style={{ fontSize: "2.75rem", letterSpacing: "-0.03em" }}
+            >
+              <span
+                style={{
+                  background:
+                    "linear-gradient(135deg, oklch(0.95 0.015 200) 0%, oklch(0.88 0.17 200) 50%, oklch(0.78 0.17 200) 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  filter: "drop-shadow(0 0 20px oklch(0.88 0.17 200 / 0.35))",
+                }}
+              >
+                BEAST
+              </span>
+              <br />
+              <span className="text-foreground/90">CLIPPING</span>
             </h1>
-            <p className="text-primary text-sm mt-1 neon-text">
-              Premium clip management dashboard
+            <p
+              className="text-primary/80 text-sm font-medium tracking-widest uppercase"
+              style={{ letterSpacing: "0.25em" }}
+            >
+              Premium Clip Dashboard
             </p>
           </div>
         </div>
 
-        <div className="glass-card p-8 space-y-6">
+        {/* Sign-in card */}
+        <div className="login-card p-8 space-y-7">
           <div className="space-y-2">
-            <h2 className="text-white font-semibold text-lg">Welcome back</h2>
-            <p className="text-muted-foreground text-sm">
-              Sign in to access your dashboard
+            <h2 className="text-foreground font-bold text-xl font-display tracking-tight">
+              Welcome back
+            </h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              Sign in to manage your clips and channel
             </p>
           </div>
 
@@ -195,32 +250,39 @@ function LoginPage() {
             type="button"
             onClick={login}
             disabled={isLoggingIn}
-            className="w-full py-3 px-6 rounded-xl bg-primary/20 hover:bg-primary/30 text-primary border border-primary/40 font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed neon-glow flex items-center justify-center gap-2"
+            className="neon-cta w-full py-3.5 px-6 rounded-xl font-bold text-base tracking-wide disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2.5"
             data-ocid="login.primary_button"
           >
             {isLoggingIn ? (
               <>
-                <div className="w-4 h-4 border-2 border-primary/30 border-t-primary rounded-full animate-spin" />
+                <div className="w-4 h-4 border-2 border-primary/40 border-t-primary rounded-full animate-spin" />
                 Signing in...
               </>
             ) : (
-              "Sign In"
+              <>
+                <Zap className="w-4 h-4" />
+                Sign In
+              </>
             )}
           </button>
 
-          <p className="text-muted-foreground text-xs">
-            Secure authentication powered by Internet Identity
-          </p>
+          <div className="flex items-center gap-3">
+            <div className="flex-1 h-px bg-white/8" />
+            <p className="text-muted-foreground/50 text-xs whitespace-nowrap">
+              Secured by Internet Identity
+            </p>
+            <div className="flex-1 h-px bg-white/8" />
+          </div>
         </div>
 
-        <p className="text-muted-foreground/50 text-xs flex items-center justify-center gap-1">
-          Built with <Heart className="w-3 h-3 text-primary fill-primary" />{" "}
-          using{" "}
+        <p className="text-muted-foreground/40 text-xs flex items-center justify-center gap-1.5">
+          Built with{" "}
+          <Heart className="w-3 h-3 text-primary/70 fill-primary/70" /> using{" "}
           <a
             href={`https://caffeine.ai/?utm_source=Caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-primary hover:text-primary/80 transition-colors"
+            className="text-primary/60 hover:text-primary transition-colors"
           >
             caffeine.ai
           </a>
@@ -280,10 +342,10 @@ function HomePage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-foreground font-bold text-2xl font-display">
+          <h1 className="font-display font-black text-2xl md:text-3xl section-heading tracking-tight">
             Dashboard
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-sm mt-0.5">
             Create and manage your viral clips
           </p>
         </div>
@@ -313,7 +375,7 @@ function HomePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left / Main column */}
         <div className="lg:col-span-2 space-y-4">
-          <div className="glass-card p-4">
+          <div className="glass-card p-5">
             <VideoUrlForm
               onSubmit={handleVideoLoad}
               onClipsGenerated={setAiSuggestions}
@@ -321,7 +383,7 @@ function HomePage() {
           </div>
 
           {videoId && (
-            <div className="glass-card p-4">
+            <div className="glass-card p-5">
               <YouTubePlayer videoId={videoId} />
             </div>
           )}
@@ -342,7 +404,7 @@ function HomePage() {
           )}
 
           {videoId && (
-            <div className="glass-card p-4">
+            <div className="glass-card p-5">
               <ClipTimestampControls
                 videoId={videoId}
                 videoUrl={videoUrl}
@@ -359,11 +421,11 @@ function HomePage() {
             onCaptionChange={setCaption}
           />
 
-          <div className="glass-card p-4">
-            <h2 className="text-foreground font-semibold text-sm mb-3 flex items-center gap-2">
+          <div className="glass-card p-5">
+            <h2 className="font-display font-bold text-base mb-4 flex items-center gap-2.5 section-heading">
               My Clips
               {clips && clips.length > 0 && (
-                <span className="bg-primary/20 text-primary text-xs px-2 py-0.5 rounded-full border border-primary/30">
+                <span className="live-badge bg-primary/15 text-primary text-xs px-2 py-0.5 rounded-full border border-primary/30 font-semibold">
                   {clips.length}
                 </span>
               )}
@@ -371,33 +433,39 @@ function HomePage() {
             <ClipList onClipSelect={setSelectedClip} />
           </div>
 
-          {/* Social Feed */}
-          <SocialFeed />
+          {/* Social Feed — wrapped in extra spacing */}
+          <div className="mt-2">
+            <SocialFeed />
+          </div>
 
           {/* Featured: b3as1 Channel */}
-          <div className="glass-card p-4 space-y-3">
+          <div className="cyber-card p-5 space-y-4">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Youtube className="w-4 h-4 text-red-400" />
-                <h3 className="text-white font-semibold text-sm">
-                  Featured Channel
-                </h3>
-                <span className="text-xs text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-full">
-                  b3as1
-                </span>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-red-500/15 border border-red-500/25 flex items-center justify-center">
+                  <Youtube className="w-4 h-4 text-red-400" />
+                </div>
+                <div>
+                  <h3 className="font-display font-bold text-sm text-foreground leading-none">
+                    Featured Channel
+                  </h3>
+                  <span className="text-xs text-red-400 font-medium tracking-wide">
+                    @b3as1
+                  </span>
+                </div>
               </div>
               <a
                 href="https://www.youtube.com/@b3as1"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors"
+                className="flex items-center gap-1.5 text-xs text-primary hover:text-primary/80 transition-colors font-medium"
                 data-ocid="dashboard.channel.link"
               >
                 <ExternalLink className="w-3 h-3" />
                 Open Channel
               </a>
             </div>
-            <div className="aspect-video w-full rounded-xl overflow-hidden border border-white/8 bg-black">
+            <div className="aspect-video w-full rounded-xl overflow-hidden border border-white/8 bg-black shadow-lg">
               <iframe
                 src="https://www.youtube.com/embed?listType=user_uploads&list=b3as1&rel=0&modestbranding=1"
                 title="b3as1 YouTube Channel"
@@ -407,7 +475,7 @@ function HomePage() {
                 loading="lazy"
               />
             </div>
-            <p className="text-muted-foreground text-xs text-center">
+            <p className="text-muted-foreground/60 text-xs text-center">
               Latest clips and highlights from the b3as1 channel
             </p>
           </div>
@@ -449,20 +517,20 @@ function ClipsPage() {
   const { data: clips } = useClips();
   return (
     <div className="p-4 md:p-6 space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-primary/20 flex items-center justify-center neon-glow-sm">
-          <span className="text-primary text-lg">✂️</span>
+      <div className="flex items-center gap-4">
+        <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary/25 to-primary/8 border border-primary/30 flex items-center justify-center neon-glow-sm flex-shrink-0">
+          <span className="text-primary text-lg leading-none">✂️</span>
         </div>
         <div>
-          <h1 className="text-foreground font-bold text-2xl font-display">
+          <h1 className="font-display font-black text-2xl md:text-3xl section-heading tracking-tight">
             My Clips
           </h1>
-          <p className="text-muted-foreground text-sm">
+          <p className="text-muted-foreground text-sm mt-0.5">
             {clips?.length || 0} clips saved
           </p>
         </div>
       </div>
-      <div className="glass-card p-4">
+      <div className="glass-card p-5">
         <ClipList />
       </div>
     </div>

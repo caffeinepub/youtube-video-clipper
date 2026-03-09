@@ -187,25 +187,38 @@ export default function SideNavigation() {
 
   return (
     <>
-      <aside className="w-64 h-screen flex flex-col bg-white/3 backdrop-blur-xl border-r border-primary/10 sticky top-0">
+      <aside
+        className="w-64 h-screen flex flex-col sticky top-0"
+        style={{
+          background:
+            "linear-gradient(180deg, rgba(36,0,70,0.18) 0%, rgba(11,14,20,0.95) 40%)",
+          backdropFilter: "blur(20px)",
+          borderRight: "1px solid oklch(0.88 0.17 200 / 0.1)",
+        }}
+      >
         {/* Logo + controls */}
-        <div className="p-6 border-b border-primary/10">
+        <div className="px-5 py-4 border-b border-primary/10">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary/20 flex items-center justify-center neon-glow-sm">
-              <Zap className="w-5 h-5 text-primary" />
+            <div className="relative flex-shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-primary/30 to-primary/10 border border-primary/35 flex items-center justify-center neon-glow-sm">
+                <Zap
+                  className="w-5 h-5 text-primary"
+                  style={{
+                    filter: "drop-shadow(0 0 6px oklch(0.88 0.17 200 / 0.7))",
+                  }}
+                />
+              </div>
             </div>
-            <div className="flex-1">
-              <h1 className="font-display font-bold text-foreground text-lg leading-none">
-                Beast
+            <div className="flex-1 min-w-0">
+              <h1 className="font-display font-black text-foreground text-base leading-none tracking-tight">
+                BEAST
               </h1>
-              <p className="text-primary text-xs font-medium tracking-wider uppercase neon-text">
-                Clipping
+              <p className="text-primary text-[10px] font-bold tracking-[0.3em] uppercase neon-text leading-tight">
+                CLIPPING
               </p>
             </div>
             <div className="flex items-center gap-1">
-              {/* Notification Bell */}
               {isAuthenticated && <NotificationBell />}
-              {/* Dark/Light toggle */}
               <button
                 type="button"
                 onClick={() => setIsDark((d) => !d)}
@@ -225,19 +238,22 @@ export default function SideNavigation() {
 
         {/* User Profile */}
         {isAuthenticated && (
-          <div className="p-4 border-b border-primary/10">
-            <div className="cyber-card p-3 rounded-xl">
-              <div className="flex items-center gap-3 mb-2">
-                <Avatar className="w-10 h-10 ring-2 ring-primary/40">
+          <div className="px-4 py-3 border-b border-primary/8">
+            <div className="cyber-card p-3.5 rounded-xl">
+              <div className="flex items-center gap-3 mb-2.5">
+                <Avatar
+                  className="w-11 h-11 ring-2 ring-primary/35 flex-shrink-0"
+                  style={{ boxShadow: "0 0 12px oklch(0.88 0.17 200 / 0.2)" }}
+                >
                   {profilePicUrl && (
                     <AvatarImage src={profilePicUrl} alt={userName} />
                   )}
-                  <AvatarFallback className="bg-primary/20 text-primary text-sm font-semibold">
+                  <AvatarFallback className="bg-primary/20 text-primary text-sm font-bold">
                     {userInitials}
                   </AvatarFallback>
                 </Avatar>
                 <div className="flex-1 min-w-0">
-                  <p className="text-foreground font-semibold text-sm truncate">
+                  <p className="text-foreground font-semibold text-sm truncate leading-tight">
                     {userName}
                   </p>
                   {userRoleEnum && (
@@ -249,9 +265,9 @@ export default function SideNavigation() {
                   )}
                 </div>
               </div>
-              <p className="text-muted-foreground text-xs">
+              <p className="text-muted-foreground/70 text-xs leading-none">
                 {greeting},{" "}
-                <span className="text-primary font-medium">
+                <span className="text-primary font-semibold">
                   {userName.split(" ")[0]}
                 </span>{" "}
                 👋
@@ -261,7 +277,7 @@ export default function SideNavigation() {
         )}
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto scrollbar-thin">
+        <nav className="flex-1 px-3 py-3 space-y-0.5 overflow-y-auto scrollbar-thin">
           {filteredNavItems.map((item) => {
             const Icon = item.icon;
             const active = isActive(item.path);
@@ -272,37 +288,58 @@ export default function SideNavigation() {
                 onClick={() => navigate({ to: item.path })}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                   active
-                    ? "bg-primary/15 text-primary border border-primary/30 neon-glow-sm"
-                    : "text-muted-foreground hover:text-foreground hover:bg-white/5"
+                    ? "text-primary border border-primary/25"
+                    : "text-muted-foreground hover:text-foreground hover:bg-white/5 border border-transparent"
                 }`}
+                style={
+                  active
+                    ? {
+                        background:
+                          "linear-gradient(135deg, oklch(0.88 0.17 200 / 0.12) 0%, oklch(0.88 0.17 200 / 0.04) 100%)",
+                        boxShadow:
+                          "0 0 12px oklch(0.88 0.17 200 / 0.15), inset 0 1px 0 oklch(0.88 0.17 200 / 0.1)",
+                      }
+                    : undefined
+                }
                 data-ocid="nav.link"
               >
                 <Icon
-                  className={`w-4 h-4 flex-shrink-0 ${active ? "text-primary" : ""}`}
+                  className={`w-4 h-4 flex-shrink-0 transition-all ${active ? "text-primary" : ""}`}
+                  style={
+                    active
+                      ? {
+                          filter:
+                            "drop-shadow(0 0 4px oklch(0.88 0.17 200 / 0.6))",
+                        }
+                      : undefined
+                  }
                 />
-                {item.label}
-                {active && (
-                  <div className="ml-auto w-1.5 h-1.5 rounded-full bg-primary animate-pulse" />
-                )}
+                <span className="flex-1 text-left">{item.label}</span>
+                {active && <div className="nav-active-dot ml-auto" />}
               </button>
             );
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="p-4 border-t border-primary/10 space-y-2">
-          {/* Donate Button */}
+        {/* Footer — gradient fade separation */}
+        <div
+          className="px-4 pt-4 pb-4 space-y-1.5"
+          style={{
+            background:
+              "linear-gradient(to top, rgba(11,14,20,0.95) 0%, transparent 100%)",
+            borderTop: "1px solid oklch(0.88 0.17 200 / 0.08)",
+          }}
+        >
           {isAuthenticated && <DonateButton isOwner={isOwner} />}
 
-          {/* Report a Bug / Request a Feature */}
           {isAuthenticated && (
             <button
               type="button"
               onClick={() => setFeedbackOpen(true)}
-              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all duration-200"
+              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-primary hover:bg-primary/8 transition-all duration-200"
               data-ocid="nav.button"
             >
-              <Bug className="w-3.5 h-3.5" />
+              <Bug className="w-3.5 h-3.5 flex-shrink-0" />
               Report a Bug / Feature
             </button>
           )}
@@ -311,14 +348,14 @@ export default function SideNavigation() {
             <button
               type="button"
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+              className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg text-xs font-medium text-muted-foreground hover:text-red-400 hover:bg-red-500/8 transition-all duration-200"
               data-ocid="nav.button"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <LogOut className="w-3.5 h-3.5 flex-shrink-0" />
               Sign Out
             </button>
           )}
-          <p className="text-center text-xs text-muted-foreground/50 pt-1">
+          <p className="text-center text-xs text-muted-foreground/40 pt-1">
             © {new Date().getFullYear()}{" "}
             <a
               href={`https://caffeine.ai?utm_source=caffeine-footer&utm_medium=referral&utm_content=${encodeURIComponent(window.location.hostname)}`}
