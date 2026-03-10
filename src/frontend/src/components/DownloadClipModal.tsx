@@ -19,6 +19,46 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+/**
+ * Download a file directly to the user's device.
+ * If the URL is external/cross-origin (e.g. YouTube), falls back to window.open.
+ */
+async function downloadToDevice(url: string, filename: string): Promise<void> {
+  // YouTube URLs can't be fetched cross-origin — open in new tab instead
+  if (
+    url.includes("youtube.com") ||
+    url.includes("youtu.be") ||
+    url.includes("googlevideo.com")
+  ) {
+    toast.info("Opening for download...");
+    window.open(url, "_blank", "noopener,noreferrer");
+    return;
+  }
+
+  try {
+    const response = await fetch(url);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = objectUrl;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(objectUrl);
+  } catch {
+    // Fallback: direct anchor click (browser may still download)
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.rel = "noopener noreferrer";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  }
+}
+
 export default function DownloadClipModal({
   open,
   onClose,
@@ -34,6 +74,7 @@ export default function DownloadClipModal({
 
   const youtubeWatchUrl = `https://www.youtube.com/watch?v=${videoId}&t=${Math.floor(startTime)}`;
   const duration = endTime - startTime;
+  const filename = `${title || "clip"}-${videoId}-${Math.floor(startTime)}s.mp4`;
 
   const handleDownload = async () => {
     if (!actor) {
@@ -52,22 +93,19 @@ export default function DownloadClipModal({
         throw new Error("empty_url");
       }
 
-      // Trigger download via a temporary anchor element
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${title || "clip"}-${videoId}-${Math.floor(startTime)}s.mp4`;
-      a.rel = "noopener noreferrer";
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
+      await downloadToDevice(url, filename);
       toast.success("Download started!");
       onClose();
     } catch (err) {
-      const msg =
-        err instanceof Error && err.message === "empty_url"
-          ? "Download not available for this clip. Try watching on YouTube."
-          : "Download not available for this clip. Try watching on YouTube.";
-      toast.error(msg);
+      if (err instanceof Error && err.message === "empty_url") {
+        toast.error(
+          "Download not available for this clip. Try watching on YouTube.",
+        );
+      } else {
+        // Try direct YouTube download as fallback
+        toast.info("Trying YouTube download...");
+        await downloadToDevice(youtubeWatchUrl, filename);
+      }
     } finally {
       setIsDownloading(false);
     }
@@ -164,8 +202,8 @@ export default function DownloadClipModal({
         </div>
 
         <p className="text-muted-foreground text-[10px] text-center leading-relaxed">
-          Downloads are generated from the clip's source video. If download
-          fails, use "Watch on YouTube" to access the clip.
+          Downloads are saved directly to your device. If download fails, use
+          "Watch on YouTube" to access the clip.
         </p>
       </div>
     </div>

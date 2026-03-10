@@ -3,6 +3,7 @@ import {
   Bug,
   Calendar,
   FileText,
+  Gamepad2,
   Home,
   MessageSquare,
   Scissors,
@@ -62,6 +63,12 @@ const navItems = [
     path: "/collab",
     label: "Collab",
     icon: Users,
+    roles: USER_ROLES,
+  },
+  {
+    path: "/game",
+    label: "Games",
+    icon: Gamepad2,
     roles: USER_ROLES,
   },
   {

@@ -48,6 +48,7 @@ import { useGetCallerUserProfile } from "./hooks/useQueries";
 import { useSystemStatus } from "./hooks/useSystemStatus";
 import CollabFinderPage from "./pages/CollabFinderPage";
 import ContentManager from "./pages/ContentManager";
+import GamePage from "./pages/GamePage";
 import MessagesPage from "./pages/MessagesPage";
 import OAuthCallback from "./pages/OAuthCallback";
 import ProfilePage from "./pages/ProfilePage";
@@ -658,6 +659,11 @@ const collabRoute = createRoute({
   path: "/collab",
   component: CollabFinderPage,
 });
+const gameRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/game",
+  component: GamePage,
+});
 
 const routeTree = rootRoute.addChildren([
   homeRoute,
@@ -670,6 +676,7 @@ const routeTree = rootRoute.addChildren([
   messagesRoute,
   profileRoute,
   collabRoute,
+  gameRoute,
 ]);
 
 const router = createRouter({ routeTree });

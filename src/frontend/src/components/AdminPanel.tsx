@@ -14,10 +14,14 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Activity,
   AlertTriangle,
+  BadgeCheck,
   CheckCircle2,
   ChevronDown,
   ChevronUp,
+  Cpu,
+  DollarSign,
   ExternalLink,
+  Eye,
   Flag,
   Heart,
   Link2,
@@ -28,10 +32,12 @@ import {
   Settings,
   Shield,
   Trash2,
+  TrendingUp,
   Users,
+  XCircle,
 } from "lucide-react";
 import type React from "react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import type { AdminLink, CreatorReport } from "../backend";
 import { NotificationType, UserStatus } from "../backend";
@@ -634,6 +640,707 @@ function CreatorReports() {
   );
 }
 
+// ─── Content Moderation ──────────────────────────────────────────────────────
+
+function ContentModerationSection() {
+  const [shadowBanPrincipal, setShadowBanPrincipal] = useState("");
+  const mockFlags = [
+    {
+      id: "clip_001",
+      type: "Copyright",
+      reporter: "user_a8f2",
+      status: "Pending",
+    },
+    { id: "clip_002", type: "NSFW", reporter: "user_b3c9", status: "Pending" },
+    {
+      id: "clip_003",
+      type: "Violence",
+      reporter: "auto_ai",
+      status: "Under Review",
+    },
+    {
+      id: "clip_004",
+      type: "Copyright",
+      reporter: "user_d7e1",
+      status: "Resolved",
+    },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Flagged queue */}
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-white/8">
+              <TableHead className="text-xs text-muted-foreground">
+                Video ID
+              </TableHead>
+              <TableHead className="text-xs text-muted-foreground">
+                Type
+              </TableHead>
+              <TableHead className="text-xs text-muted-foreground hidden sm:table-cell">
+                Reporter
+              </TableHead>
+              <TableHead className="text-xs text-muted-foreground">
+                Status
+              </TableHead>
+              <TableHead className="text-xs text-muted-foreground">
+                Actions
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {mockFlags.map((f, i) => (
+              <TableRow
+                key={f.id}
+                className="border-white/5"
+                data-ocid={`admin.moderation.row.${i + 1}`}
+              >
+                <TableCell className="py-2 font-mono text-xs text-primary">
+                  {f.id}
+                </TableCell>
+                <TableCell className="py-2">
+                  <span
+                    className={`text-xs px-2 py-0.5 rounded-full border ${f.type === "Copyright" ? "bg-yellow-500/10 text-yellow-400 border-yellow-500/20" : f.type === "NSFW" ? "bg-red-500/10 text-red-400 border-red-500/20" : "bg-orange-500/10 text-orange-400 border-orange-500/20"}`}
+                  >
+                    {f.type}
+                  </span>
+                </TableCell>
+                <TableCell className="py-2 hidden sm:table-cell text-xs text-muted-foreground">
+                  {f.reporter}
+                </TableCell>
+                <TableCell className="py-2">
+                  <span
+                    className={`text-xs ${f.status === "Resolved" ? "text-emerald-400" : f.status === "Under Review" ? "text-blue-400" : "text-yellow-400"}`}
+                  >
+                    {f.status}
+                  </span>
+                </TableCell>
+                <TableCell className="py-2">
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 text-[10px] px-1.5 text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-500/10"
+                      data-ocid={`admin.moderation.confirm_button.${i + 1}`}
+                    >
+                      Review
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 text-[10px] px-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10"
+                      data-ocid={`admin.moderation.delete_button.${i + 1}`}
+                    >
+                      Remove
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      className="h-6 text-[10px] px-1.5 text-muted-foreground hover:text-white hover:bg-white/5"
+                      data-ocid={`admin.moderation.secondary_button.${i + 1}`}
+                    >
+                      Dismiss
+                    </Button>
+                  </div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Batch actions */}
+      <div className="flex items-center gap-3 glass-card p-3">
+        <span className="text-xs text-muted-foreground">Batch Actions:</span>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 text-xs text-red-400/70 hover:text-red-400 hover:bg-red-500/10"
+          data-ocid="admin.moderation.delete_button"
+        >
+          Delete All From User
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="h-7 text-xs text-muted-foreground hover:text-white hover:bg-white/5"
+          data-ocid="admin.moderation.button"
+        >
+          Clear All Flags
+        </Button>
+      </div>
+
+      {/* Shadow ban */}
+      <div className="glass-card p-3 space-y-2">
+        <p className="text-xs text-muted-foreground font-medium">
+          Shadow-Ban / Restrict User
+        </p>
+        <div className="flex gap-2">
+          <Input
+            placeholder="Principal ID"
+            value={shadowBanPrincipal}
+            onChange={(e) => setShadowBanPrincipal(e.target.value)}
+            className="bg-white/5 border-white/10 text-white h-8 text-xs flex-1"
+            data-ocid="admin.moderation.input"
+          />
+          <Button
+            size="sm"
+            onClick={() => {
+              toast.success(`Shadow-banned: ${shadowBanPrincipal}`);
+              setShadowBanPrincipal("");
+            }}
+            disabled={!shadowBanPrincipal.trim()}
+            className="h-8 text-xs bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20"
+            data-ocid="admin.moderation.submit_button"
+          >
+            Shadow-Ban
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Infrastructure Monitor ───────────────────────────────────────────────────
+
+function InfrastructureSection() {
+  return (
+    <div className="space-y-4">
+      {/* Worker nodes */}
+      <div>
+        <p className="text-xs text-muted-foreground mb-2 font-medium">
+          Worker Nodes
+        </p>
+        <div className="grid grid-cols-3 gap-2">
+          {[
+            { name: "Node 1", status: "Online", color: "emerald" },
+            { name: "Node 2", status: "Online", color: "emerald" },
+            { name: "Node 3", status: "Idle", color: "yellow" },
+          ].map((node, i) => (
+            <div
+              key={node.name}
+              className="glass-card p-3 text-center"
+              data-ocid={`admin.infra.card.${i + 1}`}
+            >
+              <div
+                className={`w-2 h-2 rounded-full mx-auto mb-1 ${node.color === "emerald" ? "bg-emerald-400 shadow-[0_0_6px_rgba(52,211,153,0.6)]" : "bg-yellow-400 shadow-[0_0_6px_rgba(251,191,36,0.6)]"}`}
+              />
+              <p className="text-white text-xs font-medium">{node.name}</p>
+              <p
+                className={`text-[10px] ${node.color === "emerald" ? "text-emerald-400" : "text-yellow-400"}`}
+              >
+                {node.status}
+              </p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Queue depth */}
+      <div className="glass-card p-3 space-y-1">
+        <p className="text-xs text-muted-foreground font-medium">Queue Depth</p>
+        <p className="text-white text-sm">
+          12 videos pending{" "}
+          <span className="text-muted-foreground text-xs">
+            · avg wait 2m 14s
+          </span>
+        </p>
+      </div>
+
+      {/* Storage */}
+      <div className="glass-card p-3 space-y-2">
+        <p className="text-xs text-muted-foreground font-medium">
+          Storage Usage
+        </p>
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-xs">
+            <span className="text-white">Used</span>
+            <span className="text-muted-foreground">2.4 TB / 10 TB</span>
+          </div>
+          <div className="h-2 bg-white/5 rounded-full overflow-hidden">
+            <div
+              className="h-full bg-primary/70 rounded-full"
+              style={{ width: "24%" }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Error logs */}
+      <div className="glass-card p-3 space-y-2">
+        <p className="text-xs text-muted-foreground font-medium">
+          Recent Error Logs
+        </p>
+        <div className="space-y-1.5">
+          {[
+            {
+              time: "14:22:01",
+              type: "Encoding Error",
+              detail: "video_id=xK92B: FFmpeg timeout",
+            },
+            {
+              time: "13:57:44",
+              type: "Source 404",
+              detail: "video_id=pL31F: URL not found",
+            },
+            {
+              time: "12:44:09",
+              type: "Encoding Error",
+              detail: "video_id=qR88C: Unsupported codec",
+            },
+          ].map((log, i) => (
+            <div
+              key={log.time}
+              className="flex items-start gap-2 text-xs py-1 border-b border-white/5 last:border-0"
+              data-ocid={`admin.infra.row.${i + 1}`}
+            >
+              <span className="text-muted-foreground font-mono flex-shrink-0">
+                {log.time}
+              </span>
+              <span className="text-red-400 flex-shrink-0">{log.type}</span>
+              <span className="text-muted-foreground/70 truncate">
+                {log.detail}
+              </span>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Growth Analytics ─────────────────────────────────────────────────────────
+
+function GrowthAnalyticsSection() {
+  const [activeSessions, setActiveSessions] = useState(
+    () => Math.floor(Math.random() * 75) + 45,
+  );
+
+  useEffect(() => {
+    const t = setInterval(() => {
+      setActiveSessions((n) =>
+        Math.max(30, n + Math.floor(Math.random() * 5) - 2),
+      );
+    }, 10000);
+    return () => clearInterval(t);
+  }, []);
+
+  const trending = [
+    { name: "Fortnite — xQc", clips: 412 },
+    { name: "Minecraft — Dream", clips: 389 },
+    { name: "Valorant — TenZ", clips: 274 },
+    { name: "Warzone — TimTheTatman", clips: 201 },
+    { name: "Apex — Hal", clips: 183 },
+  ];
+
+  const exports = [
+    { platform: "YouTube Shorts", count: 234, color: "red" },
+    { platform: "TikTok", count: 89, color: "pink" },
+    { platform: "Downloads", count: 412, color: "primary" },
+  ];
+
+  const funnel = [
+    { label: "Sign-up", pct: 100 },
+    { label: "First Clip", pct: 64 },
+    { label: "Shared Clip", pct: 31 },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Active sessions */}
+      <div className="glass-card p-4 flex items-center gap-4">
+        <div>
+          <p className="text-muted-foreground text-xs">Active Sessions</p>
+          <p className="text-primary text-3xl font-bold font-mono">
+            {activeSessions}
+          </p>
+        </div>
+        <div className="ml-auto">
+          <span className="text-xs text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+            Live
+          </span>
+        </div>
+      </div>
+
+      {/* Trending content */}
+      <div className="glass-card p-3 space-y-2">
+        <p className="text-xs font-medium text-muted-foreground">
+          Trending Content
+        </p>
+        {trending.map((t, i) => (
+          <div
+            key={t.name}
+            className="flex items-center justify-between text-xs"
+            data-ocid={`admin.analytics.row.${i + 1}`}
+          >
+            <span className="text-white">{t.name}</span>
+            <span className="text-primary font-mono">{t.clips} clips</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Export stats */}
+      <div className="glass-card p-3 space-y-2">
+        <p className="text-xs font-medium text-muted-foreground">
+          Export Stats
+        </p>
+        {exports.map((e) => (
+          <div
+            key={e.platform}
+            className="flex items-center justify-between text-xs"
+          >
+            <span className="text-white">{e.platform}</span>
+            <span
+              className={`font-mono ${e.color === "red" ? "text-red-400" : e.color === "pink" ? "text-pink-400" : "text-primary"}`}
+            >
+              {e.count}
+            </span>
+          </div>
+        ))}
+      </div>
+
+      {/* Retention funnel */}
+      <div className="glass-card p-3 space-y-2">
+        <p className="text-xs font-medium text-muted-foreground">
+          Retention Funnel
+        </p>
+        {funnel.map((f) => (
+          <div key={f.label} className="space-y-0.5">
+            <div className="flex justify-between text-xs">
+              <span className="text-white">{f.label}</span>
+              <span className="text-primary">{f.pct}%</span>
+            </div>
+            <div className="h-1.5 bg-white/5 rounded-full overflow-hidden">
+              <div
+                className="h-full bg-primary/60 rounded-full"
+                style={{ width: `${f.pct}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Monetization ─────────────────────────────────────────────────────────────
+
+function MonetizationSection() {
+  const tiers = [
+    { name: "Free", users: 1840, revenue: "$0" },
+    { name: "Pro", users: 312, revenue: "$4,680" },
+    { name: "Premium", users: 94, revenue: "$3,760" },
+  ];
+
+  const payouts = [
+    { creator: "xClipMaster", amount: "$48.50", status: "Pending" },
+    { creator: "GamingKing99", amount: "$22.10", status: "Pending" },
+    { creator: "ViralShotz", amount: "$91.75", status: "Approved" },
+  ];
+
+  return (
+    <div className="space-y-4">
+      {/* Subscription tiers */}
+      <div className="overflow-x-auto">
+        <Table>
+          <TableHeader>
+            <TableRow className="border-white/8">
+              <TableHead className="text-xs text-muted-foreground">
+                Tier
+              </TableHead>
+              <TableHead className="text-xs text-muted-foreground">
+                Users
+              </TableHead>
+              <TableHead className="text-xs text-muted-foreground">
+                Revenue
+              </TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {tiers.map((t, i) => (
+              <TableRow
+                key={t.name}
+                className="border-white/5"
+                data-ocid={`admin.billing.row.${i + 1}`}
+              >
+                <TableCell className="py-2 text-xs text-white">
+                  {t.name}
+                </TableCell>
+                <TableCell className="py-2 text-xs text-muted-foreground">
+                  {t.users}
+                </TableCell>
+                <TableCell className="py-2 text-xs text-emerald-400">
+                  {t.revenue}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+
+      {/* Ad inventory */}
+      <div className="glass-card p-3 space-y-2">
+        <p className="text-xs font-medium text-muted-foreground">
+          Ad Inventory
+        </p>
+        <div className="flex gap-6 text-xs">
+          <div>
+            <span className="text-muted-foreground">Fill Rate </span>
+            <span className="text-white font-mono">78%</span>
+          </div>
+          <div>
+            <span className="text-muted-foreground">CPM </span>
+            <span className="text-white font-mono">$2.40</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Payout portal */}
+      <div className="glass-card p-3 space-y-2">
+        <p className="text-xs font-medium text-muted-foreground">
+          Payout Requests
+        </p>
+        <div className="space-y-2">
+          {payouts.map((p, i) => (
+            <div
+              key={p.creator}
+              className="flex items-center justify-between"
+              data-ocid={`admin.billing.item.${i + 1}`}
+            >
+              <div>
+                <p className="text-white text-xs">{p.creator}</p>
+                <p className="text-emerald-400 text-xs font-mono">{p.amount}</p>
+              </div>
+              <div className="flex gap-1">
+                {p.status === "Pending" ? (
+                  <>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        toast.success(`Approved payout for ${p.creator}`)
+                      }
+                      className="h-6 text-[10px] px-1.5 text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-500/10"
+                      data-ocid={`admin.billing.confirm_button.${i + 1}`}
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() =>
+                        toast.info(`Rejected payout for ${p.creator}`)
+                      }
+                      className="h-6 text-[10px] px-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10"
+                      data-ocid={`admin.billing.delete_button.${i + 1}`}
+                    >
+                      Reject
+                    </Button>
+                  </>
+                ) : (
+                  <span className="text-xs text-emerald-400">Approved</span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── God Mode ─────────────────────────────────────────────────────────────────
+
+function GodModeSection() {
+  const [principalId, setPrincipalId] = useState("");
+  const [viewingAs, setViewingAs] = useState<string | null>(null);
+
+  const handleViewAs = () => {
+    if (!principalId.trim()) {
+      toast.error("Enter a principal ID");
+      return;
+    }
+    setViewingAs(principalId.trim());
+    toast.info(`God Mode: Viewing as ${principalId.trim()}`);
+  };
+
+  return (
+    <div className="space-y-3">
+      {viewingAs && (
+        <div
+          className="flex items-center justify-between bg-yellow-500/10 border border-yellow-500/30 rounded-lg px-3 py-2"
+          data-ocid="admin.godmode.panel"
+        >
+          <span className="text-yellow-400 text-xs">
+            God Mode: Viewing as{" "}
+            <code className="font-mono text-yellow-300">
+              {viewingAs.slice(0, 16)}...
+            </code>
+          </span>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setViewingAs(null);
+              setPrincipalId("");
+            }}
+            className="h-6 text-xs text-yellow-400 hover:text-yellow-300 hover:bg-yellow-500/10"
+            data-ocid="admin.godmode.close_button"
+          >
+            Exit
+          </Button>
+        </div>
+      )}
+      <p className="text-xs text-muted-foreground">
+        Enter a user's principal ID to simulate their view of the dashboard.
+        UI-only preview.
+      </p>
+      <div className="flex gap-2">
+        <Input
+          placeholder="Principal ID (e.g. 2vxsx-fae...)"
+          value={principalId}
+          onChange={(e) => setPrincipalId(e.target.value)}
+          className="bg-white/5 border-white/10 text-white h-8 text-xs flex-1"
+          data-ocid="admin.godmode.input"
+        />
+        <Button
+          size="sm"
+          onClick={handleViewAs}
+          disabled={!principalId.trim()}
+          className="h-8 text-xs bg-purple-500/20 hover:bg-purple-500/30 text-purple-300 border border-purple-500/30"
+          data-ocid="admin.godmode.primary_button"
+        >
+          <Eye className="w-3 h-3 mr-1.5" />
+          View as User
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+// ─── Verification ─────────────────────────────────────────────────────────────
+
+function VerificationSection() {
+  const [verifications, setVerifications] = useState([
+    {
+      name: "xClipMaster",
+      subs: "125K",
+      platform: "YouTube",
+      status: "Pending" as const,
+    },
+    {
+      name: "GamingKing99",
+      subs: "87K",
+      platform: "Twitch",
+      status: "Pending" as const,
+    },
+    {
+      name: "ViralShotz",
+      subs: "342K",
+      platform: "YouTube",
+      status: "Verified" as const,
+    },
+    {
+      name: "NoScopePro",
+      subs: "22K",
+      platform: "Kick",
+      status: "Rejected" as const,
+    },
+  ]);
+
+  const update = (name: string, status: "Verified" | "Rejected") => {
+    setVerifications((prev) =>
+      prev.map((v) => (v.name === name ? { ...v, status } : v)),
+    );
+    toast.success(
+      `${name} ${status === "Verified" ? "verified" : "rejected"}.`,
+    );
+  };
+
+  return (
+    <div className="overflow-x-auto">
+      <Table>
+        <TableHeader>
+          <TableRow className="border-white/8">
+            <TableHead className="text-xs text-muted-foreground">
+              Creator
+            </TableHead>
+            <TableHead className="text-xs text-muted-foreground hidden sm:table-cell">
+              Subs
+            </TableHead>
+            <TableHead className="text-xs text-muted-foreground hidden md:table-cell">
+              Platform
+            </TableHead>
+            <TableHead className="text-xs text-muted-foreground">
+              Status
+            </TableHead>
+            <TableHead className="text-xs text-muted-foreground">
+              Actions
+            </TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {verifications.map((v, i) => (
+            <TableRow
+              key={v.name}
+              className="border-white/5"
+              data-ocid={`admin.verify.row.${i + 1}`}
+            >
+              <TableCell className="py-2 text-xs text-white">
+                {v.name}
+              </TableCell>
+              <TableCell className="py-2 text-xs text-muted-foreground hidden sm:table-cell">
+                {v.subs}
+              </TableCell>
+              <TableCell className="py-2 text-xs text-muted-foreground hidden md:table-cell">
+                {v.platform}
+              </TableCell>
+              <TableCell className="py-2">
+                <span
+                  className={`text-xs flex items-center gap-1 ${v.status === "Verified" ? "text-emerald-400" : v.status === "Rejected" ? "text-red-400" : "text-yellow-400"}`}
+                >
+                  {v.status === "Verified" ? (
+                    <BadgeCheck className="w-3 h-3" />
+                  ) : v.status === "Rejected" ? (
+                    <XCircle className="w-3 h-3" />
+                  ) : null}
+                  {v.status}
+                </span>
+              </TableCell>
+              <TableCell className="py-2">
+                {v.status === "Pending" && (
+                  <div className="flex gap-1">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => update(v.name, "Verified")}
+                      className="h-6 text-[10px] px-1.5 text-emerald-400/70 hover:text-emerald-400 hover:bg-emerald-500/10"
+                      data-ocid={`admin.verify.confirm_button.${i + 1}`}
+                    >
+                      Verify
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => update(v.name, "Rejected")}
+                      className="h-6 text-[10px] px-1.5 text-red-400/70 hover:text-red-400 hover:bg-red-500/10"
+                      data-ocid={`admin.verify.delete_button.${i + 1}`}
+                    >
+                      Reject
+                    </Button>
+                  </div>
+                )}
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
 export default function AdminPanel() {
   const { isOwner } = useIsOwner();
   const { data: ownRole, isLoading: roleLoading } = useGetOwnRole();
@@ -788,6 +1495,56 @@ export default function AdminPanel() {
           icon={<MessageSquare className="w-4 h-4 text-pink-400" />}
         >
           <FeedbackSubmissions />
+        </CollapsibleSection>
+
+        {/* Content Moderation */}
+        <CollapsibleSection
+          title="Content Moderation & Compliance"
+          icon={<Shield className="w-4 h-4 text-red-400" />}
+          badge="Moderation"
+        >
+          <ContentModerationSection />
+        </CollapsibleSection>
+
+        {/* Infrastructure */}
+        <CollapsibleSection
+          title="Infrastructure Monitor"
+          icon={<Cpu className="w-4 h-4 text-emerald-400" />}
+          badge="Live"
+        >
+          <InfrastructureSection />
+        </CollapsibleSection>
+
+        {/* Growth Analytics */}
+        <CollapsibleSection
+          title="Growth Analytics"
+          icon={<TrendingUp className="w-4 h-4 text-blue-400" />}
+        >
+          <GrowthAnalyticsSection />
+        </CollapsibleSection>
+
+        {/* Monetization */}
+        <CollapsibleSection
+          title="Monetization & Billing"
+          icon={<DollarSign className="w-4 h-4 text-yellow-400" />}
+        >
+          <MonetizationSection />
+        </CollapsibleSection>
+
+        {/* God Mode */}
+        <CollapsibleSection
+          title="God Mode — View as User"
+          icon={<Eye className="w-4 h-4 text-purple-400" />}
+        >
+          <GodModeSection />
+        </CollapsibleSection>
+
+        {/* Verification */}
+        <CollapsibleSection
+          title="Creator Verification"
+          icon={<BadgeCheck className="w-4 h-4 text-cyan-400" />}
+        >
+          <VerificationSection />
         </CollapsibleSection>
       </div>
     </AdminErrorBoundary>
