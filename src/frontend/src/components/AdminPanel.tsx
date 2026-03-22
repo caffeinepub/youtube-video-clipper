@@ -46,8 +46,10 @@ import { useGetOwnRole } from "../hooks/useGetOwnRole";
 import { useInternetIdentity } from "../hooks/useInternetIdentity";
 import { useIsOwner } from "../hooks/useIsOwner";
 import ActivityLogTable from "./ActivityLogTable";
+import AdminAdvancedTabs from "./AdminAdvancedTabs";
 import AdminErrorBoundary from "./AdminErrorBoundary";
 import AdminManagement from "./AdminManagement";
+import AdminMegaTabs from "./AdminMegaTabs";
 import { AdminMessaging } from "./AdminMessaging";
 import AppAnalytics from "./AppAnalytics";
 import { getPayPalUrl, setPayPalUrl } from "./DonateButton";
@@ -1546,6 +1548,10 @@ export default function AdminPanel() {
         >
           <VerificationSection />
         </CollapsibleSection>
+
+        {/* Advanced Admin Controls */}
+        <AdminAdvancedTabs />
+        <AdminMegaTabs />
       </div>
     </AdminErrorBoundary>
   );

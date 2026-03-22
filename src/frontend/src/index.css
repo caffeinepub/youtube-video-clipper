@@ -135,7 +135,6 @@
   }
 
   html.light {
-    @apply light;
     color-scheme: light;
   }
 
@@ -164,7 +163,7 @@
   }
 
   .light .glass-card {
-    @apply bg-white/80 backdrop-blur-md border border-black/8 rounded-xl;
+    @apply bg-white/80 backdrop-blur-md border border-black/10 rounded-xl;
     box-shadow: 0 4px 24px rgba(0, 0, 0, 0.08), inset 0 1px 0
       rgba(255, 255, 255, 0.9);
   }

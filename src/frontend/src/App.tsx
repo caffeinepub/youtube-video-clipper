@@ -28,6 +28,7 @@ import ClipList from "./components/ClipList";
 import ClipQueue from "./components/ClipQueue";
 import ClipSuggestions from "./components/ClipSuggestions";
 import ClipTimestampControls from "./components/ClipTimestampControls";
+import EditorToolsPanel from "./components/EditorToolsPanel";
 import FeedbackModal from "./components/FeedbackModal";
 import MemeOverlayLibrary from "./components/MemeOverlayLibrary";
 import PausedScreen from "./components/PausedScreen";
@@ -46,14 +47,24 @@ import { useGetOwnRole } from "./hooks/useGetOwnRole";
 import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import { useGetCallerUserProfile } from "./hooks/useQueries";
 import { useSystemStatus } from "./hooks/useSystemStatus";
+import AffiliatePage from "./pages/AffiliatePage";
 import CollabFinderPage from "./pages/CollabFinderPage";
+import CommunityHubPage from "./pages/CommunityHubPage";
 import ContentManager from "./pages/ContentManager";
+import CreativeEffectsPage from "./pages/CreativeEffectsPage";
+import DiscoverPage from "./pages/DiscoverPage";
 import GamePage from "./pages/GamePage";
+import GrowthHubPage from "./pages/GrowthHubPage";
+import LeaderboardPage from "./pages/LeaderboardPage";
 import MessagesPage from "./pages/MessagesPage";
 import OAuthCallback from "./pages/OAuthCallback";
+import ProFeaturesPage from "./pages/ProFeaturesPage";
 import ProfilePage from "./pages/ProfilePage";
+import RetentionPage from "./pages/RetentionPage";
 import Scheduler from "./pages/Scheduler";
 import TrendingPage from "./pages/TrendingPage";
+import WorkflowPage from "./pages/WorkflowPage";
+import YouTubeStudioPage from "./pages/YouTubeStudioPage";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -434,6 +445,13 @@ function HomePage() {
             <ClipList onClipSelect={setSelectedClip} />
           </div>
 
+          {/* Editor Tools */}
+          {videoId && (
+            <div className="mt-2">
+              <EditorToolsPanel />
+            </div>
+          )}
+
           {/* Social Feed — wrapped in extra spacing */}
           <div className="mt-2">
             <SocialFeed />
@@ -664,6 +682,58 @@ const gameRoute = createRoute({
   path: "/game",
   component: GamePage,
 });
+const discoverRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/discover",
+  component: DiscoverPage,
+});
+const leaderboardRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/leaderboard",
+  component: LeaderboardPage,
+});
+const affiliateRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/affiliate",
+  component: AffiliatePage,
+});
+
+const creativeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/creative",
+  component: CreativeEffectsPage,
+});
+const growthRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/growth",
+  component: GrowthHubPage,
+});
+const proRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/pro",
+  component: ProFeaturesPage,
+});
+const communityRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/community",
+  component: CommunityHubPage,
+});
+const magicRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/magic",
+  component: RetentionPage,
+});
+const workflowRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/workflow",
+  component: WorkflowPage,
+});
+
+const youtubeRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/youtube",
+  component: YouTubeStudioPage,
+});
 
 const routeTree = rootRoute.addChildren([
   homeRoute,
@@ -677,6 +747,16 @@ const routeTree = rootRoute.addChildren([
   profileRoute,
   collabRoute,
   gameRoute,
+  discoverRoute,
+  leaderboardRoute,
+  affiliateRoute,
+  creativeRoute,
+  growthRoute,
+  proRoute,
+  communityRoute,
+  magicRoute,
+  workflowRoute,
+  youtubeRoute,
 ]);
 
 const router = createRouter({ routeTree });
