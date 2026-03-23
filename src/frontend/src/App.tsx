@@ -48,6 +48,7 @@ import { useInternetIdentity } from "./hooks/useInternetIdentity";
 import { useGetCallerUserProfile } from "./hooks/useQueries";
 import { useSystemStatus } from "./hooks/useSystemStatus";
 import AffiliatePage from "./pages/AffiliatePage";
+import BrowserPage from "./pages/BrowserPage";
 import CollabFinderPage from "./pages/CollabFinderPage";
 import CommunityHubPage from "./pages/CommunityHubPage";
 import ContentManager from "./pages/ContentManager";
@@ -697,7 +698,6 @@ const affiliateRoute = createRoute({
   path: "/affiliate",
   component: AffiliatePage,
 });
-
 const creativeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/creative",
@@ -728,11 +728,15 @@ const workflowRoute = createRoute({
   path: "/workflow",
   component: WorkflowPage,
 });
-
 const youtubeRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/youtube",
   component: YouTubeStudioPage,
+});
+const browserRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/browser",
+  component: BrowserPage,
 });
 
 const routeTree = rootRoute.addChildren([
@@ -757,6 +761,7 @@ const routeTree = rootRoute.addChildren([
   magicRoute,
   workflowRoute,
   youtubeRoute,
+  browserRoute,
 ]);
 
 const router = createRouter({ routeTree });

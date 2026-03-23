@@ -10,6 +10,7 @@ import {
   Gamepad2,
   Gift,
   GitBranch,
+  Globe,
   Home,
   LogOut,
   MessageSquare,
@@ -199,6 +200,12 @@ const navItems = [
     path: "/workflow",
     label: "Workflow Tools",
     icon: GitBranch,
+    roles: USER_ROLES,
+  },
+  {
+    path: "/browser",
+    label: "Browser",
+    icon: Globe,
     roles: USER_ROLES,
   },
 ];
