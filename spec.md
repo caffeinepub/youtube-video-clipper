@@ -1,31 +1,34 @@
-# Beast Clipping - Admin Panel Mega Expansion
+# Beast Clipping
 
 ## Current State
-Beast Clipping has an existing admin panel with user management, clip moderation, analytics, infrastructure monitoring, content moderation, god mode, audit logs, and YouTube-specific admin tools across multiple tabs.
+Full-stack creator platform with 20+ pages including clips, admin panel, games (Snake/Pong/Tetris/2048/Memory), YouTube Studio, community hub, leaderboard, and more. Backend has 55 functions covering auth, clips, YouTube, messaging, notifications, collab, scheduling, and content management.
 
 ## Requested Changes (Diff)
 
 ### Add
-- **System & Infrastructure tab**: GPU Cluster Heatmap, Worker Node toggles, Queue Depth Monitor, Auto-Scale Trigger, Avg Render Time, Storage Buckets Auditor, Cache Purge, API Health Dashboard, DB Query Latency, Error Log Aggregator
-- **User & Subscription tab**: Churn Risk Alerts, MRR/Subscriber Growth Chart, Credit Adjuster, Trial Extender, User Vibe Tagging, Top 10 Power Users, Referral Tracker, Banned User Ledger, Custom Plan Creator
-- **AI & Quality Control tab**: Transcription Accuracy Rater, Face-Detection Log, Sentiment Dashboard, Language Distribution pie chart, AI Model Selector, Manual Caption Correction, Video Content Filter, Hook Success Rate, Audio Peak Monitor, Transcription Cost Calculator
-- **Video & Media Management tab**: Bulk Video Deleter, Video Format Breakdown, Export Resolution Stats, Thumbnail Gallery (latest 100), Source Link Tracker, Watermark Previewer, Font Manager, Stock Footage Library, Transition Previewer, Template Performance
-- **Marketing & Sales tab**: Promo Code Generator, Announcement Banner, Conversion Funnel View, A/B Test Manager, Customer Feedback Board, Affiliate Payout Tracker, Churn Survey Results, LTV Calculator, Ad Spend ROI
-- **Support & Troubleshooting tab**: Ticket History, Bug Report Screenshots, System Latency Alerts, Video Playback Debugger, Refund Shortcut, Knowledge Base Editor, User Session Replay, App Update Logs, Maintenance Mode Toggle
-- **Security & Compliance tab**: Admin Roles & Permissions, Login Audit Log, 2FA Status Tracker, Suspicious Activity Flag, GDPR Deletion Queue, API Key Manager, IP Geolocation Map, Failed Login Tracker, Privacy Policy Versioning, Encryption Status
-- **Creative & UI Customization tab**: Theme Switcher, Emoji Library Manager, CSS Injector, Icon Set Manager, Onboarding Slide Editor, Survey Popup Creator, Brand Color Palette, Loading Animation Picker, Font Pairing Suggestions, Mobile Previewer
-- **Advanced Admin Magic tab**: Big Red Button, Pre-Render Benchmarking, AI Prompt Playground, DB Index Monitor, Sponsor Segment Database, Webhook Tester, SEO Keyword Tracker, Automatic Invoicing, Slack/Discord Bot Config, App Version Rollback
-- **Finishing Touches tab**: Admin Notes (sticky notes), Personal To-Do List, Server Cost Projection, User Engagement Score, API Quota Alarm, Global Search, Feature Usage Heatmap, Direct DB SQL Console, Export Speed Booster, Party Mode (confetti on revenue milestone)
+- **Unified Game Leaderboard backend**: submitGameScore(gameId, score), getGameLeaderboard(gameId), getAllGameLeaderboard(), flagLeaderboardEntry(entryId), editLeaderboardScore(entryId, newScore), wipeGameLeaderboard(gameId)
+- **RPG Progression backend**: addXP(amount), getUserProgression(user), claimDailyLogin(), claimDailyQuest(questId), getPlayerStats()
+- **Clip Coins economy backend**: getClipCoins(), spendClipCoins(amount, reason), earnClipCoins(amount, reason)
+- **Game Hub page** (`/games`): Dedicated page with 6 playable mini-games (Neon Drift, Timber Chop, Math Dash, Space Junk, Word Flash, Gravity Flip) using Canvas API, each submitting scores to unified leaderboard
+- **Progression page** (`/progression`): XP bar, level display, class selector (The Editor / The Scout / The Viralist), skill tree, daily quests, 7-day streak tracker, achievement hunter (20+ achievements), prestige mode, milestone chests
+- **Collectibles page** (`/collectibles`): Avatar shop (Clip Coins currency), UI skin switcher (Cyberpunk/Retro/Neon), sound packs, The Vault (Hall of Fame clips), sticker collection, legacy badges
+- **Seasons page** (`/seasons`): Season Pass (Free/Premium tracks), themed season display, season leaderboard, exclusive emotes, limited quests, community patch notes voting
+- **Economy widgets**: Daily login bonus popup, Clip Coins balance in header, discount wheel
+- **Admin Leaderboard God Mode**: New tab in Admin Panel - search by game dropdown, score table with inline edit, Clear Leaderboard button, flag user toggle (sets is_flagged=true for all entries)
+- **Easter egg**: Type "Beast" anywhere to unlock secret Beast Mode
 
 ### Modify
-- Admin panel navigation to include all new tab sections with icons
+- Admin panel: Add "Game Leaderboards" tab with God Mode controls
+- Sidebar nav: Add Games, Progression, Collectibles, Seasons links
+- Header/nav: Show Clip Coins balance and XP level badge
 
 ### Remove
 - Nothing removed
 
 ## Implementation Plan
-1. Add 10 new admin panel tab sections, each with sub-panels for their features
-2. All features are UI/simulated — realistic mock data and interactive controls
-3. Party Mode triggers confetti animation on button click
-4. Global Search searches across users, clips, transactions
-5. Maintain existing admin role gating
+1. Extend Motoko backend with leaderboard, XP/progression, and clip coins functions
+2. Add new frontend pages: GameHub, Progression, Collectibles, Seasons
+3. Add 6 playable Canvas games in GameHub with score submission
+4. Add daily login bonus modal and coins display
+5. Add Admin Leaderboard God Mode tab
+6. Wire Easter egg "Beast" mode

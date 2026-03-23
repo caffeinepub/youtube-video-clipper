@@ -72,6 +72,14 @@ export interface CreatorReport {
   'reason' : string,
 }
 export type ExternalBlob = Uint8Array;
+export interface FastestGameLeaderboardEntry {
+  'username' : string,
+  'userId' : Principal,
+  'fastestTime' : bigint,
+  'entryId' : string,
+  'timestamp' : Time,
+  'isFlagged' : boolean,
+}
 export interface FeedbackSubmission {
   'id' : bigint,
   'title' : string,
@@ -220,6 +228,7 @@ export interface _SERVICE {
   >,
   'addScheduledUpload' : ActorMethod<[string, Time], string>,
   'assignCallerUserRole' : ActorMethod<[Principal, UserRole__1], undefined>,
+  'clearGameLeaderboard' : ActorMethod<[Principal], undefined>,
   'connectYouTubeChannel' : ActorMethod<
     [string, string, string, string, Time],
     undefined
@@ -232,6 +241,7 @@ export interface _SERVICE {
   'deleteContentEntry' : ActorMethod<[string], undefined>,
   'deleteFeedbackSubmission' : ActorMethod<[bigint], undefined>,
   'deleteScheduledUpload' : ActorMethod<[string], undefined>,
+  'editLeaderboardScore' : ActorMethod<[string, bigint], undefined>,
   'findRelatedClips' : ActorMethod<[string], Array<string>>,
   'generateClipsAutomatically' : ActorMethod<
     [string],
@@ -242,6 +252,10 @@ export interface _SERVICE {
   'getAdminLinks' : ActorMethod<[], Array<AdminLink>>,
   'getAdminsAsAdmin' : ActorMethod<[], Array<string>>,
   'getAllClips' : ActorMethod<[string], Array<VideoClip>>,
+  'getAllFastestLeaderboardEntries' : ActorMethod<
+    [],
+    Array<FastestGameLeaderboardEntry>
+  >,
   'getAllUserRoles' : ActorMethod<[], Array<[Principal, UserRole]>>,
   'getCallerUserProfile' : ActorMethod<[], [] | [UserProfile]>,
   'getCallerUserRole' : ActorMethod<[], UserRole__1>,
@@ -250,6 +264,10 @@ export interface _SERVICE {
   'getCollabListings' : ActorMethod<[], Array<CollabListing>>,
   'getContentEntries' : ActorMethod<[], Array<ContentEntry>>,
   'getCreatorReports' : ActorMethod<[], Array<CreatorReport>>,
+  'getFastestGameLeaderboard' : ActorMethod<
+    [],
+    Array<FastestGameLeaderboardEntry>
+  >,
   'getFeedbackSubmissions' : ActorMethod<[], Array<FeedbackSubmission>>,
   'getMintedClips' : ActorMethod<[], Array<MintedClip>>,
   'getMyMessages' : ActorMethod<[string], Array<AdminMessage>>,
@@ -260,6 +278,10 @@ export interface _SERVICE {
   'getTotalClipsCount' : ActorMethod<[], bigint>,
   'getTrendingClips' : ActorMethod<[], Array<VideoClip>>,
   'getTrendingClipsAnalytics' : ActorMethod<[], Array<TrendingClipAnalytics>>,
+  'getUserLeaderboardScores' : ActorMethod<
+    [],
+    Array<FastestGameLeaderboardEntry>
+  >,
   'getUserMessages' : ActorMethod<[string], Array<AdminMessage>>,
   'getUserProfile' : ActorMethod<[Principal], [] | [UserProfile]>,
   'getVideosPerHour' : ActorMethod<[], Array<VideoUploadStats>>,
@@ -284,7 +306,9 @@ export interface _SERVICE {
   'serverShutdownAction' : ActorMethod<[], SystemControlResult>,
   'setUserRole' : ActorMethod<[Principal, UserRole], undefined>,
   'storeGoogleOAuthCredentials' : ActorMethod<[string, string], undefined>,
+  'submitFastestGameScore' : ActorMethod<[string, bigint], string>,
   'submitFeedback' : ActorMethod<[SubmissionType, string, string], bigint>,
+  'toggleLeaderboardFlagStatus' : ActorMethod<[string, boolean], undefined>,
   'togglePauseSystem' : ActorMethod<[], SystemControlResult>,
   'transform' : ActorMethod<[TransformationInput], TransformationOutput>,
   'updateAdminLink' : ActorMethod<[bigint, string], undefined>,

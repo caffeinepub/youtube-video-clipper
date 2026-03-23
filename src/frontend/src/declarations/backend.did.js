@@ -60,6 +60,14 @@ export const VideoClip = IDL.Record({
   'score' : IDL.Float64,
   'videoUrl' : IDL.Text,
 });
+export const FastestGameLeaderboardEntry = IDL.Record({
+  'username' : IDL.Text,
+  'userId' : IDL.Principal,
+  'fastestTime' : IDL.Nat,
+  'entryId' : IDL.Text,
+  'timestamp' : Time,
+  'isFlagged' : IDL.Bool,
+});
 export const UserRole = IDL.Variant({
   'admin' : IDL.Null,
   'owner' : IDL.Null,
@@ -252,6 +260,7 @@ export const idlService = IDL.Service({
     ),
   'addScheduledUpload' : IDL.Func([IDL.Text, Time], [IDL.Text], []),
   'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
+  'clearGameLeaderboard' : IDL.Func([IDL.Principal], [], []),
   'connectYouTubeChannel' : IDL.Func(
       [IDL.Text, IDL.Text, IDL.Text, IDL.Text, Time],
       [],
@@ -265,6 +274,7 @@ export const idlService = IDL.Service({
   'deleteContentEntry' : IDL.Func([IDL.Text], [], []),
   'deleteFeedbackSubmission' : IDL.Func([IDL.Nat], [], []),
   'deleteScheduledUpload' : IDL.Func([IDL.Text], [], []),
+  'editLeaderboardScore' : IDL.Func([IDL.Text, IDL.Nat], [], []),
   'findRelatedClips' : IDL.Func([IDL.Text], [IDL.Vec(IDL.Text)], ['query']),
   'generateClipsAutomatically' : IDL.Func(
       [IDL.Text],
@@ -280,6 +290,11 @@ export const idlService = IDL.Service({
   'getAdminLinks' : IDL.Func([], [IDL.Vec(AdminLink)], ['query']),
   'getAdminsAsAdmin' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
   'getAllClips' : IDL.Func([IDL.Text], [IDL.Vec(VideoClip)], ['query']),
+  'getAllFastestLeaderboardEntries' : IDL.Func(
+      [],
+      [IDL.Vec(FastestGameLeaderboardEntry)],
+      ['query'],
+    ),
   'getAllUserRoles' : IDL.Func(
       [],
       [IDL.Vec(IDL.Tuple(IDL.Principal, UserRole))],
@@ -292,6 +307,11 @@ export const idlService = IDL.Service({
   'getCollabListings' : IDL.Func([], [IDL.Vec(CollabListing)], ['query']),
   'getContentEntries' : IDL.Func([], [IDL.Vec(ContentEntry)], ['query']),
   'getCreatorReports' : IDL.Func([], [IDL.Vec(CreatorReport)], ['query']),
+  'getFastestGameLeaderboard' : IDL.Func(
+      [],
+      [IDL.Vec(FastestGameLeaderboardEntry)],
+      ['query'],
+    ),
   'getFeedbackSubmissions' : IDL.Func(
       [],
       [IDL.Vec(FeedbackSubmission)],
@@ -308,6 +328,11 @@ export const idlService = IDL.Service({
   'getTrendingClipsAnalytics' : IDL.Func(
       [],
       [IDL.Vec(TrendingClipAnalytics)],
+      ['query'],
+    ),
+  'getUserLeaderboardScores' : IDL.Func(
+      [],
+      [IDL.Vec(FastestGameLeaderboardEntry)],
       ['query'],
     ),
   'getUserMessages' : IDL.Func([IDL.Text], [IDL.Vec(AdminMessage)], ['query']),
@@ -351,11 +376,13 @@ export const idlService = IDL.Service({
   'serverShutdownAction' : IDL.Func([], [SystemControlResult], []),
   'setUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
   'storeGoogleOAuthCredentials' : IDL.Func([IDL.Text, IDL.Text], [], []),
+  'submitFastestGameScore' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Text], []),
   'submitFeedback' : IDL.Func(
       [SubmissionType, IDL.Text, IDL.Text],
       [IDL.Nat],
       [],
     ),
+  'toggleLeaderboardFlagStatus' : IDL.Func([IDL.Text, IDL.Bool], [], []),
   'togglePauseSystem' : IDL.Func([], [SystemControlResult], []),
   'transform' : IDL.Func(
       [TransformationInput],
@@ -422,6 +449,14 @@ export const idlFactory = ({ IDL }) => {
     'createdAt' : Time,
     'score' : IDL.Float64,
     'videoUrl' : IDL.Text,
+  });
+  const FastestGameLeaderboardEntry = IDL.Record({
+    'username' : IDL.Text,
+    'userId' : IDL.Principal,
+    'fastestTime' : IDL.Nat,
+    'entryId' : IDL.Text,
+    'timestamp' : Time,
+    'isFlagged' : IDL.Bool,
   });
   const UserRole = IDL.Variant({
     'admin' : IDL.Null,
@@ -609,6 +644,7 @@ export const idlFactory = ({ IDL }) => {
       ),
     'addScheduledUpload' : IDL.Func([IDL.Text, Time], [IDL.Text], []),
     'assignCallerUserRole' : IDL.Func([IDL.Principal, UserRole__1], [], []),
+    'clearGameLeaderboard' : IDL.Func([IDL.Principal], [], []),
     'connectYouTubeChannel' : IDL.Func(
         [IDL.Text, IDL.Text, IDL.Text, IDL.Text, Time],
         [],
@@ -622,6 +658,7 @@ export const idlFactory = ({ IDL }) => {
     'deleteContentEntry' : IDL.Func([IDL.Text], [], []),
     'deleteFeedbackSubmission' : IDL.Func([IDL.Nat], [], []),
     'deleteScheduledUpload' : IDL.Func([IDL.Text], [], []),
+    'editLeaderboardScore' : IDL.Func([IDL.Text, IDL.Nat], [], []),
     'findRelatedClips' : IDL.Func([IDL.Text], [IDL.Vec(IDL.Text)], ['query']),
     'generateClipsAutomatically' : IDL.Func(
         [IDL.Text],
@@ -637,6 +674,11 @@ export const idlFactory = ({ IDL }) => {
     'getAdminLinks' : IDL.Func([], [IDL.Vec(AdminLink)], ['query']),
     'getAdminsAsAdmin' : IDL.Func([], [IDL.Vec(IDL.Text)], ['query']),
     'getAllClips' : IDL.Func([IDL.Text], [IDL.Vec(VideoClip)], ['query']),
+    'getAllFastestLeaderboardEntries' : IDL.Func(
+        [],
+        [IDL.Vec(FastestGameLeaderboardEntry)],
+        ['query'],
+      ),
     'getAllUserRoles' : IDL.Func(
         [],
         [IDL.Vec(IDL.Tuple(IDL.Principal, UserRole))],
@@ -649,6 +691,11 @@ export const idlFactory = ({ IDL }) => {
     'getCollabListings' : IDL.Func([], [IDL.Vec(CollabListing)], ['query']),
     'getContentEntries' : IDL.Func([], [IDL.Vec(ContentEntry)], ['query']),
     'getCreatorReports' : IDL.Func([], [IDL.Vec(CreatorReport)], ['query']),
+    'getFastestGameLeaderboard' : IDL.Func(
+        [],
+        [IDL.Vec(FastestGameLeaderboardEntry)],
+        ['query'],
+      ),
     'getFeedbackSubmissions' : IDL.Func(
         [],
         [IDL.Vec(FeedbackSubmission)],
@@ -669,6 +716,11 @@ export const idlFactory = ({ IDL }) => {
     'getTrendingClipsAnalytics' : IDL.Func(
         [],
         [IDL.Vec(TrendingClipAnalytics)],
+        ['query'],
+      ),
+    'getUserLeaderboardScores' : IDL.Func(
+        [],
+        [IDL.Vec(FastestGameLeaderboardEntry)],
         ['query'],
       ),
     'getUserMessages' : IDL.Func(
@@ -716,11 +768,13 @@ export const idlFactory = ({ IDL }) => {
     'serverShutdownAction' : IDL.Func([], [SystemControlResult], []),
     'setUserRole' : IDL.Func([IDL.Principal, UserRole], [], []),
     'storeGoogleOAuthCredentials' : IDL.Func([IDL.Text, IDL.Text], [], []),
+    'submitFastestGameScore' : IDL.Func([IDL.Text, IDL.Nat], [IDL.Text], []),
     'submitFeedback' : IDL.Func(
         [SubmissionType, IDL.Text, IDL.Text],
         [IDL.Nat],
         [],
       ),
+    'toggleLeaderboardFlagStatus' : IDL.Func([IDL.Text, IDL.Bool], [], []),
     'togglePauseSystem' : IDL.Func([], [SystemControlResult], []),
     'transform' : IDL.Func(
         [TransformationInput],

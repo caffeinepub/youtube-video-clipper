@@ -14,9 +14,10 @@ import AccessControl "authorization/access-control";
 import MixinAuthorization "authorization/MixinAuthorization";
 import MixinStorage "blob-storage/Mixin";
 import Storage "blob-storage/Storage";
+import Migration "migration";
 
-
-
+// Enable data migration for new backend
+(with migration = Migration.run)
 actor {
   // Authorization state and mixin
   let accessControlState = AccessControl.initState();
@@ -54,6 +55,137 @@ actor {
   };
 
   let creatorReports = Map.empty<Text, CreatorReport>();
+
+  // ================== Beast Clipping Additions =========================
+
+  type FastestGameLeaderboardEntry = {
+    entryId : Text;
+    username : Text;
+    fastestTime : Nat;
+    timestamp : Time.Time;
+    isFlagged : Bool;
+    userId : Principal;
+  };
+
+  let fastestGameEntries = Map.empty<Principal, List.List<FastestGameLeaderboardEntry>>();
+
+  func convertListToArrayAndReset<T>(
+    entries : List.List<T>,
+    clear : Bool,
+  ) : [T] {
+    let result = Array.tabulate(entries.size(), func(i) { entries.at(i) }).toVarArray();
+    if (clear) {
+      entries.clear();
+    };
+    if (result.size() > 50) {
+      result.sliceToArray(0, 50);
+    } else {
+      result.toArray();
+    };
+  };
+
+  public shared ({ caller }) func submitFastestGameScore(username : Text, fastestTime : Nat) : async Text {
+    let entryId = username.concat(Time.now().toText());
+    let entry : FastestGameLeaderboardEntry = {
+      entryId;
+      username;
+      fastestTime;
+      timestamp = Time.now();
+      isFlagged = false;
+      userId = caller;
+    };
+    let existingEntries = switch (fastestGameEntries.get(caller)) {
+      case (?list) { list };
+      case (null) { List.empty<FastestGameLeaderboardEntry>() };
+    };
+    existingEntries.add(entry);
+    fastestGameEntries.add(caller, existingEntries);
+    entryId;
+  };
+
+  public query ({ caller }) func getFastestGameLeaderboard() : async [FastestGameLeaderboardEntry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      Runtime.trap("Unauthorized: Only users can get the fastest game leaderboard");
+    };
+    let entries = List.empty<FastestGameLeaderboardEntry>();
+    for ((_, userEntries) in fastestGameEntries.entries()) {
+      for (userEntry in userEntries.values()) {
+        if (not userEntry.isFlagged) {
+          entries.add(userEntry);
+        };
+      };
+    };
+    entries.toVarArray<FastestGameLeaderboardEntry>().toArray();
+  };
+
+  public query ({ caller }) func getAllFastestLeaderboardEntries() : async [FastestGameLeaderboardEntry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admin can get all fastest game leaderboard entries");
+    };
+    let entries = List.empty<FastestGameLeaderboardEntry>();
+    for ((_, userEntries) in fastestGameEntries.entries()) {
+      entries.addAll(userEntries.values());
+    };
+    entries.toVarArray<FastestGameLeaderboardEntry>().toArray();
+  };
+
+  public shared ({ caller }) func toggleLeaderboardFlagStatus(
+    entryId : Text,
+    isFlagged : Bool,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admin can toggle leaderboard entry flag");
+    };
+    for ((userPrincipal, entries) in fastestGameEntries.entries()) {
+      let filtered = List.empty<FastestGameLeaderboardEntry>();
+      for (entry in entries.values()) {
+        if (entry.entryId == entryId) {
+          filtered.add({ entry with isFlagged });
+        } else {
+          filtered.add(entry);
+        };
+      };
+      fastestGameEntries.add(userPrincipal, filtered);
+    };
+  };
+
+  public shared ({ caller }) func editLeaderboardScore(
+    entryId : Text,
+    newFastestTime : Nat,
+  ) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admin can edit leaderboard entries");
+    };
+    for ((userPrincipal, entries) in fastestGameEntries.entries()) {
+      let filtered = List.empty<FastestGameLeaderboardEntry>();
+      for (entry in entries.values()) {
+        if (entry.entryId == entryId) {
+          filtered.add({ entry with fastestTime = newFastestTime });
+        } else {
+          filtered.add(entry);
+        };
+      };
+      fastestGameEntries.add(userPrincipal, filtered);
+    };
+  };
+  public shared ({ caller }) func clearGameLeaderboard(target : Principal) : async () {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #admin))) {
+      Runtime.trap("Unauthorized: Only admin can clear game leaderboards");
+    };
+    fastestGameEntries.remove(target);
+  };
+
+  public query ({ caller }) func getUserLeaderboardScores() : async [FastestGameLeaderboardEntry] {
+    if (not (AccessControl.hasPermission(accessControlState, caller, #user))) {
+      return [];
+    };
+    switch (fastestGameEntries.get(caller)) {
+      case (?entries) {
+        convertListToArrayAndReset(entries, false);
+      };
+      case (null) { [] };
+    };
+  };
 
   // ================== Creator Collab Finder Methods ====================
 
